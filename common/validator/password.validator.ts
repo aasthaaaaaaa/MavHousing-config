@@ -1,3 +1,5 @@
+// https://www.uta.edu/security/awareness/passwords.php
+
 export function validatePasswordSec(
     password: string,
     fname?: string,

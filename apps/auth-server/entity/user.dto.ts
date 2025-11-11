@@ -1,22 +1,25 @@
-import { IsEmail, IsNotEmpty, } from "class-validator"
-import {validatePasswordSec} from "../../../common/validator/password.validator"
-
-export class UserSignUp{
+import { IsEmail, IsNotEmpty, IsOptional,} from "class-validator"
+import { ValidatePassword } from "common/validator/validatePasswordSec.decorator"
+export class UserSignup{
 
     @IsNotEmpty()
     readonly fName:string
 
+    @IsOptional()
     readonly mName:string
 
     @IsNotEmpty()
-    readonly lname:string
+    readonly lName:string
     
     @IsEmail()
     @IsNotEmpty()
     readonly email:string
+
+    @IsNotEmpty()
+    readonly netId:string
     
     @IsNotEmpty()
-    @validatePasswordSec()
+    @ValidatePassword() // Custom Decorator that Validates based on UTA Password requirements
     readonly password:string
 
 }
