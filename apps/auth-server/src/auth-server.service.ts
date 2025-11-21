@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserSignup } from '../entity/userSignUp.dto';
 import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
-import { sampleUserCred } from './mock/sample_user_cred';
+import { sampleUserCred } from '../../mock/sample_user_cred';
 import bcrypt from 'node_modules/bcryptjs';
 
 @Injectable()
