@@ -1,5 +1,5 @@
 import { Column, Entity, Check, PrimaryColumn, Unique } from "typeorm";
-
+import { Role } from "apps/auth-server/DTO/role.enum";
 @Entity('users') // Maps this class to the 'users' table in PostgresSQL
 @Unique(['netId'])
 @Unique(['email'])
@@ -29,8 +29,12 @@ export class User{
     @Column({nullable:true})
     phone:string
 
-    @Column({nullable:false})
-    role: string;
+    @Column({
+        type: 'enum',
+        enum: Role,
+        default: Role.GUEST,
+      })
+    role: Role;
 
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at: Date;

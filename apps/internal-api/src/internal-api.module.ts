@@ -5,7 +5,6 @@ import { InternalApiService } from './internal-api.service';
 import { InternalApiResolver } from './internal-api.resolver';
 import { join } from 'path';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -25,7 +24,6 @@ import { UsersModule } from './users/users.module';
       entities: [join(__dirname, '**', '*.entity{.ts,.js}')],
       synchronize: true,
     }),
-    UsersModule,
   ],
   providers: [InternalApiService, InternalApiResolver],
 })

@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UserSignup } from '../entity/userSignUp.dto';
+import { UserSignup } from '../DTO/userSignUp.dto';
 import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
 import { sampleUserCred } from '../../mock/sample_user_cred';
@@ -50,15 +50,18 @@ export class AuthServerService {
   async signin(netId:string, password:string){
     const user = await this.findOne(netId);
     if(user){
-      if(user.password != password){
+      const isMatch = await bcrypt.compare(password, user.password)
+      if(!isMatch){
         throw new UnauthorizedException();
       }
       
       // Could add 10-digit UTA ID later... in the payload
-      const payload = {username: user.netId,
-        Role: user.role,
-        jti:randomUUID() // ensures unique token per login
-        }
+      // Normalize role to lowercase `role` to keep JWT shape consistent
+      const payload = {
+        username: user.netId,
+        role: user.role,
+        jti: randomUUID(), // ensures unique token per login
+      };
       return {
         access_token: await this.jwtService.signAsync(payload)
       }
@@ -66,20 +69,24 @@ export class AuthServerService {
   }
 
   // REMOVE LATER
-  async checkPassword(netId:string, password:string){
-    const userTemp = await this.findOne(netId)
-    console.log(userTemp)
-    if(userTemp){
-      const isMatch = await bcrypt.compare(password, userTemp.password)
-      if(isMatch){
-        console.log("bcrypt password check worked!")
-        return
-      }
-      else{
-      console.log("maybe wrong password?")
-      return
-      }
-    }
-    return "not found"
+  async checkRBACAdmin(){
+    console.log("Admin Role guard Passed");
+    return { message: 'Admin Role guard Passed' };
+  }
+  checkRBACStudent(){
+    console.log("Student Role guard Passed")
+    return { message: 'Student Role guard Passed' };
+  }
+  checkRBACFaculty(){
+    console.log("Faculty Role guard Passed")
+    return { message: 'Faculty Role guard Passed' };
+  }
+  checkRBACGuest(){
+    console.log("Guest Role guard Passed")
+    return { message: 'Guest Role guard Passed' };
+  }
+  checkRBACStaff(){
+    console.log("Staff Role guard passed")
+    return { message: 'Staff Role guard passed' };
   }
 }

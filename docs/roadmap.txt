@@ -1,0 +1,2 @@
+Make Users Table, for SignIn / SignUP Part 
+Make auth-server accessible

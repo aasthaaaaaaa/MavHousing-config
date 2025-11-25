@@ -1,4 +1,4 @@
-import { Role } from "apps/auth-server/entity/role.enum";
+import { Role } from "apps/auth-server/DTO/role.enum";
 
 export const sampleUserCred = [
   {

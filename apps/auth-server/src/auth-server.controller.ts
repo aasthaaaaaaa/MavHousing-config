@@ -1,9 +1,12 @@
 import { Body, Query, Controller, Get, Patch, Post, HttpCode, HttpStatus, UseGuards, Request} from '@nestjs/common';
 import { AuthServerService } from './auth-server.service';
-import { UserSignup } from '../entity/userSignUp.dto';
+import { UserSignup } from '../DTO/userSignUp.dto';
 import { ApiTags, ApiQuery, ApiOperation, ApiResponse, ApiBody, ApiHeader, ApiBearerAuth } from '@nestjs/swagger';
-import { UserSignIn } from '../entity/signin.dto';
+import { UserSignIn } from '../DTO/signin.dto';
 import { BaseAuthGuard } from './guards/baseauth.guard';
+import { RolesGuard } from './guards/RBAC/roles.guard';
+import { RoleRequired } from './guards/RBAC/roles.decorator';
+import { Role } from '../DTO/role.enum';
 
 @Controller("auth")
 export class AuthServerController {
@@ -82,11 +85,44 @@ export class AuthServerController {
     return req.user;
   }
 
-  @Get('check-bcrypt-password')
-  @ApiQuery({ name: 'password', required: true, type: String })
-  @ApiQuery({ name: 'netId', required: true, type: String })
-  checkPassword(@Query('netId') netId: string, 
-                @Query('password') password:string){
-    return this.authServerService.checkPassword(netId, password)
+  @Get('checkRBACAdmin')
+  @UseGuards(BaseAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @RoleRequired(Role.ADMIN)
+  checkRBACAdmin(){
+    return this.authServerService.checkRBACAdmin()
   }
+
+  @Get('checkRBACStudent')
+  @UseGuards(BaseAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @RoleRequired(Role.STUDENT)
+  checkRBACStudent(){
+    return this.authServerService.checkRBACStudent()
+  }
+
+  @Get('checkRBACFaculty')
+  @UseGuards(BaseAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @RoleRequired(Role.FACULTY)
+  checkRBACFaculty(){
+    return this.authServerService.checkRBACFaculty()
+  }
+
+  @Get('checkRBACGuest')
+  @UseGuards(BaseAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @RoleRequired(Role.GUEST)
+  checkRBACGuest(){
+    return this.authServerService.checkRBACGuest()
+  }
+
+  @Get('checkRBACStaff')
+  @UseGuards(BaseAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @RoleRequired(Role.STAFF)
+  checkRBACStaff(){
+    return this.authServerService.checkRBACStaff()
+  }
+
 }
