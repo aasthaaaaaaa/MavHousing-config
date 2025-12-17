@@ -2,3 +2,4 @@
 \dt for tables
 
 npx prisma studio
+npx prisma migrate dev --name add_maintenance_system

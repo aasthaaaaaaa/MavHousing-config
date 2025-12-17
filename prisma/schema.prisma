@@ -5,12 +5,15 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider   = "prisma-client-js"
+  output     = "../generated/prisma"
+  engineType = "binary"
+
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum Gender {
@@ -31,11 +34,79 @@ enum StudentStatus {
   RESIDENT
 }
 
+
 enum StaffPosition {
   MANAGEMENT
   RESIDENT_A
   DESK_A
   SECURITY
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum LeaseStatus {
+  DRAFT
+  PENDING_SIGNATURE
+  SIGNED
+  ACTIVE
+  COMPLETED
+  TERMINATED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_TRANSFER
+  CHECK
+  CASH
+}
+
+enum LeaseType {
+  BY_UNIT    // Multiple people in one unit, one lease holder + occupants
+  BY_ROOM    // Multiple people in one room, one lease holder + roommates
+  BY_BED     // Individual bed assignment, single lease holder
+}
+
+enum PropertyType {
+  RESIDENCE_HALL
+  APARTMENT
+}
+
+enum OccupantType {
+  LEASE_HOLDER
+  OCCUPANT
+  ROOMMATE
+}
+
+enum MaintenanceCategory {
+  PLUMBING
+  HVAC
+  ELECTRICAL
+  INTERNET
+  APPLIANCE
+  STRUCTURAL
+  OTHER
+}
+
+enum MaintenanceStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum MaintenancePriority {
+  LOW
+  MEDIUM
+  HIGH
+  EMERGENCY
 }
 
 model User {
@@ -57,6 +128,12 @@ model User {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
+  applications        Application[]
+  leases              Lease[]
+  occupancies         Occupant[] @relation("Occupants")
+  maintenanceCreated  MaintenanceRequest[] @relation("MaintenanceCreatedBy")
+  maintenanceAssigned MaintenanceRequest[] @relation("MaintenanceAssignedTo")
+
   @@map("users")
 }
 
@@ -65,15 +142,17 @@ model User {
 // ============================================
 
 model Property {
-  propertyId      Int       @id @default(autoincrement())
-  name            String    @db.VarChar(100)
+  propertyId      Int           @id @default(autoincrement())
+  name            String        @db.VarChar(100)
   address         String?
-  propertyType    String    @db.VarChar(50)  // 'DORM', 'APARTMENT'
-  phone           String?   @db.VarChar(20)
+  propertyType    PropertyType
+  leaseType       LeaseType              // BY_UNIT, BY_ROOM, or BY_BED
+  phone           String?       @db.VarChar(20)
   totalCapacity   Int?
-  createdAt       DateTime  @default(now())
+  createdAt       DateTime      @default(now())
 
   units           Unit[]
+  applicants      Application[] @relation("PreferredProperty")
 
   @@map("properties")
 }
@@ -83,12 +162,12 @@ model Unit {
   propertyId      Int
   unitNumber      String    @db.VarChar(10)
   floorLevel      Int?
-  genderPolicy    Boolean   @default(false)  // true = Single Gender, false = Coed
   requiresAdaAccess Boolean @default(false)
   maxOccupancy    Int?
 
   property        Property  @relation(fields: [propertyId], references: [propertyId], onDelete: Cascade)
   rooms           Room[]
+  leases          Lease[]
 
   @@map("units")
 }
@@ -100,6 +179,7 @@ model Room {
 
   unit            Unit      @relation(fields: [unitId], references: [unitId], onDelete: Cascade)
   beds            Bed[]
+  leases          Lease[]
 
   @@map("rooms")
 }
@@ -110,6 +190,117 @@ model Bed {
   bedLetter       String    @db.VarChar(5)  // "1", "2", "L", "R"
 
   room            Room      @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
+  leases          Lease[]
 
   @@map("beds")
+}
+
+// ============================================
+// APPLICATION & LEASING FLOW
+// ============================================
+
+model Application {
+  appId               Int       @id @default(autoincrement())
+  userId              Int
+  term                String    @db.VarChar(20)
+  status              ApplicationStatus @default(DRAFT)
+  preferredPropertyId Int?
+  submissionDate      DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  user                User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  preferredProperty   Property? @relation("PreferredProperty", fields: [preferredPropertyId], references: [propertyId])
+
+  // Prevent duplicate applications: one active application per user per term
+  @@unique([userId, term])
+  @@map("applications")
+}
+
+model Lease {
+  leaseId             Int       @id @default(autoincrement())
+  userId              Int                    // Primary lease holder
+  leaseType           LeaseType              // BY_UNIT, BY_ROOM, or BY_BED
+  
+  // Flexible assignment based on lease type
+  assignedUnitId      Int?
+  assignedRoomId      Int?
+  assignedBedId       Int?
+  
+  startDate           DateTime
+  endDate             DateTime
+  totalDue            Decimal   @db.Decimal(10, 2)
+  dueThisMonth        Decimal   @db.Decimal(10, 2)
+  status              LeaseStatus @default(SIGNED)
+  signedAt            DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  user                User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  unit                Unit?     @relation(fields: [assignedUnitId], references: [unitId], onDelete: SetNull)
+  room                Room?     @relation(fields: [assignedRoomId], references: [roomId], onDelete: SetNull)
+  bed                 Bed?      @relation(fields: [assignedBedId], references: [bedId], onDelete: SetNull)
+  
+  // Track all occupants for this lease
+  occupants           Occupant[]
+  payments            Payment[]
+  maintenanceRequests MaintenanceRequest[]
+
+  @@map("leases")
+}
+
+model Occupant {
+  occupantId          Int       @id @default(autoincrement())
+  leaseId             Int
+  userId              Int
+  occupantType        OccupantType            // LEASE_HOLDER, OCCUPANT, or ROOMMATE
+  moveInDate          DateTime?
+  moveOutDate         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  lease               Lease     @relation(fields: [leaseId], references: [leaseId], onDelete: Cascade)
+  user                User      @relation("Occupants", fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("occupants")
+}
+
+model Payment {
+  paymentId           Int       @id @default(autoincrement())
+  leaseId             Int
+  amountPaid          Decimal   @db.Decimal(10, 2)
+  method              PaymentMethod
+  transactionDate     DateTime  @default(now())
+  isSuccessful        Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+
+  lease               Lease     @relation(fields: [leaseId], references: [leaseId], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+// ============================================
+// MAINTENANCE TICKETS
+// ============================================
+
+model MaintenanceRequest {
+  requestId           Int       @id @default(autoincrement())
+  leaseId             Int                       // Ticket tied to a specific lease/unit
+  createdByUserId     Int                       // Who reported the issue
+  assignedStaffId     Int?                      // Staff member fixing it
+  
+  category            MaintenanceCategory      // plumbing, hvac, internet, etc.
+  description         String
+  status              MaintenanceStatus @default(OPEN)
+  priority            MaintenancePriority @default(MEDIUM)
+  
+  createdAt           DateTime  @default(now())
+  resolvedAt          DateTime?
+  updatedAt           DateTime  @updatedAt
+
+  lease               Lease     @relation(fields: [leaseId], references: [leaseId], onDelete: Cascade)
+  createdBy           User      @relation("MaintenanceCreatedBy", fields: [createdByUserId], references: [userId], onDelete: Cascade)
+  assignedStaff       User?     @relation("MaintenanceAssignedTo", fields: [assignedStaffId], references: [userId], onDelete: SetNull)
+
+  @@map("maintenance_requests")
 }
