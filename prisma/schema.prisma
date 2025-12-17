@@ -59,3 +59,57 @@ model User {
 
   @@map("users")
 }
+
+// ============================================
+// HOUSING STRUCTURE TABLES
+// ============================================
+
+model Property {
+  propertyId      Int       @id @default(autoincrement())
+  name            String    @db.VarChar(100)
+  address         String?
+  propertyType    String    @db.VarChar(50)  // 'DORM', 'APARTMENT'
+  phone           String?   @db.VarChar(20)
+  totalCapacity   Int?
+  createdAt       DateTime  @default(now())
+
+  units           Unit[]
+
+  @@map("properties")
+}
+
+model Unit {
+  unitId          Int       @id @default(autoincrement())
+  propertyId      Int
+  unitNumber      String    @db.VarChar(10)
+  floorLevel      Int?
+  genderPolicy    Boolean   @default(false)  // true = Single Gender, false = Coed
+  requiresAdaAccess Boolean @default(false)
+  maxOccupancy    Int?
+
+  property        Property  @relation(fields: [propertyId], references: [propertyId], onDelete: Cascade)
+  rooms           Room[]
+
+  @@map("units")
+}
+
+model Room {
+  roomId          Int       @id @default(autoincrement())
+  unitId          Int
+  roomLetter      String    @db.Char(1)  // "A", "B", "C"
+
+  unit            Unit      @relation(fields: [unitId], references: [unitId], onDelete: Cascade)
+  beds            Bed[]
+
+  @@map("rooms")
+}
+
+model Bed {
+  bedId           Int       @id @default(autoincrement())
+  roomId          Int
+  bedLetter       String    @db.VarChar(5)  // "1", "2", "L", "R"
+
+  room            Room      @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
+
+  @@map("beds")
+}

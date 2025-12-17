@@ -1,2 +1,4 @@
 \l to list databases
 \dt for tables
+
+npx prisma studio
