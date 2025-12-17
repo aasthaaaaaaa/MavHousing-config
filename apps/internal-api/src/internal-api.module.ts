@@ -15,17 +15,16 @@ import { CommsServerModule } from 'apps/comms-server/src/comms-server.module';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true, // required to generate schema in code-first
     }),
-    // TypeORM root configuration — reads from env with sensible defaults for local dev
-    // TypeOrmModule.forRoot({
-    //   type: 'postgres',
-    //   host: process.env.POSTGRES_HOST ?? 'localhost',
-    //   port: Number(process.env.POSTGRES_PORT) || 5432,
-    //   username: process.env.POSTGRES_USER ?? 'postgres',
-    //   password: process.env.POSTGRES_PASSWORD ?? 'postgres',
-    //   database: process.env.POSTGRES_DB ?? 'mavhousing',
-    //   entities: [join(__dirname, '**', '*.entity{.ts,.js}')],
-    //   synchronize: true,
-    // }),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.POSTGRES_HOST ?? 'localhost',
+      port: Number(process.env.POSTGRES_PORT) || 5432,
+      username: process.env.POSTGRES_USER ?? 'postgres',
+      password: process.env.POSTGRES_PASSWORD ?? 'postgres',
+      database: process.env.POSTGRES_DB ?? 'mavhousing',
+      entities: [join(__dirname, '**', '*.entity{.ts,.js}')],
+      synchronize: true,
+    }),
     AuthServerModule,
     CommsServerModule,
   ],

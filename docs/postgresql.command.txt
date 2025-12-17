@@ -1,0 +1,2 @@
+\l to list databases
+\dt for tables

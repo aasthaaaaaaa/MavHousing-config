@@ -49,7 +49,8 @@ export class EmailController {
             text: string;
             userDetails: { fName: string; lName: string; uname: string };
         }
-    ){
+    )
+    {
         return this.emailservice.welcomeUser(
             payload.reciever,
             payload.sender,

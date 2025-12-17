@@ -16,7 +16,7 @@ export class AuthServerController {
   getHealth(){
     return "Health OK!"
   }
-
+  
   @Post('create-new')
   @ApiOperation({summary:'Creates new user'})
   @ApiBody({
