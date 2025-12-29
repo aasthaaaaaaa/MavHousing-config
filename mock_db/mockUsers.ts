@@ -8,9 +8,8 @@ export const mockUsers = [
     utaId: '1001000001',
     netId: 'axjh03',
     fName: 'Aalok',
-    mName: 'Kumar',
     lName: 'Jha',
-    email: 'axjh03@uta.edu',
+    email: 'axj2203@uta.edu',
     phone: '817-555-0101',
     passwordHash: 'password123', // plain password for now
     dob: new Date('2003-05-15'),

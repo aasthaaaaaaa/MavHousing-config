@@ -1,5 +1,27 @@
 \l to list databases
 \dt for tables
+\du for listing users
 
 npx prisma studio
-npx prisma migrate dev --name add_maintenance_system
+npx prisma migrate dev --name ANY_NAME
+
+# Clear ts-node cache and generated files
+rm -rf node_modules/.cache generated
+
+# Regenerate
+npx prisma generate
+
+# Run seed
+npm run seed
+
+
+
+
+... FOR NEW Users
+First Install PostgreSQL
+setup superuser
+generate
+migrate
+seed 
+
+THAT's it... local data should be loaded from mock in your localdb instance..
