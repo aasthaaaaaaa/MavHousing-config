@@ -2,7 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserSignup } from '../DTO/userSignUp.dto';
 import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
-import { sampleUserCred } from '../../mock/sample_user_cred';
 import bcrypt from 'node_modules/bcryptjs';
 
 @Injectable()
@@ -23,13 +22,6 @@ export class AuthServerService {
     this.userdb.push(user)
     console.log(user)
     return true
-  }
-
-  async loadMockUserCred(){
-    for(const user of sampleUserCred){
-        user.password = await bcrypt.hash(user.password, 10)
-        this.userdb.push(user)
-    }
   }
 
   // READ

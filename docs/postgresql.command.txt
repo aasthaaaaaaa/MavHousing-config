@@ -25,3 +25,7 @@ migrate
 seed 
 
 THAT's it... local data should be loaded from mock in your localdb instance..
+
+
+
+Now how

@@ -50,11 +50,6 @@ export class AuthServerController {
     return this.authServerService.getAllUser()
   }
 
-  @Patch('load-mock-data')
-  @ApiOperation({summary:'Loads Mockup User Credentials'})
-  loadMockUserCred(){
-    return this.authServerService.loadMockUserCred()
-  }
 
   @Get('find-user')
   @ApiOperation({summary:"Searches if a user is there or not"})

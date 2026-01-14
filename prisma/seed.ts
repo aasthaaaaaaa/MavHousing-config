@@ -9,6 +9,7 @@ import { mockLeases } from '../mock_db/mockLeasing';
 import { mockOccupants } from '../mock_db/mockLeasing';
 import { mockPayments } from '../mock_db/mockLeasing';
 import { mockMaintenanceRequests } from '../mock_db/mockLeasing';
+import * as bcrypt from 'bcryptjs';
 
 import 'dotenv/config';
 
@@ -38,7 +39,15 @@ async function main() {
     // 1. Create Users
     console.log('👥 Creating users (7 students + 5 staff + 1 admin)...');
     const users = await Promise.all(
-      mockUsers.map((user) => prisma.user.create({ data: user }))
+      mockUsers.map(async (user) => {
+        const hashedPassword = await bcrypt.hash(user.passwordHash, 10);
+        return prisma.user.create({
+          data: {
+            ...user,
+            passwordHash: hashedPassword,
+          },
+        });
+      })
     );
     console.log(
       `   ✅ Created ${users.length} users\n`
