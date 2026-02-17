@@ -7,6 +7,7 @@ import { join } from 'path';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthServerModule } from 'apps/auth-server/src/auth-server.module';
 import { CommsServerModule } from 'apps/comms-server/src/comms-server.module';
+import { ApplicationModule } from './application/application.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { CommsServerModule } from 'apps/comms-server/src/comms-server.module';
     }),
     AuthServerModule,
     CommsServerModule,
+    ApplicationModule,
   ],
   providers: [InternalApiService, InternalApiResolver],
 })

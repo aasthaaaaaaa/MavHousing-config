@@ -91,14 +91,25 @@ export class AuthServerService {
 
   // READ
   async getAllUser() {
-    return this.prisma.user.findMany();
+    const users = await this.prisma.user.findMany();
+    // BigInt cannot be serialized by JSON.stringify, so convert phone to string
+    return users.map((user) => ({
+      ...user,
+      phone: user.phone !== null ? user.phone.toString() : null,
+    }));
   }
 
   // SEARCH
   async findOne(netId: string) {
-    return this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { netId },
     });
+    if (!user) return null;
+    // BigInt cannot be serialized by JSON.stringify, so convert phone to string
+    return {
+      ...user,
+      phone: user.phone !== null ? user.phone.toString() : null,
+    };
   }
 
   // AUTH STUFF

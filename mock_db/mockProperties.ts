@@ -9,7 +9,7 @@ export const mockProperties = [
     address: '701 W Mitchell St, Arlington, TX 76010',
     propertyType: PropertyType.RESIDENCE_HALL,
     leaseType: LeaseType.BY_UNIT,
-    phone: '817-272-2000',
+    phone: 8172722000,
     totalCapacity: 200,
   },
   {
@@ -17,7 +17,7 @@ export const mockProperties = [
     address: '705 W Mitchell St, Arlington, TX 76010',
     propertyType: PropertyType.RESIDENCE_HALL,
     leaseType: LeaseType.BY_UNIT,
-    phone: '817-272-2001',
+    phone: 8172722001,
     totalCapacity: 180,
   },
 
@@ -29,7 +29,7 @@ export const mockProperties = [
     address: '300 Pecan St, Arlington, TX 76010',
     propertyType: PropertyType.APARTMENT,
     leaseType: LeaseType.BY_ROOM,
-    phone: '817-272-4000',
+    phone: 8172724000,
     totalCapacity: 150,
   },
   {
@@ -37,7 +37,7 @@ export const mockProperties = [
     address: '305 Pecan St, Arlington, TX 76010',
     propertyType: PropertyType.APARTMENT,
     leaseType: LeaseType.BY_ROOM,
-    phone: '817-272-4001',
+    phone: 8172724001,
     totalCapacity: 140,
   },
 
@@ -49,7 +49,7 @@ export const mockProperties = [
     address: '450 S Center St, Arlington, TX 76010',
     propertyType: PropertyType.APARTMENT,
     leaseType: LeaseType.BY_BED,
-    phone: '817-272-3000',
+    phone: 8172723000,
     totalCapacity: 150,
   },
   {
@@ -57,7 +57,7 @@ export const mockProperties = [
     address: '455 S Center St, Arlington, TX 76010',
     propertyType: PropertyType.APARTMENT,
     leaseType: LeaseType.BY_BED,
-    phone: '817-272-3001',
+    phone: 8172723001,
     totalCapacity: 160,
   },
 
@@ -69,7 +69,7 @@ export const mockProperties = [
     address: '500 S Oak St, Arlington, TX 76010',
     propertyType: PropertyType.RESIDENCE_HALL,
     leaseType: LeaseType.BY_BED,
-    phone: '817-272-5000',
+    phone: 8172725000,
     totalCapacity: 200,
   },
 ];

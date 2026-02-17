@@ -33,6 +33,12 @@
       ],
       "@libs/common/*": [
         "libs/common/src/*"
+      ],
+      "@mav-housing/prisma": [
+        "generated/prisma"
+      ],
+      "@mav-housing/prisma/*": [
+        "generated/prisma/*"
       ]
     }
   }

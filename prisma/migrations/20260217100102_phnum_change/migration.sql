@@ -46,7 +46,7 @@ CREATE TABLE "users" (
     "mName" VARCHAR(50),
     "lName" VARCHAR(50) NOT NULL,
     "email" VARCHAR(100) NOT NULL,
-    "phone" VARCHAR(15),
+    "phone" BIGINT,
     "dob" TIMESTAMP(3),
     "gender" "Gender",
     "passwordHash" VARCHAR(255) NOT NULL,
@@ -67,7 +67,7 @@ CREATE TABLE "properties" (
     "address" TEXT,
     "propertyType" "PropertyType" NOT NULL,
     "leaseType" "LeaseType" NOT NULL,
-    "phone" VARCHAR(20),
+    "phone" BIGINT,
     "totalCapacity" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

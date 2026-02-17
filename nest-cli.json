@@ -45,15 +45,6 @@
       "compilerOptions": {
         "tsConfigPath": "apps/mav-housing-config/tsconfig.app.json"
       }
-    },
-    "public-api": {
-      "type": "application",
-      "root": "apps/public-api",
-      "entryFile": "main",
-      "sourceRoot": "apps/public-api/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/public-api/tsconfig.app.json"
-      }
     }
   }
 }
