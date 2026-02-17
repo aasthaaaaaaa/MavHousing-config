@@ -1,4 +1,4 @@
-import { Body, Query, Controller, Get, Patch, Post, HttpCode, HttpStatus, UseGuards, Request} from '@nestjs/common';
+import { Body, Query, Controller, Get, Delete, Patch, Param, Post, HttpCode, HttpStatus, UseGuards, Request} from '@nestjs/common';
 import { AuthServerService } from './auth-server.service';
 import { UserSignup } from '../DTO/userSignUp.dto';
 import { ApiTags, ApiQuery, ApiOperation, ApiResponse, ApiBody, ApiHeader, ApiBearerAuth } from '@nestjs/swagger';
@@ -45,8 +45,33 @@ export class AuthServerController {
     
   }
 
+  @Get('users')
+  @UseGuards(BaseAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @RoleRequired(Role.ADMIN)
+  @ApiOperation({ summary: 'Get all users (Admin only)' })
+  getAllUsers() {
+    const users = this.authServerService.getAllUser();
+    // Return users without password hash
+    return users.map(({ password, ...user }) => user);
+  }
+
+  @Delete('users/:netId')
+  @UseGuards(BaseAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @RoleRequired(Role.ADMIN)
+  @ApiOperation({ summary: 'Delete user by NetID (Admin only)' })
+  deleteUser(@Param('netId') netId: string) {
+    const deleted = this.authServerService.remove(netId);
+    if (deleted) {
+      return { message: `User ${netId} deleted successfully` };
+    }
+    return { message: `User ${netId} not found` };
+  }
+
+  // Deprecated unsecured endpoint
   @Get('get-all')
-  getAllUser(){
+  getAllUserUnsecured(){
     return this.authServerService.getAllUser()
   }
 

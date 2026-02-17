@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/avatar"
 import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user, logout } = useAuth();
@@ -74,7 +75,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ],
     admin: [
       { title: "Dashboard", url: "/admin", icon: Home },
-      { title: "User Management", url: "#", icon: Users },
+      { title: "User Management", url: "/admin/users", icon: Users },
       { title: "System Logs", url: "#", icon: FileText },
       { title: "Settings", url: "#", icon: Settings2 },
     ]
@@ -110,10 +111,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild tooltip={item.title}>
-                    <a href={item.url}>
+                    <Link href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

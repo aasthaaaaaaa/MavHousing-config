@@ -59,6 +59,15 @@ export class AuthServerService {
   // UPDATE
 
   // DELETE
+  remove(netId: string): boolean {
+    const initialLength = this.userdb.length;
+    this.userdb = this.userdb.filter(user => user.netId !== netId);
+    if (this.userdb.length !== initialLength) {
+      this.saveUsers();
+      return true;
+    }
+    return false;
+  }
 
   // SEARCH
   async findOne(username:string):Promise<UserSignup | undefined>{

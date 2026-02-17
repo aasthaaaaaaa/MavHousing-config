@@ -7,7 +7,7 @@ import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 import { authApi, setAuthToken } from '../lib/api';
 
-interface User {
+export interface User {
   username: string;
   role: string;
   // fName and userId are not in current JWT payload
