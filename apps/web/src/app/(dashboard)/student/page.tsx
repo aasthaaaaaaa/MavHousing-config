@@ -2,6 +2,7 @@
 'use client';
 
 import { useAuth } from '../../../context/AuthContext';
+import Link from 'next/link';
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -15,9 +16,11 @@ export default function StudentDashboard() {
                  <h2 className="text-xl font-semibold mb-4">Lease Status</h2>
                 <p className="text-muted-foreground italic">No active lease found.</p>
             </div>
-            <button className="mt-4 w-full bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90">
-              Apply for Housing
-            </button>
+            <Link href="/student/application">
+              <button className="mt-4 w-full bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90">
+                Apply for Housing
+              </button>
+            </Link>
           </div>
 
           {/* Maintenance */}

@@ -64,13 +64,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navItems = {
     student: [
       { title: "Dashboard", url: "/student", icon: Home },
+      { title: "Apply for Housing", url: "/student/application", icon: FileText },
+      { title: "My Applications", url: "/student/my-applications", icon: FileText },
       { title: "My Lease", url: "#", icon: FileText },
       { title: "Maintenance", url: "#", icon: Wrench },
       { title: "Payments", url: "#", icon: CreditCard },
     ],
     staff: [
       { title: "Dashboard", url: "/staff", icon: Home },
-      { title: "Applications", url: "#", icon: FileText },
+      { title: "Applications", url: "/staff/applications", icon: FileText },
       { title: "Maintenance", url: "#", icon: Wrench },
       { title: "Occupancy", url: "#", icon: Users },
     ],

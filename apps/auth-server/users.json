@@ -22,5 +22,13 @@
     "netId": "adminone",
     "password": "$2b$10$U7yJb9OpVqFLYoEzH1VUB.7qtMURIzqKcaSQUEcpB7G4GcD2gVdiS",
     "role": "admin"
+  },
+  {
+    "fName": "Test",
+    "lName": "User",
+    "email": "testuser222@uta.edu",
+    "netId": "testuser222",
+    "password": "$2b$10$iX2fRTS4UgSu.HQ7hti8leF6y2UamA9eeNrTMDNKB8X3p9zJPBkfW",
+    "role": "student"
   }
 ]

@@ -202,4 +202,19 @@ export const mockUsers = [
     staffPosition: null,
     requiresAdaAccess: false,
   },
+  // Test User from users.json
+  {
+    utaId: '1001999999',
+    netId: 'axr0966',
+    fName: 'atiq',
+    lName: 'rahman',
+    email: 'axr0966@mavs.uta.edu',
+    phone: '817-555-9999',
+    passwordHash: 'P@ssw0rd123',
+    dob: new Date('2000-01-01'),
+    gender: Gender.MALE,
+    role: UserRole.STUDENT,
+    studentStatus: StudentStatus.RESIDENT,
+    requiresAdaAccess: false,
+  }
 ];

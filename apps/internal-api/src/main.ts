@@ -1,8 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { InternalApiModule } from './internal-api.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+
 async function bootstrap() {
   const app = await NestFactory.create(InternalApiModule);
+
+  // Enable CORS for frontend
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  });
 
   const config = new DocumentBuilder()
   .setTitle("Internal-API for MavHousing")

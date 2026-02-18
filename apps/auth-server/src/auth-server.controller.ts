@@ -51,8 +51,8 @@ export class AuthServerController {
   @ApiBearerAuth()
   @RoleRequired(Role.ADMIN)
   @ApiOperation({ summary: 'Get all users (Admin only)' })
-  getAllUsers() {
-    const users = this.authServerService.getAllUser();
+  async getAllUsers() {
+    const users = await this.authServerService.getAllUser();
     // Return users without password hash
     return users.map(({ password, ...user }) => user);
   }
@@ -63,8 +63,8 @@ export class AuthServerController {
   @RoleRequired(Role.ADMIN)
   @ApiOperation({ summary: 'Update user by NetID (Admin only)' })
   @ApiBody({ type: UpdateUserDto })
-  updateUser(@Param('netId') netId: string, @Body() updates: UpdateUserDto) {
-    const updated = this.authServerService.updateUser(netId, updates);
+  async updateUser(@Param('netId') netId: string, @Body() updates: UpdateUserDto) {
+    const updated = await this.authServerService.updateUser(netId, updates);
     if (updated) {
       return { message: `User ${netId} updated successfully` };
     }
@@ -76,8 +76,8 @@ export class AuthServerController {
   @ApiBearerAuth()
   @RoleRequired(Role.ADMIN)
   @ApiOperation({ summary: 'Delete user by NetID (Admin only)' })
-  deleteUser(@Param('netId') netId: string) {
-    const deleted = this.authServerService.remove(netId);
+  async deleteUser(@Param('netId') netId: string) {
+    const deleted = await this.authServerService.remove(netId);
     if (deleted) {
       return { message: `User ${netId} deleted successfully` };
     }

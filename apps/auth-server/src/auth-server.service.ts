@@ -3,110 +3,146 @@ import { UserSignup } from '../DTO/userSignUp.dto';
 import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
 import * as bcrypt from 'bcryptjs';
-import * as fs from 'fs';
-import * as path from 'path';
+import { PrismaService } from '@common/prisma/prisma.service';
 
 @Injectable()
 export class AuthServerService {
-  // Creating instance of JWT Service
-  constructor(private jwtService:JwtService){
-    this.loadUsers();
-  }
-
-  private userdb : UserSignup[] = []
-  private readonly dbPath = path.resolve('apps/auth-server/users.json');
-
-  private loadUsers() {
-    try {
-      if (fs.existsSync(this.dbPath)) {
-        const data = fs.readFileSync(this.dbPath, 'utf8');
-        this.userdb = JSON.parse(data);
-        console.log(`Loaded ${this.userdb.length} users from ${this.dbPath}`);
-      }
-    } catch (error) {
-      console.error('Error loading users:', error);
-    }
-  }
-
-  private saveUsers() {
-    try {
-      fs.writeFileSync(this.dbPath, JSON.stringify(this.userdb, null, 2));
-    } catch (error) {
-      console.error('Error saving users:', error);
-    }
-  }
+  constructor(
+    private jwtService: JwtService,
+    private prisma: PrismaService,
+  ) {}
 
   // CREATE
-  async createUser(user:UserSignup):Promise<boolean>{
-    if(await this.findOne(user.netId)){
-      return false
+  async createUser(user: UserSignup): Promise<boolean> {
+    const existing = await this.findOne(user.netId);
+    if (existing) {
+      return false;
     }
 
-    // Hash the password with 10 rounds of salting and replace plain text password with hash
+    // Hash the password with 10 rounds of salting
     const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(user.password, salt)
-    this.userdb.push(user)
-    this.saveUsers();
-    console.log(`User created: ${user.netId}`)
-    return true
-  }
+    const hashedPassword = await bcrypt.hash(user.password, salt);
 
-  // READ
-  getAllUser(){
-    return this.userdb
-  }  
+    await this.prisma.user.create({
+      data: {
+        netId: user.netId,
+        fName: user.fName,
+        lName: user.lName,
+        email: user.email,
+        passwordHash: hashedPassword,
+        role: user.role.toUpperCase() as any, // Convert to enum
+        utaId: `1001${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`, // Generate temp UTA ID
+      },
+    });
 
-  // UPDATE
-  updateUser(netId: string, updates: any): boolean {
-    const userIndex = this.userdb.findIndex(u => u.netId === netId);
-    if (userIndex === -1) return false;
-
-    // Merge updates
-    const currentUser = this.userdb[userIndex];
-    this.userdb[userIndex] = { ...currentUser, ...updates };
-    
-    this.saveUsers();
-    console.log(`User updated: ${netId}`);
+    console.log(`User created: ${user.netId}`);
     return true;
   }
 
-  // DELETE
-  remove(netId: string): boolean {
-    const initialLength = this.userdb.length;
-    this.userdb = this.userdb.filter(user => user.netId !== netId);
-    if (this.userdb.length !== initialLength) {
-      this.saveUsers();
+  // READ
+  async getAllUser() {
+    const users = await this.prisma.user.findMany({
+      select: {
+        netId: true,
+        fName: true,
+        lName: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    // Map to match the expected format
+    return users.map(u => ({
+      netId: u.netId,
+      fName: u.fName,
+      lName: u.lName,
+      email: u.email,
+      role: u.role.toLowerCase(),
+      password: '', // Don't expose password
+    }));
+  }
+
+  // UPDATE
+  async updateUser(netId: string, updates: any): Promise<boolean> {
+    try {
+      await this.prisma.user.update({
+        where: { netId },
+        data: {
+          fName: updates.fName,
+          lName: updates.lName,
+          email: updates.email,
+          role: updates.role?.toUpperCase() as any,
+        },
+      });
+      console.log(`User updated: ${netId}`);
       return true;
+    } catch (error) {
+      return false;
     }
-    return false;
+  }
+
+  // DELETE
+  async remove(netId: string): Promise<boolean> {
+    try {
+      await this.prisma.user.delete({
+        where: { netId },
+      });
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   // SEARCH
-  async findOne(username:string):Promise<UserSignup | undefined>{
-    return this.userdb.find(user => user.netId === username)
+  async findOne(username: string): Promise<any | undefined> {
+    const user = await this.prisma.user.findUnique({
+      where: { netId: username },
+    });
+
+    if (!user) return undefined;
+
+    // Map to expected format
+    return {
+      netId: user.netId,
+      fName: user.fName,
+      lName: user.lName,
+      email: user.email,
+      role: user.role.toLowerCase(),
+      password: user.passwordHash, // For bcrypt comparison
+    };
   }
 
   // AUTH STUFF
-  async signin(netId:string, password:string){
+  async signin(netId: string, password: string) {
     const user = await this.findOne(netId);
-    if(user){
-      console.log(`Signin attempt for ${netId}. Stored hash: ${user.password}`);
-      const isMatch = await bcrypt.compare(password, user.password)
-      if(!isMatch){
-        console.log("Password mismatch");
+    if (user) {
+      console.log(`Signin attempt for ${netId}`);
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        console.log('Password mismatch');
         throw new UnauthorizedException('Invalid NetID or Password');
       }
-      
-      // Could add 10-digit UTA ID later... in the payload
-      // Normalize role to lowercase `role` to keep JWT shape consistent
+
+      // Get full user data from database
+      const fullUser = await this.prisma.user.findUnique({
+        where: { netId },
+      });
+
+      if (!fullUser) {
+        throw new UnauthorizedException('User data not found');
+      }
+
       const payload = {
         username: user.netId,
         role: user.role,
-        jti: randomUUID(), // ensures unique token per login
+        userId: fullUser.userId,
+        fName: fullUser.fName,
+        lName: fullUser.lName,
+        jti: randomUUID(),
       };
       return {
-        access_token: await this.jwtService.signAsync(payload)
-      }
+        access_token: await this.jwtService.signAsync(payload),
+      };
     } else {
       console.log(`Signin failed: User ${netId} not found`);
       throw new UnauthorizedException('Invalid NetID or Password');
@@ -114,24 +150,24 @@ export class AuthServerService {
   }
 
   // REMOVE LATER
-  async checkRBACAdmin(){
-    console.log("Admin Role guard Passed");
+  async checkRBACAdmin() {
+    console.log('Admin Role guard Passed');
     return { message: 'Admin Role guard Passed' };
   }
-  checkRBACStudent(){
-    console.log("Student Role guard Passed")
+  checkRBACStudent() {
+    console.log('Student Role guard Passed');
     return { message: 'Student Role guard Passed' };
   }
-  checkRBACFaculty(){
-    console.log("Faculty Role guard Passed")
+  checkRBACFaculty() {
+    console.log('Faculty Role guard Passed');
     return { message: 'Faculty Role guard Passed' };
   }
-  checkRBACGuest(){
-    console.log("Guest Role guard Passed")
+  checkRBACGuest() {
+    console.log('Guest Role guard Passed');
     return { message: 'Guest Role guard Passed' };
   }
-  checkRBACStaff(){
-    console.log("Staff Role guard passed")
+  checkRBACStaff() {
+    console.log('Staff Role guard passed');
     return { message: 'Staff Role guard passed' };
   }
 }

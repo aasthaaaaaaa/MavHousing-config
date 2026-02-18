@@ -10,8 +10,9 @@ import { authApi, setAuthToken } from '../lib/api';
 export interface User {
   username: string;
   role: string;
-  // fName and userId are not in current JWT payload
+  userId?: number;
   fName?: string;
+  lName?: string;
 }
 
 interface AuthContextType {
