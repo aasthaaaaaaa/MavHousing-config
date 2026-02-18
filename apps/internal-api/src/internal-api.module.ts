@@ -8,6 +8,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthServerModule } from 'apps/auth-server/src/auth-server.module';
 import { CommsServerModule } from 'apps/comms-server/src/comms-server.module';
 import { ApplicationModule } from './application/application.module';
+import { MaintenanceModule } from './maintenance/maintenance.module';
+import { LeaseModule } from './lease/lease.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { ApplicationModule } from './application/application.module';
     AuthServerModule,
     CommsServerModule,
     ApplicationModule,
+    MaintenanceModule,
+    LeaseModule,
   ],
   providers: [InternalApiService, InternalApiResolver],
 })
