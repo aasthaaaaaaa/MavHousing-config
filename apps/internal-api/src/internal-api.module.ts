@@ -9,6 +9,7 @@ import { AuthServerModule } from '../../auth-server/src/auth-server.module';
 import { CommsServerModule } from '../../comms-server/src/comms-server.module';
 import { PrismaModule } from '@common/prisma/prisma.module';
 import { HousingModule } from './housing/housing.module';
+import { LeaseModule } from './lease/lease.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { HousingModule } from './housing/housing.module';
     AuthServerModule,
     CommsServerModule,
     HousingModule,
+    LeaseModule,
   ],
   controllers: [InternalApiController],
   providers: [InternalApiService, InternalApiResolver],

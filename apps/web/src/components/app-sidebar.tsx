@@ -66,14 +66,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       { title: "Dashboard", url: "/student", icon: Home },
       { title: "Apply for Housing", url: "/student/application", icon: FileText },
       { title: "My Applications", url: "/student/my-applications", icon: FileText },
-      { title: "My Lease", url: "#", icon: FileText },
-      { title: "Maintenance", url: "#", icon: Wrench },
+      { title: "My Lease", url: "/student/my-lease", icon: FileText },
+      { title: "Maintenance", url: "/student/maintenance", icon: Wrench },
       { title: "Payments", url: "#", icon: CreditCard },
     ],
     staff: [
       { title: "Dashboard", url: "/staff", icon: Home },
       { title: "Applications", url: "/staff/applications", icon: FileText },
-      { title: "Maintenance", url: "#", icon: Wrench },
+      { title: "Leases", url: "/staff/leases", icon: FileText },
+      { title: "Maintenance", url: "/staff/maintenance", icon: Wrench },
       { title: "Occupancy", url: "#", icon: Users },
     ],
     admin: [
