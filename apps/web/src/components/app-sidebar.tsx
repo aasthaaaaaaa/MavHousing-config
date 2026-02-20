@@ -68,6 +68,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       { title: "My Applications", url: "/student/my-applications", icon: FileText },
       { title: "My Lease", url: "/student/my-lease", icon: FileText },
       { title: "Maintenance", url: "/student/maintenance", icon: Wrench },
+      { title: "My Requests", url: "/student/maintenance/my-requests", icon: Wrench },
       { title: "Payments", url: "#", icon: CreditCard },
     ],
     staff: [
