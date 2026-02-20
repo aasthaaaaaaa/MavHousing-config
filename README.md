@@ -1,77 +1,105 @@
 # MavHousing
 
-MavHousing is a comprehensive housing management platform designed for universities. It facilitates seamless interaction between students, housing staff, and administrators.
+A full-stack university housing management platform built for students, staff, and administrators. Handles the full lifecycle of student housing — from applications and lease management to maintenance requests and payments.
 
-## 🚀 Tech Stack
+## Tech Stack
 
--   **Frontend**: Next.js 15, TypeScript, TailwindCSS, **Shadcn UI**.
--   **Backend**: NestJS (Monorepo structure).
--   **Authentication**: Custom Auth Server with JWT and RBAC (Role-Based Access Control).
--   **Styling**: TailwindCSS with Shadcn components for a premium, accessible UI.
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 15, TypeScript, Shadcn UI, Tailwind CSS |
+| Backend | NestJS (monorepo with shared Prisma library) |
+| Database | PostgreSQL + Prisma ORM |
+| Auth | Custom JWT auth server with RBAC |
+| Communication | REST APIs between frontend and internal API |
 
-## ✨ Features
+## Architecture
 
--   **Authentication**: Secure Login and Signup flows.
-    -   **Password Policy**: Enforces strong passwords (min 10 chars, uppercase, lowercase, number, special char).
-    -   **User Persistence**: Users are stored locally in `users.json` (apps/auth-server).
--   **Role-Based Access**:
-    -   **Student**: Apply for housing, view lease, report maintenance.
-    -   **Staff**: Manage applications, view resident details.
-    -   **Admin**: System-wide configuration and user management.
--   **Modern UI**: Built with Shadcn UI for a consistent and professional look.
+The project is a **Turborepo monorepo** with three independent services:
 
-## 🛠️ Getting Started
+```
+apps/
+  web/              → Next.js frontend (port 3000)
+  auth-server/      → JWT authentication service (port 3007)
+  internal-api/     → Core business logic API (port 3009)
+packages/
+  common/
+    prisma/         → Shared Prisma client & schema
+```
+
+The frontend communicates directly with both `auth-server` (for login) and `internal-api` (for all data). Authentication uses JWT tokens containing `userId`, `role`, `fName`, and `lName`.
+
+## Features
+
+### 🎓 Student Portal (`/student`)
+- **Housing Application** — Multi-step wizard to apply for housing (room type, preferences, terms)
+- **My Applications** — Track application status (Pending → Approved/Rejected)
+- **My Lease** — View active lease details: property, unit/room/bed, lease period, and financial summary
+- **Maintenance** — Submit maintenance requests by category (Plumbing, HVAC, Electrical, etc.) and priority; track status
+- **Payments** — View balance summary, make simulated payments, and see full payment history
+
+### 🏢 Staff Portal (`/staff`)
+- **Applications** — Review all student applications, approve or reject with status updates
+- **Leases** — View and manage all active leases across properties; update lease statuses
+- **Maintenance** — Dashboard of all maintenance tickets with filters, staff assignment, and status management
+- **Payments** — View all tenant payment records with revenue stats and method filtering
+
+### 🔐 Admin Portal (`/admin`)
+- **User Management** — Full CRUD for user accounts (create, edit role, delete)
+
+## Database Models
+
+| Model | Description |
+|-------|-------------|
+| `User` | Students, staff, and admins with role-based access |
+| `Property` | Housing buildings (dorms, apartments) |
+| `Unit / Room / Bed` | Hierarchical space management |
+| `HousingApplication` | Student applications with status tracking |
+| `Lease` | Active lease agreements (by unit, room, or bed) |
+| `MaintenanceRequest` | Maintenance tickets with category, priority, status |
+| `Payment` | Payment records linked to leases |
+
+## Getting Started
 
 ### Prerequisites
+- Node.js v18+
+- PostgreSQL running locally (database name: `mavhousing`)
 
--   Node.js (v18+ recommended)
--   npm
-
-### Installation
-
-1.  Clone the repository.
-2.  Install dependencies from the root directory:
-
+### Install
 ```bash
 npm install
 ```
 
-### Running the Application
+### Environment Setup
 
-This project uses a monorepo structure. You need to run the **Auth Server** and the **Web Client** concurrently.
+Each service needs a `.env` file. The key variable for `auth-server` and `internal-api`:
+```env
+DATABASE_URL="postgresql://postgres:password@localhost:5432/mavhousing"
+JWT_SECRET="your-secret"
+```
 
-#### 1. Start the Auth Server (Backend)
+### Run
 
-The authentication server runs on port `3004`.
+Start all three services in separate terminals:
 
 ```bash
-# From the root directory
+# 1. Auth server (port 3007)
 npm run start:auth
+
+# 2. Internal API (port 3009)
+npm run start:internal
+
+# 3. Web frontend (port 3000)
+cd apps/web && npm run dev
 ```
 
-#### 2. Start the Web Client (Frontend)
+Open [http://localhost:3000](http://localhost:3000)
 
-The Next.js application runs on port `3000`.
+> **API Docs**: Swagger available at [http://localhost:3009/api](http://localhost:3009/api)
 
-```bash
-# Open a new terminal
-cd apps/web
-npm run dev
-```
+## Test Accounts
 
-### Accessing the App
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
--   **Login**: `/login`
--   **Signup**: `/signup`
-
-## 🧪 Testing Accounts
-
-You can create a new account via the **Signup** page, or use existing data if `users.json` is populated.
-
-**Example flow:**
-1.  Go to `/signup`.
-2.  Create a **Student** or **Staff** account.
-3.  Login with your new credentials.
-
+| Role | NetID | Password |
+|------|-------|----------|
+| Student | `axr0966` | `BlueOrigin@26` |
+| Staff | `staffone` | `StaffPass@1` |
+| Admin | `adminone` | `AdminPass@1` |
