@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Patch, Param, Body } from '@nestjs/common';
+import { Controller, Get, Req, Patch, Param, Body, Post, Delete } from '@nestjs/common';
 import { LeaseService } from './lease.service';
 
 @Controller('lease')
@@ -22,5 +22,27 @@ export class LeaseController {
     @Body() body: { status: string },
   ) {
     return this.leaseService.updateLeaseStatus(parseInt(id), body.status);
+  }
+
+  @Get('occupancy')
+  async getOccupancy() {
+    return this.leaseService.getOccupancy();
+  }
+
+  @Post('occupancy/:leaseId')
+  async addOccupant(
+    @Param('leaseId') leaseId: string,
+    @Body() body: { userId: number; occupantType?: string },
+  ) {
+    return this.leaseService.addOccupant(
+      parseInt(leaseId),
+      body.userId,
+      body.occupantType ?? 'ROOMMATE',
+    );
+  }
+
+  @Delete('occupancy/:occupantId')
+  async removeOccupant(@Param('occupantId') occupantId: string) {
+    return this.leaseService.removeOccupant(parseInt(occupantId));
   }
 }

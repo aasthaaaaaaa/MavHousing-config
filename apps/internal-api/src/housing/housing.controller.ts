@@ -43,4 +43,9 @@ export class HousingController {
   async updateApplicationStatus(@Param('id') id: string, @Body() body: { status: string }) {
     return this.housingService.updateApplicationStatus(parseInt(id), body.status);
   }
+
+  @Get('students')
+  async getStudents() {
+    return this.housingService.getStudents();
+  }
 }

@@ -81,4 +81,12 @@ export class HousingService {
       data: { status: status as any },
     });
   }
+
+  async getStudents() {
+    return this.prisma.user.findMany({
+      where: { role: 'STUDENT' },
+      select: { userId: true, netId: true, fName: true, lName: true, email: true },
+      orderBy: { lName: 'asc' },
+    });
+  }
 }
