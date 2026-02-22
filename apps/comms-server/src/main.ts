@@ -19,12 +19,12 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory); //  /api endpoint
 
-  await app.listen(process.env.port ?? 3000);
+  await app.listen(process.env.port ?? 3001);
   console.log(
-    `Comms Server started at ${process.env.HOST ?? '127.0.0.1'}:${process.env.port ?? 3000}/comms`,
+    `Comms Server started at ${process.env.HOST ?? '127.0.0.1'}:${process.env.port ?? 3001}/comms`,
   );
   console.log(
-    `Swagger started at ${process.env.HOST ?? '127.0.0.1'}:${process.env.port ?? 3000}/api`,
+    `Swagger started at ${process.env.HOST ?? '127.0.0.1'}:${process.env.port ?? 3001}/api`,
   );
 }
 bootstrap();

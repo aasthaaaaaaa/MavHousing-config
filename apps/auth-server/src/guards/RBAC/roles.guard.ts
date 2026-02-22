@@ -1,7 +1,12 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from './roles.decorator';
-import { Role } from 'apps/auth-server/DTO/role.enum';
+import { Role } from '../../../DTO/role.enum';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -24,7 +29,10 @@ export class RolesGuard implements CanActivate {
     }
 
     // Accept either `role` or `Role` shape from your JWT/payload
-    const userRoleOrRoles = (user.role ?? user.Role) as Role | Role[] | undefined;
+    const userRoleOrRoles = (user.role ?? user.Role) as
+      | Role
+      | Role[]
+      | undefined;
 
     if (!userRoleOrRoles) {
       throw new ForbiddenException('User has no role assigned');

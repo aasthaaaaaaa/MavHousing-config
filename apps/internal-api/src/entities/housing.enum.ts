@@ -20,27 +20,6 @@ export enum UnitStatus {
   OFFLINE = 'offline',
 }
 
-export enum RoomStatus {
-  AVAILABLE = 'available',
-  OCCUPIED = 'occupied',
-  RESERVED = 'reserved',
-  MAINTENANCE = 'maintenance',
-}
-
-export enum RoomType {
-  PRIVATE = 'private',
-  SHARED = 'shared',
-  MASTER = 'master',
-  BEDSPACE = 'bedspace',
-}
-
-export enum RoomGenderRestriction {
-  MALE = 'male',
-  FEMALE = 'female',
-  COED = 'coed',
-  ANY = 'any',
-}
-
 export enum LeaseStatus {
   ACTIVE = 'active',
   TERMINATED = 'terminated',
@@ -97,20 +76,20 @@ export enum NotificationHist {
 }
 
 export enum DocumentType {
-  ID_CARD = "id_card",
-  PASSPORT = "passport",
-  VACCINATION = "vaccination",
-  LEASE_PDF = "lease_pdf",
-  MAINTENANCE_IMAGE = "maintenance_image",
-  PROFILE_IMAGE = "profile_image",
-  OTHER = "other",
+  ID_CARD = 'id_card',
+  PASSPORT = 'passport',
+  VACCINATION = 'vaccination',
+  LEASE_PDF = 'lease_pdf',
+  MAINTENANCE_IMAGE = 'maintenance_image',
+  PROFILE_IMAGE = 'profile_image',
+  OTHER = 'other',
 }
 
 export enum ApplicationStatus {
-  SUBMITTED = "submitted",
-  UNDER_REVIEW = "under_review",
-  APPROVED = "approved",
-  REJECTED = "rejected",
-  WAITLISTED = "waitlisted",
-  CANCELLED = "cancelled",
+  SUBMITTED = 'submitted',
+  UNDER_REVIEW = 'under_review',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  WAITLISTED = 'waitlisted',
+  CANCELLED = 'cancelled',
 }

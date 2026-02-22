@@ -7,10 +7,10 @@ import {
   IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ValidatePassword } from 'common/validator/validatePasswordSec.decorator';
+import { ValidatePassword } from '@common/validator/validatePasswordSec.decorator';
 import { Role } from './role.enum';
 import { ApiProperty } from '@nestjs/swagger';
-import { Gender, StudentStatus, StaffPosition } from 'generated/prisma';
+import { Gender, StudentStatus, StaffPosition } from '@mav-housing/prisma';
 
 export class UserSignup {
   @ApiProperty()

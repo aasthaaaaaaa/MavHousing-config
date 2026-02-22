@@ -43,21 +43,21 @@ export const mockApplications = [
     userId: 5, // Sophia
     term: 'Fall 2025',
     status: ApplicationStatus.UNDER_REVIEW,
-    preferredPropertyId: 3, // Meadow Run - Community Center
+    preferredPropertyId: 3, // Heights on Pecan - East Building
     submissionDate: new Date('2024-12-15'),
   },
   {
     userId: 6, // Christopher
     term: 'Fall 2025',
     status: ApplicationStatus.APPROVED,
-    preferredPropertyId: 4, // Timber Brooks - East Wing
+    preferredPropertyId: 3, // Heights on Pecan - East Building
     submissionDate: new Date('2024-12-06'),
   },
   {
     userId: 7, // Alicia
     term: 'Fall 2025',
     status: ApplicationStatus.APPROVED,
-    preferredPropertyId: 5, // Timber Brooks - West Wing
+    preferredPropertyId: 5, // Timber Brooks - East Wing
     submissionDate: new Date('2024-12-09'),
   },
 ];
@@ -65,7 +65,7 @@ export const mockApplications = [
 export const mockLeases = [
   // ============================================
   // MEADOW RUN (BY_UNIT LEASES)
-  // One lease per unit, multiple occupants
+  // One lease per unit, NO rooms/beds tracked
   // ============================================
   {
     userId: 2, // John - Lease Holder
@@ -118,13 +118,13 @@ export const mockLeases = [
 
   // ============================================
   // HEIGHTS ON PECAN (BY_ROOM LEASES)
-  // Room-based leases - assignedRoomId only, no beds
+  // Room-based leases — assignedRoomId only, no beds
   // ============================================
   {
     userId: 6, // Christopher - Lease Holder
     leaseType: LeaseType.BY_ROOM,
     assignedUnitId: null,
-    assignedRoomId: 1, // Heights on Pecan East - Unit 101 - Room A
+    assignedRoomId: 1, // Heights on Pecan East - Unit 101 (unitId 9) - Room A
     assignedBedId: null,
     startDate: new Date('2025-01-15'),
     endDate: new Date('2025-05-15'),
@@ -136,7 +136,7 @@ export const mockLeases = [
     userId: 7, // Alicia - Lease Holder
     leaseType: LeaseType.BY_ROOM,
     assignedUnitId: null,
-    assignedRoomId: 2, // Heights on Pecan East - Unit 101 - Room B
+    assignedRoomId: 2, // Heights on Pecan East - Unit 101 (unitId 9) - Room B
     assignedBedId: null,
     startDate: new Date('2025-01-15'),
     endDate: new Date('2025-05-15'),
@@ -148,7 +148,7 @@ export const mockLeases = [
     userId: 1, // Aalok - Lease Holder
     leaseType: LeaseType.BY_ROOM,
     assignedUnitId: null,
-    assignedRoomId: 3, // Heights on Pecan East - Unit 102 - Room A
+    assignedRoomId: 3, // Heights on Pecan East - Unit 102 (unitId 10) - Room A
     assignedBedId: null,
     startDate: new Date('2025-01-15'),
     endDate: new Date('2025-05-15'),
@@ -160,7 +160,7 @@ export const mockLeases = [
     userId: 2, // John (2nd lease) - Lease Holder
     leaseType: LeaseType.BY_ROOM,
     assignedUnitId: null,
-    assignedRoomId: 4, // Heights on Pecan West - Unit 101 - Room A
+    assignedRoomId: 7, // Heights on Pecan West - Unit 101 (unitId 12) - Room A
     assignedBedId: null,
     startDate: new Date('2025-01-15'),
     endDate: new Date('2025-05-15'),
@@ -176,8 +176,8 @@ export const mockLeases = [
   {
     userId: 3, // Emily (2nd lease) - Lease Holder
     leaseType: LeaseType.BY_BED,
-    assignedUnitId: 1, // Timber Brooks East - Unit 1A
-    assignedRoomId: 1, // Room A
+    assignedUnitId: 15, // Timber Brooks East - Unit 1A
+    assignedRoomId: 13, // Room A
     assignedBedId: 1, // Bed L
     startDate: new Date('2025-01-15'),
     endDate: new Date('2025-05-15'),
@@ -188,8 +188,8 @@ export const mockLeases = [
   {
     userId: 4, // Michael (2nd lease) - Lease Holder
     leaseType: LeaseType.BY_BED,
-    assignedUnitId: 1, // Timber Brooks East - Unit 1A
-    assignedRoomId: 1, // Room A
+    assignedUnitId: 15, // Timber Brooks East - Unit 1A
+    assignedRoomId: 13, // Room A
     assignedBedId: 2, // Bed R
     startDate: new Date('2025-01-15'),
     endDate: new Date('2025-05-15'),
@@ -200,8 +200,8 @@ export const mockLeases = [
   {
     userId: 5, // Sophia (2nd lease) - Lease Holder
     leaseType: LeaseType.BY_BED,
-    assignedUnitId: 1, // Timber Brooks East - Unit 1A
-    assignedRoomId: 2, // Room B
+    assignedUnitId: 15, // Timber Brooks East - Unit 1A
+    assignedRoomId: 14, // Room B
     assignedBedId: 3, // Bed 1
     startDate: new Date('2025-01-15'),
     endDate: new Date('2025-05-15'),
@@ -212,8 +212,8 @@ export const mockLeases = [
   {
     userId: 6, // Christopher (2nd lease) - Lease Holder
     leaseType: LeaseType.BY_BED,
-    assignedUnitId: 2, // Timber Brooks East - Unit 1B
-    assignedRoomId: 3, // Room A
+    assignedUnitId: 16, // Timber Brooks East - Unit 1B
+    assignedRoomId: 15, // Room A
     assignedBedId: 5, // Bed L
     startDate: new Date('2025-01-15'),
     endDate: new Date('2025-05-15'),
@@ -224,8 +224,8 @@ export const mockLeases = [
   {
     userId: 7, // Alicia (2nd lease) - Lease Holder
     leaseType: LeaseType.BY_BED,
-    assignedUnitId: 3, // Timber Brooks East - Unit 2A (ADA)
-    assignedRoomId: 5, // Room A
+    assignedUnitId: 17, // Timber Brooks East - Unit 2A (ADA)
+    assignedRoomId: 17, // Room A
     assignedBedId: 9, // Bed 1
     startDate: new Date('2025-01-15'),
     endDate: new Date('2025-05-15'),
@@ -236,8 +236,8 @@ export const mockLeases = [
   {
     userId: 1, // Aalok (2nd lease) - Lease Holder
     leaseType: LeaseType.BY_BED,
-    assignedUnitId: 4, // Timber Brooks West - Unit 1A
-    assignedRoomId: 7, // Room A
+    assignedUnitId: 18, // Timber Brooks West - Unit 1A
+    assignedRoomId: 19, // Room A
     assignedBedId: 13, // Bed 1
     startDate: new Date('2025-01-15'),
     endDate: new Date('2025-05-15'),
@@ -251,75 +251,215 @@ export const mockOccupants = [
   // ============================================
   // MEADOW RUN (BY_UNIT LEASES - multiple occupants per lease)
   // ============================================
-  // Lease 1: Unit 101
-  { leaseId: 1, userId: 2, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  // Lease 1: North Tower - Unit 101
+  {
+    leaseId: 1,
+    userId: 2,
+    occupantType: OccupantType.LEASE_HOLDER,
+    moveInDate: new Date('2025-01-15'),
+  },
 
-  // Lease 2: Unit 102
-  { leaseId: 2, userId: 3, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  // Lease 2: North Tower - Unit 102
+  {
+    leaseId: 2,
+    userId: 3,
+    occupantType: OccupantType.LEASE_HOLDER,
+    moveInDate: new Date('2025-01-15'),
+  },
 
-  // Lease 3: Unit 103 (ADA)
-  { leaseId: 3, userId: 4, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  // Lease 3: North Tower - Unit 103 (ADA)
+  {
+    leaseId: 3,
+    userId: 4,
+    occupantType: OccupantType.LEASE_HOLDER,
+    moveInDate: new Date('2025-01-15'),
+  },
 
-  // Lease 4: South Unit 101
-  { leaseId: 4, userId: 5, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  // Lease 4: South Tower - Unit 101
+  {
+    leaseId: 4,
+    userId: 5,
+    occupantType: OccupantType.LEASE_HOLDER,
+    moveInDate: new Date('2025-01-15'),
+  },
 
   // ============================================
   // HEIGHTS ON PECAN (BY_ROOM LEASES - 1 occupant per room)
   // ============================================
-  // Lease 5: East Unit 101 Room A
-  { leaseId: 5, userId: 6, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  // Lease 5: East - Unit 101 Room A
+  {
+    leaseId: 5,
+    userId: 6,
+    occupantType: OccupantType.LEASE_HOLDER,
+    moveInDate: new Date('2025-01-15'),
+  },
 
-  // Lease 6: East Unit 101 Room B
-  { leaseId: 6, userId: 7, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  // Lease 6: East - Unit 101 Room B
+  {
+    leaseId: 6,
+    userId: 7,
+    occupantType: OccupantType.LEASE_HOLDER,
+    moveInDate: new Date('2025-01-15'),
+  },
 
-  // Lease 7: East Unit 102 Room A
-  { leaseId: 7, userId: 1, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  // Lease 7: East - Unit 102 Room A
+  {
+    leaseId: 7,
+    userId: 1,
+    occupantType: OccupantType.LEASE_HOLDER,
+    moveInDate: new Date('2025-01-15'),
+  },
 
-  // Lease 8: East Unit 201 Room A
-  { leaseId: 8, userId: 2, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  // Lease 8: West - Unit 101 Room A
+  {
+    leaseId: 8,
+    userId: 2,
+    occupantType: OccupantType.LEASE_HOLDER,
+    moveInDate: new Date('2025-01-15'),
+  },
 
   // ============================================
   // TIMBER BROOKS (BY_BED LEASES - 1 occupant per bed)
   // ============================================
   // Lease 9: East Unit 1A Room A Bed L
-  { leaseId: 9, userId: 3, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  {
+    leaseId: 9,
+    userId: 3,
+    occupantType: OccupantType.LEASE_HOLDER,
+    moveInDate: new Date('2025-01-15'),
+  },
 
   // Lease 10: East Unit 1A Room A Bed R
-  { leaseId: 10, userId: 4, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  {
+    leaseId: 10,
+    userId: 4,
+    occupantType: OccupantType.LEASE_HOLDER,
+    moveInDate: new Date('2025-01-15'),
+  },
 
   // Lease 11: East Unit 1A Room B Bed 1
-  { leaseId: 11, userId: 5, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  {
+    leaseId: 11,
+    userId: 5,
+    occupantType: OccupantType.LEASE_HOLDER,
+    moveInDate: new Date('2025-01-15'),
+  },
 
   // Lease 12: East Unit 1B Room A Bed L
-  { leaseId: 12, userId: 6, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  {
+    leaseId: 12,
+    userId: 6,
+    occupantType: OccupantType.LEASE_HOLDER,
+    moveInDate: new Date('2025-01-15'),
+  },
 
   // Lease 13: East Unit 2A Room A Bed 1 (ADA)
-  { leaseId: 13, userId: 7, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  {
+    leaseId: 13,
+    userId: 7,
+    occupantType: OccupantType.LEASE_HOLDER,
+    moveInDate: new Date('2025-01-15'),
+  },
 
   // Lease 14: West Unit 1A Room A Bed 1
-  { leaseId: 14, userId: 1, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  {
+    leaseId: 14,
+    userId: 1,
+    occupantType: OccupantType.LEASE_HOLDER,
+    moveInDate: new Date('2025-01-15'),
+  },
 ];
 
 export const mockPayments = [
   // MEADOW RUN (BY_UNIT)
-  { leaseId: 1, amountPaid: 9000.0, method: PaymentMethod.BANK_TRANSFER, isSuccessful: true },
-  { leaseId: 2, amountPaid: 9000.0, method: PaymentMethod.CREDIT_CARD, isSuccessful: true },
-  { leaseId: 3, amountPaid: 9000.0, method: PaymentMethod.BANK_TRANSFER, isSuccessful: true },
-  { leaseId: 4, amountPaid: 9000.0, method: PaymentMethod.CHECK, isSuccessful: true },
+  {
+    leaseId: 1,
+    amountPaid: 9000.0,
+    method: PaymentMethod.BANK_TRANSFER,
+    isSuccessful: true,
+  },
+  {
+    leaseId: 2,
+    amountPaid: 9000.0,
+    method: PaymentMethod.CREDIT_CARD,
+    isSuccessful: true,
+  },
+  {
+    leaseId: 3,
+    amountPaid: 9000.0,
+    method: PaymentMethod.BANK_TRANSFER,
+    isSuccessful: true,
+  },
+  {
+    leaseId: 4,
+    amountPaid: 9000.0,
+    method: PaymentMethod.CHECK,
+    isSuccessful: true,
+  },
 
   // HEIGHTS ON PECAN (BY_ROOM)
-  { leaseId: 5, amountPaid: 4500.0, method: PaymentMethod.BANK_TRANSFER, isSuccessful: true },
-  { leaseId: 6, amountPaid: 4500.0, method: PaymentMethod.CREDIT_CARD, isSuccessful: true },
-  { leaseId: 7, amountPaid: 4500.0, method: PaymentMethod.BANK_TRANSFER, isSuccessful: true },
-  { leaseId: 8, amountPaid: 4500.0, method: PaymentMethod.CHECK, isSuccessful: true },
+  {
+    leaseId: 5,
+    amountPaid: 4500.0,
+    method: PaymentMethod.BANK_TRANSFER,
+    isSuccessful: true,
+  },
+  {
+    leaseId: 6,
+    amountPaid: 4500.0,
+    method: PaymentMethod.CREDIT_CARD,
+    isSuccessful: true,
+  },
+  {
+    leaseId: 7,
+    amountPaid: 4500.0,
+    method: PaymentMethod.BANK_TRANSFER,
+    isSuccessful: true,
+  },
+  {
+    leaseId: 8,
+    amountPaid: 4500.0,
+    method: PaymentMethod.CHECK,
+    isSuccessful: true,
+  },
 
   // TIMBER BROOKS (BY_BED)
-  { leaseId: 9, amountPaid: 2250.0, method: PaymentMethod.BANK_TRANSFER, isSuccessful: true },
-  { leaseId: 10, amountPaid: 2250.0, method: PaymentMethod.CREDIT_CARD, isSuccessful: true },
-  { leaseId: 11, amountPaid: 2250.0, method: PaymentMethod.BANK_TRANSFER, isSuccessful: true },
-  { leaseId: 12, amountPaid: 2250.0, method: PaymentMethod.CHECK, isSuccessful: true },
-  { leaseId: 13, amountPaid: 2250.0, method: PaymentMethod.BANK_TRANSFER, isSuccessful: true },
-  { leaseId: 14, amountPaid: 2300.0, method: PaymentMethod.CREDIT_CARD, isSuccessful: true },
+  {
+    leaseId: 9,
+    amountPaid: 2250.0,
+    method: PaymentMethod.BANK_TRANSFER,
+    isSuccessful: true,
+  },
+  {
+    leaseId: 10,
+    amountPaid: 2250.0,
+    method: PaymentMethod.CREDIT_CARD,
+    isSuccessful: true,
+  },
+  {
+    leaseId: 11,
+    amountPaid: 2250.0,
+    method: PaymentMethod.BANK_TRANSFER,
+    isSuccessful: true,
+  },
+  {
+    leaseId: 12,
+    amountPaid: 2250.0,
+    method: PaymentMethod.CHECK,
+    isSuccessful: true,
+  },
+  {
+    leaseId: 13,
+    amountPaid: 2250.0,
+    method: PaymentMethod.BANK_TRANSFER,
+    isSuccessful: true,
+  },
+  {
+    leaseId: 14,
+    amountPaid: 2300.0,
+    method: PaymentMethod.CREDIT_CARD,
+    isSuccessful: true,
+  },
 ];
 
 export const mockMaintenanceRequests = [

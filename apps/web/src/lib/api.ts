@@ -1,11 +1,10 @@
-
 import axios from 'axios';
 
-// Environment variable or default to localhost:3004
-const AUTH_API_URL = process.env.NEXT_PUBLIC_AUTH_API_URL || 'http://localhost:3004';
+// Single API base URL — internal-api serves all routes (/auth/*, /housing/*, /lease/*, etc.)
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3009';
 
 export const authApi = axios.create({
-  baseURL: AUTH_API_URL,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

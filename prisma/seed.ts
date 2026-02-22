@@ -32,7 +32,9 @@ async function main() {
       .join(', ');
 
     if (tables.length > 0) {
-      await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tables} RESTART IDENTITY CASCADE;`);
+      await prisma.$executeRawUnsafe(
+        `TRUNCATE TABLE ${tables} RESTART IDENTITY CASCADE;`,
+      );
     }
     console.log('   ✅ Database cleared\n');
 
@@ -47,145 +49,142 @@ async function main() {
             passwordHash: hashedPassword,
           },
         });
-      })
+      }),
     );
-    console.log(
-      `   ✅ Created ${users.length} users\n`
-    );
+    console.log(`   ✅ Created ${users.length} users\n`);
 
     // 2. Create Properties
     console.log(
-      '🏢 Creating properties (Meadow Run & Timber Brooks)...'
+      '🏢 Creating properties (Meadow Run, Heights on Pecan, Timber Brooks, Cardinal Commons)...',
     );
     const properties = await Promise.all(
-      mockProperties.map((prop) =>
-        prisma.property.create({ data: prop })
-      )
+      mockProperties.map((prop) => prisma.property.create({ data: prop })),
     );
     console.log(`   ✅ Created ${properties.length} properties`);
-    properties.forEach((prop) => console.log(`      - ${prop.name}`));
+    properties.forEach((prop) =>
+      console.log(`      - ${prop.name} (${prop.leaseType})`),
+    );
     console.log();
 
     // 3. Create Units
     console.log('🏠 Creating units...');
     const units = await Promise.all(
-      mockUnits.map((unit) => prisma.unit.create({ data: unit }))
+      mockUnits.map((unit) => prisma.unit.create({ data: unit })),
     );
     console.log(`   ✅ Created ${units.length} units\n`);
 
-    // 4. Create Rooms
-    console.log('🚪 Creating rooms...');
+    // 4. Create Rooms (only for BY_ROOM and BY_BED properties)
+    console.log('🚪 Creating rooms (BY_ROOM & BY_BED properties only)...');
     const rooms = await Promise.all(
-      mockRooms.map((room) => prisma.room.create({ data: room }))
+      mockRooms.map((room) => prisma.room.create({ data: room })),
     );
     console.log(`   ✅ Created ${rooms.length} rooms\n`);
 
-    // 5. Create Beds
-    console.log('🛏️  Creating beds...');
+    // 5. Create Beds (only for BY_BED properties)
+    console.log('🛏️  Creating beds (BY_BED properties only)...');
     const beds = await Promise.all(
-      mockBeds.map(({ unitId, ...bed }) => prisma.bed.create({ data: bed }))
+      mockBeds.map(({ unitId, ...bed }) => prisma.bed.create({ data: bed })),
     );
     console.log(`   ✅ Created ${beds.length} beds\n`);
 
     // 6. Create Applications
     console.log('📝 Creating applications...');
     const applications = await Promise.all(
-      mockApplications.map((app) =>
-        prisma.application.create({ data: app })
-      )
+      mockApplications.map((app) => prisma.application.create({ data: app })),
     );
     console.log(`   ✅ Created ${applications.length} applications`);
     console.log('      Status breakdown:');
     console.log(
-      `      - SUBMITTED: ${applications.filter((a) => a.status === 'SUBMITTED').length}`
+      `      - SUBMITTED: ${applications.filter((a) => a.status === 'SUBMITTED').length}`,
     );
     console.log(
-      `      - APPROVED: ${applications.filter((a) => a.status === 'APPROVED').length}`
+      `      - APPROVED: ${applications.filter((a) => a.status === 'APPROVED').length}`,
     );
     console.log(
-      `      - UNDER_REVIEW: ${applications.filter((a) => a.status === 'UNDER_REVIEW').length}\n`
+      `      - UNDER_REVIEW: ${applications.filter((a) => a.status === 'UNDER_REVIEW').length}\n`,
     );
 
     // 7. Create Leases
     console.log('📋 Creating leases (mixed types)...');
     const leases = await Promise.all(
-      mockLeases.map((lease) => prisma.lease.create({ data: lease }))
+      mockLeases.map((lease) => prisma.lease.create({ data: lease })),
     );
     console.log(`   ✅ Created ${leases.length} leases`);
     console.log('      Lease type breakdown:');
     console.log(
-      `      - BY_BED: ${leases.filter((l) => l.leaseType === 'BY_BED').length}`
+      `      - BY_UNIT: ${leases.filter((l) => l.leaseType === 'BY_UNIT').length} (no rooms/beds)`,
     );
     console.log(
-      `      - BY_ROOM: ${leases.filter((l) => l.leaseType === 'BY_ROOM').length}`
+      `      - BY_ROOM: ${leases.filter((l) => l.leaseType === 'BY_ROOM').length} (rooms only)`,
     );
     console.log(
-      `      - BY_UNIT: ${leases.filter((l) => l.leaseType === 'BY_UNIT').length}\n`
+      `      - BY_BED: ${leases.filter((l) => l.leaseType === 'BY_BED').length} (rooms + beds)\n`,
     );
 
     // 8. Create Occupants
     console.log('👫 Creating occupants...');
     const occupants = await Promise.all(
       mockOccupants.map((occupant) =>
-        prisma.occupant.create({ data: occupant })
-      )
+        prisma.occupant.create({ data: occupant }),
+      ),
     );
     console.log(`   ✅ Created ${occupants.length} occupants`);
     console.log('      Occupant type breakdown:');
     console.log(
-      `      - LEASE_HOLDER: ${occupants.filter((o) => o.occupantType === 'LEASE_HOLDER').length}`
+      `      - LEASE_HOLDER: ${occupants.filter((o) => o.occupantType === 'LEASE_HOLDER').length}`,
     );
     console.log(
-      `      - OCCUPANT: ${occupants.filter((o) => o.occupantType === 'OCCUPANT').length}\n`
+      `      - OCCUPANT: ${occupants.filter((o) => o.occupantType === 'OCCUPANT').length}\n`,
     );
 
     // 9. Create Payments
     console.log('💳 Creating payments...');
     const payments = await Promise.all(
-      mockPayments.map((payment) =>
-        prisma.payment.create({ data: payment })
-      )
+      mockPayments.map((payment) => prisma.payment.create({ data: payment })),
     );
     console.log(`   ✅ Created ${payments.length} payments`);
-    const totalPaid = payments.reduce((sum, p) => sum + Number(p.amountPaid), 0);
+    const totalPaid = payments.reduce(
+      (sum, p) => sum + Number(p.amountPaid),
+      0,
+    );
     console.log(`      Total revenue: $${totalPaid.toFixed(2)}\n`);
 
     // 10. Create Maintenance Requests
     console.log('🔧 Creating maintenance requests...');
     const maintenance = await Promise.all(
       mockMaintenanceRequests.map((req) =>
-        prisma.maintenanceRequest.create({ data: req })
-      )
+        prisma.maintenanceRequest.create({ data: req }),
+      ),
     );
     console.log(`   ✅ Created ${maintenance.length} maintenance requests`);
     console.log('      Status breakdown:');
     console.log(
-      `      - OPEN: ${maintenance.filter((m) => m.status === 'OPEN').length}`
+      `      - OPEN: ${maintenance.filter((m) => m.status === 'OPEN').length}`,
     );
     console.log(
-      `      - IN_PROGRESS: ${maintenance.filter((m) => m.status === 'IN_PROGRESS').length}`
+      `      - IN_PROGRESS: ${maintenance.filter((m) => m.status === 'IN_PROGRESS').length}`,
     );
     console.log(
-      `      - RESOLVED: ${maintenance.filter((m) => m.status === 'RESOLVED').length}`
+      `      - RESOLVED: ${maintenance.filter((m) => m.status === 'RESOLVED').length}`,
     );
     console.log('      Category breakdown:');
     console.log(
-      `      - PLUMBING: ${maintenance.filter((m) => m.category === 'PLUMBING').length}`
+      `      - PLUMBING: ${maintenance.filter((m) => m.category === 'PLUMBING').length}`,
     );
     console.log(
-      `      - HVAC: ${maintenance.filter((m) => m.category === 'HVAC').length}`
+      `      - HVAC: ${maintenance.filter((m) => m.category === 'HVAC').length}`,
     );
     console.log(
-      `      - INTERNET: ${maintenance.filter((m) => m.category === 'INTERNET').length}`
+      `      - INTERNET: ${maintenance.filter((m) => m.category === 'INTERNET').length}`,
     );
     console.log(
-      `      - APPLIANCE: ${maintenance.filter((m) => m.category === 'APPLIANCE').length}`
+      `      - APPLIANCE: ${maintenance.filter((m) => m.category === 'APPLIANCE').length}`,
     );
     console.log(
-      `      - ELECTRICAL: ${maintenance.filter((m) => m.category === 'ELECTRICAL').length}`
+      `      - ELECTRICAL: ${maintenance.filter((m) => m.category === 'ELECTRICAL').length}`,
     );
     console.log(
-      `      - STRUCTURAL: ${maintenance.filter((m) => m.category === 'STRUCTURAL').length}\n`
+      `      - STRUCTURAL: ${maintenance.filter((m) => m.category === 'STRUCTURAL').length}\n`,
     );
 
     console.log('✨ Database seeding completed successfully!');
@@ -193,8 +192,8 @@ async function main() {
     console.log(`   Users: ${users.length}`);
     console.log(`   Properties: ${properties.length}`);
     console.log(`   Units: ${units.length}`);
-    console.log(`   Rooms: ${rooms.length}`);
-    console.log(`   Beds: ${beds.length}`);
+    console.log(`   Rooms: ${rooms.length} (BY_ROOM & BY_BED properties only)`);
+    console.log(`   Beds: ${beds.length} (BY_BED properties only)`);
     console.log(`   Applications: ${applications.length}`);
     console.log(`   Leases: ${leases.length}`);
     console.log(`   Occupants: ${occupants.length}`);

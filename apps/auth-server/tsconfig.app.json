@@ -16,11 +16,21 @@
       ],
       "@libs/common/*": [
         "../../libs/common/src/*"
+      ],
+      "@common/*": [
+        "../../common/*"
+      ],
+      "@mav-housing/prisma": [
+        "../../generated/prisma"
+      ],
+      "@mav-housing/prisma/*": [
+        "../../generated/prisma/*"
       ]
     }
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "DTO/**/*"
   ],
   "exclude": [
     "node_modules",

@@ -2,7 +2,8 @@ import {
   Body,
   Query,
   Controller,
-  Get, Post,
+  Get,
+  Post,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -27,7 +28,7 @@ import { BaseAuthGuard } from './guards/baseauth.guard';
 import { RolesGuard } from './guards/RBAC/roles.guard';
 import { RoleRequired } from './guards/RBAC/roles.decorator';
 import { Role } from '../DTO/role.enum';
-import { Gender, StaffPosition, StudentStatus } from 'generated/prisma';
+import { Gender, StaffPosition, StudentStatus } from '@mav-housing/prisma';
 
 @Controller('auth')
 export class AuthServerController {
@@ -75,15 +76,14 @@ export class AuthServerController {
       },
     },
   })
-  async createUser(@Body() user:UserSignup){
-    const result = await this.authServerService.createUser(user)
-    if(result){
-      console.log(`user ${user.netId} was created`)
-      return 'created'
+  async createUser(@Body() user: UserSignup) {
+    const result = await this.authServerService.createUser(user);
+    if (result) {
+      console.log(`user ${user.netId} was created`);
+      return 'created';
     }
-    console.log(`user ${user.netId} already exists`)
-    return 'not created'
-    
+    console.log(`user ${user.netId} already exists`);
+    return 'not created';
   }
 
   @Get('get-all')

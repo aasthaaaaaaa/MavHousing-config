@@ -1,7 +1,8 @@
 export const mockUnits = [
   // ============================================
-  // MEADOW RUN - NORTH TOWER (BY_UNIT MODEL)
-  // No rooms/beds needed - unit is the lease unit
+  // MEADOW RUN - NORTH TOWER (BY_UNIT)
+  // No rooms/beds — unit is the lease unit
+  // unitId 1-4
   // ============================================
   {
     propertyId: 1,
@@ -33,7 +34,9 @@ export const mockUnits = [
   },
 
   // ============================================
-  // MEADOW RUN - SOUTH TOWER (BY_UNIT MODEL)
+  // MEADOW RUN - SOUTH TOWER (BY_UNIT)
+  // No rooms/beds — unit is the lease unit
+  // unitId 5-8
   // ============================================
   {
     propertyId: 2,
@@ -65,8 +68,10 @@ export const mockUnits = [
   },
 
   // ============================================
-  // HEIGHTS ON PECAN - EAST BUILDING (BY_ROOM MODEL)
+  // HEIGHTS ON PECAN - EAST BUILDING (BY_ROOM)
   // Units contain rooms, each room = 1 lease
+  // No beds tracked
+  // unitId 9-11
   // ============================================
   {
     propertyId: 3,
@@ -91,7 +96,10 @@ export const mockUnits = [
   },
 
   // ============================================
-  // HEIGHTS ON PECAN - WEST BUILDING (BY_ROOM MODEL)
+  // HEIGHTS ON PECAN - WEST BUILDING (BY_ROOM)
+  // Units contain rooms, each room = 1 lease
+  // No beds tracked
+  // unitId 12-14
   // ============================================
   {
     propertyId: 4,
@@ -116,86 +124,90 @@ export const mockUnits = [
   },
 
   // ============================================
-  // TIMBER BROOKS - EAST WING (BY_BED MODEL)
-  // Units contain rooms with individual beds
+  // TIMBER BROOKS - EAST WING (BY_BED)
+  // Units → rooms → individual beds
+  // unitId 15-17
   // ============================================
   {
     propertyId: 5,
     unitNumber: '1A',
     floorLevel: 1,
     requiresAdaAccess: false,
-    maxOccupancy: 2,
+    maxOccupancy: 4,
   },
   {
     propertyId: 5,
     unitNumber: '1B',
     floorLevel: 1,
     requiresAdaAccess: false,
-    maxOccupancy: 2,
+    maxOccupancy: 4,
   },
   {
     propertyId: 5,
     unitNumber: '2A',
     floorLevel: 2,
     requiresAdaAccess: true,
-    maxOccupancy: 2,
+    maxOccupancy: 4,
   },
 
   // ============================================
-  // TIMBER BROOKS - WEST WING (BY_BED MODEL)
+  // TIMBER BROOKS - WEST WING (BY_BED)
+  // Units → rooms → individual beds (3-bed rooms)
+  // unitId 18-20
   // ============================================
   {
     propertyId: 6,
     unitNumber: '1A',
     floorLevel: 1,
     requiresAdaAccess: false,
-    maxOccupancy: 3,
+    maxOccupancy: 9,
   },
   {
     propertyId: 6,
     unitNumber: '1B',
     floorLevel: 1,
     requiresAdaAccess: false,
-    maxOccupancy: 3,
+    maxOccupancy: 9,
   },
   {
     propertyId: 6,
     unitNumber: '2A',
     floorLevel: 2,
     requiresAdaAccess: false,
-    maxOccupancy: 3,
+    maxOccupancy: 9,
   },
 
   // ============================================
-  // CARDINAL COMMONS (BY_BED MODEL - RESIDENCE HALL)
-  // Units contain rooms with individual beds
+  // CARDINAL COMMONS (BY_BED - RESIDENCE HALL)
+  // Units → rooms → individual beds
+  // unitId 21-24
   // ============================================
   {
     propertyId: 7,
     unitNumber: 'A1',
     floorLevel: 1,
     requiresAdaAccess: false,
-    maxOccupancy: 2,
+    maxOccupancy: 4,
   },
   {
     propertyId: 7,
     unitNumber: 'A2',
     floorLevel: 1,
     requiresAdaAccess: false,
-    maxOccupancy: 2,
+    maxOccupancy: 4,
   },
   {
     propertyId: 7,
     unitNumber: 'B1',
     floorLevel: 2,
     requiresAdaAccess: true,
-    maxOccupancy: 2,
+    maxOccupancy: 4,
   },
   {
     propertyId: 7,
     unitNumber: 'B2',
     floorLevel: 2,
     requiresAdaAccess: false,
-    maxOccupancy: 3,
+    maxOccupancy: 9,
   },
 ];

@@ -3,6 +3,11 @@ import { InternalApiModule } from './internal-api.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 
+// Fix: BigInt cannot be serialized by JSON.stringify (Prisma phone fields are BigInt)
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
 async function bootstrap() {
   const app = await NestFactory.create(InternalApiModule);
 

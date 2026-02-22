@@ -2,7 +2,8 @@ import { LeaseType, PropertyType } from '../generated/prisma';
 
 export const mockProperties = [
   // ============================================
-  // MEADOW RUN (BY_UNIT BASED - RESIDENCE HALL)
+  // MEADOW RUN (BY_UNIT - RESIDENCE HALL)
+  // Units only — no rooms/beds tracked
   // ============================================
   {
     name: 'Meadow Run - North Tower',
@@ -22,7 +23,8 @@ export const mockProperties = [
   },
 
   // ============================================
-  // HEIGHTS ON PECAN (BY_ROOM BASED - APARTMENT)
+  // HEIGHTS ON PECAN (BY_ROOM - APARTMENT)
+  // Units with rooms — no beds tracked
   // ============================================
   {
     name: 'Heights on Pecan - East Building',
@@ -42,7 +44,8 @@ export const mockProperties = [
   },
 
   // ============================================
-  // TIMBER BROOKS (BY_BED BASED - APARTMENT)
+  // TIMBER BROOKS (BY_BED - APARTMENT)
+  // Units → rooms → individual beds
   // ============================================
   {
     name: 'Timber Brooks - East Wing',
@@ -62,7 +65,8 @@ export const mockProperties = [
   },
 
   // ============================================
-  // CARDINAL COMMONS (BY_BED BASED - RESIDENCE HALL)
+  // CARDINAL COMMONS (BY_BED - RESIDENCE HALL)
+  // Units → rooms → individual beds
   // ============================================
   {
     name: 'Cardinal Commons',

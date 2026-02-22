@@ -21,10 +21,16 @@ export class ApplicationService {
   // ═══════════════════════════════════════════
 
   async submitByUnit(netId: string, dto: CreateApplication_By_Unit_DTO) {
-    const user = await this.validateAndGetUser(netId, dto.personalDetails.utaId);
+    const user = await this.validateAndGetUser(
+      netId,
+      dto.personalDetails.utaId,
+    );
 
     // Check for duplicate application in the same term
-    await this.checkDuplicateApplication(user.userId, dto.applicationSelection.intakeSemester);
+    await this.checkDuplicateApplication(
+      user.userId,
+      dto.applicationSelection.intakeSemester,
+    );
 
     const application = await this.prisma.application.create({
       data: {
@@ -51,8 +57,14 @@ export class ApplicationService {
   }
 
   async submitByRoom(netId: string, dto: CreateApplication_By_Room_DTO) {
-    const user = await this.validateAndGetUser(netId, dto.personalDetails.utaId);
-    await this.checkDuplicateApplication(user.userId, dto.applicationSelection.intakeSemester);
+    const user = await this.validateAndGetUser(
+      netId,
+      dto.personalDetails.utaId,
+    );
+    await this.checkDuplicateApplication(
+      user.userId,
+      dto.applicationSelection.intakeSemester,
+    );
 
     const application = await this.prisma.application.create({
       data: {
@@ -79,8 +91,14 @@ export class ApplicationService {
   }
 
   async submitByBed(netId: string, dto: CreateApplication_By_Bed_DTO) {
-    const user = await this.validateAndGetUser(netId, dto.personalDetails.utaId);
-    await this.checkDuplicateApplication(user.userId, dto.applicationSelection.intakeSemester);
+    const user = await this.validateAndGetUser(
+      netId,
+      dto.personalDetails.utaId,
+    );
+    await this.checkDuplicateApplication(
+      user.userId,
+      dto.applicationSelection.intakeSemester,
+    );
 
     const application = await this.prisma.application.create({
       data: {
@@ -132,9 +150,10 @@ export class ApplicationService {
       preferredProperty: app.preferredProperty
         ? {
             ...app.preferredProperty,
-            phone: app.preferredProperty.phone !== null
-              ? app.preferredProperty.phone.toString()
-              : null,
+            phone:
+              app.preferredProperty.phone !== null
+                ? app.preferredProperty.phone.toString()
+                : null,
           }
         : null,
     }));
@@ -168,21 +187,44 @@ export class ApplicationService {
       phone: property.phone !== null ? property.phone.toString() : null,
       totalCapacity: property.totalCapacity,
       totalUnits: property.units.length,
-      units: property.units.map((unit) => ({
-        unitId: unit.unitId,
-        unitNumber: unit.unitNumber,
-        floorLevel: unit.floorLevel,
-        requiresAdaAccess: unit.requiresAdaAccess,
-        maxOccupancy: unit.maxOccupancy,
-        rooms: unit.rooms.map((room) => ({
-          roomId: room.roomId,
-          roomLetter: room.roomLetter,
-          beds: room.beds.map((bed) => ({
-            bedId: bed.bedId,
-            bedLetter: bed.bedLetter,
+      units: property.units.map((unit) => {
+        const base = {
+          unitId: unit.unitId,
+          unitNumber: unit.unitNumber,
+          floorLevel: unit.floorLevel,
+          requiresAdaAccess: unit.requiresAdaAccess,
+          maxOccupancy: unit.maxOccupancy,
+        };
+
+        // BY_UNIT: no rooms or beds needed
+        if (property.leaseType === 'BY_UNIT') {
+          return base;
+        }
+
+        // BY_ROOM: include rooms, but no beds
+        if (property.leaseType === 'BY_ROOM') {
+          return {
+            ...base,
+            rooms: unit.rooms.map((room) => ({
+              roomId: room.roomId,
+              roomLetter: room.roomLetter,
+            })),
+          };
+        }
+
+        // BY_BED: include rooms and beds
+        return {
+          ...base,
+          rooms: unit.rooms.map((room) => ({
+            roomId: room.roomId,
+            roomLetter: room.roomLetter,
+            beds: room.beds.map((bed) => ({
+              bedId: bed.bedId,
+              bedLetter: bed.bedLetter,
+            })),
           })),
-        })),
-      })),
+        };
+      }),
     }));
   }
 
@@ -203,14 +245,18 @@ export class ApplicationService {
     return applications.map((app) => ({
       ...app,
       user: app.user
-        ? { ...app.user, phone: app.user.phone !== null ? app.user.phone.toString() : null }
+        ? {
+            ...app.user,
+            phone: app.user.phone !== null ? app.user.phone.toString() : null,
+          }
         : null,
       preferredProperty: app.preferredProperty
         ? {
             ...app.preferredProperty,
-            phone: app.preferredProperty.phone !== null
-              ? app.preferredProperty.phone.toString()
-              : null,
+            phone:
+              app.preferredProperty.phone !== null
+                ? app.preferredProperty.phone.toString()
+                : null,
           }
         : null,
     }));
@@ -232,14 +278,21 @@ export class ApplicationService {
     return {
       ...application,
       user: application.user
-        ? { ...application.user, phone: application.user.phone !== null ? application.user.phone.toString() : null }
+        ? {
+            ...application.user,
+            phone:
+              application.user.phone !== null
+                ? application.user.phone.toString()
+                : null,
+          }
         : null,
       preferredProperty: application.preferredProperty
         ? {
             ...application.preferredProperty,
-            phone: application.preferredProperty.phone !== null
-              ? application.preferredProperty.phone.toString()
-              : null,
+            phone:
+              application.preferredProperty.phone !== null
+                ? application.preferredProperty.phone.toString()
+                : null,
           }
         : null,
     };
@@ -263,15 +316,19 @@ export class ApplicationService {
     });
 
     return {
-      user: { ...user, phone: user.phone !== null ? user.phone.toString() : null },
+      user: {
+        ...user,
+        phone: user.phone !== null ? user.phone.toString() : null,
+      },
       applications: applications.map((app) => ({
         ...app,
         preferredProperty: app.preferredProperty
           ? {
               ...app.preferredProperty,
-              phone: app.preferredProperty.phone !== null
-                ? app.preferredProperty.phone.toString()
-                : null,
+              phone:
+                app.preferredProperty.phone !== null
+                  ? app.preferredProperty.phone.toString()
+                  : null,
             }
           : null,
       })),
@@ -292,7 +349,10 @@ export class ApplicationService {
       data: { status },
     });
 
-    return { message: `Application ${appId} status changed to ${status}`, application: updated };
+    return {
+      message: `Application ${appId} status changed to ${status}`,
+      application: updated,
+    };
   }
 
   async remove(appId: number) {

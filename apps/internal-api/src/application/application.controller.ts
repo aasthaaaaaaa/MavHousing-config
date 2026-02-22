@@ -39,8 +39,15 @@ export class ApplicationController {
   @UseGuards(BaseAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @RoleRequired(Role.STAFF, Role.ADMIN)
-  @ApiOperation({ summary: 'Get available buildings with units, rooms, and beds (for frontend dropdowns)' })
-  @ApiResponse({ status: 200, description: 'Returns all properties with their leaseType and nested units/rooms/beds' })
+  @ApiOperation({
+    summary:
+      'Get available buildings with units (rooms/beds based on property leaseType)',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'BY_UNIT: units only. BY_ROOM: units with rooms. BY_BED: units with rooms and beds.',
+  })
   getHousingAvailability() {
     return this.applicationService.getHousingAvailability();
   }
@@ -50,24 +57,43 @@ export class ApplicationController {
   @ApiBearerAuth()
   @RoleRequired(Role.STUDENT)
   @ApiOperation({ summary: 'View my applications (Student only)' })
-  @ApiResponse({ status: 200, description: 'Returns all applications for the logged-in student' })
-  @ApiResponse({ status: 403, description: 'Insufficient role — must be STUDENT' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all applications for the logged-in student',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient role — must be STUDENT',
+  })
   @ApiResponse({ status: 404, description: 'User not found' })
   findMyApplications(@Request() req) {
     return this.applicationService.findMyApplications(req.user.username);
   }
 
-
   @Post('submit/by-unit')
   @UseGuards(BaseAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @RoleRequired(Role.STUDENT)
-  @ApiOperation({ summary: 'Submit a BY_UNIT housing application (Student only)' })
-  @ApiResponse({ status: 201, description: 'Application submitted with UNDER_REVIEW status' })
-  @ApiResponse({ status: 400, description: 'UTA ID mismatch or validation error' })
-  @ApiResponse({ status: 403, description: 'Insufficient role — must be STUDENT' })
+  @ApiOperation({
+    summary: 'Submit a BY_UNIT housing application (Student only)',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Application submitted with UNDER_REVIEW status',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'UTA ID mismatch or validation error',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient role — must be STUDENT',
+  })
   @ApiResponse({ status: 404, description: 'User not found in system' })
-  @ApiResponse({ status: 409, description: 'Duplicate application for this term' })
+  @ApiResponse({
+    status: 409,
+    description: 'Duplicate application for this term',
+  })
   @ApiBody({
     type: CreateApplication_By_Unit_DTO,
     examples: {
@@ -112,12 +138,26 @@ export class ApplicationController {
   @UseGuards(BaseAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @RoleRequired(Role.STUDENT)
-  @ApiOperation({ summary: 'Submit a BY_ROOM housing application (Student only)' })
-  @ApiResponse({ status: 201, description: 'Application submitted with UNDER_REVIEW status' })
-  @ApiResponse({ status: 400, description: 'UTA ID mismatch or validation error' })
-  @ApiResponse({ status: 403, description: 'Insufficient role — must be STUDENT' })
+  @ApiOperation({
+    summary: 'Submit a BY_ROOM housing application (Student only)',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Application submitted with UNDER_REVIEW status',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'UTA ID mismatch or validation error',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient role — must be STUDENT',
+  })
   @ApiResponse({ status: 404, description: 'User not found in system' })
-  @ApiResponse({ status: 409, description: 'Duplicate application for this term' })
+  @ApiResponse({
+    status: 409,
+    description: 'Duplicate application for this term',
+  })
   @ApiBody({
     type: CreateApplication_By_Room_DTO,
     examples: {
@@ -156,12 +196,26 @@ export class ApplicationController {
   @UseGuards(BaseAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @RoleRequired(Role.STUDENT)
-  @ApiOperation({ summary: 'Submit a BY_BED housing application (Student only)' })
-  @ApiResponse({ status: 201, description: 'Application submitted with UNDER_REVIEW status' })
-  @ApiResponse({ status: 400, description: 'UTA ID mismatch or validation error' })
-  @ApiResponse({ status: 403, description: 'Insufficient role — must be STUDENT' })
+  @ApiOperation({
+    summary: 'Submit a BY_BED housing application (Student only)',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Application submitted with UNDER_REVIEW status',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'UTA ID mismatch or validation error',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient role — must be STUDENT',
+  })
   @ApiResponse({ status: 404, description: 'User not found in system' })
-  @ApiResponse({ status: 409, description: 'Duplicate application for this term' })
+  @ApiResponse({
+    status: 409,
+    description: 'Duplicate application for this term',
+  })
   @ApiBody({
     type: CreateApplication_By_Bed_DTO,
     examples: {
@@ -205,8 +259,14 @@ export class ApplicationController {
   @ApiBearerAuth()
   @RoleRequired(Role.ADMIN, Role.STAFF)
   @ApiOperation({ summary: 'List all applications (Admin/Staff only)' })
-  @ApiResponse({ status: 200, description: 'Returns all applications with user and property details' })
-  @ApiResponse({ status: 403, description: 'Insufficient role — must be ADMIN or STAFF' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all applications with user and property details',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient role — must be ADMIN or STAFF',
+  })
   findAll() {
     return this.applicationService.findAll();
   }
@@ -215,10 +275,18 @@ export class ApplicationController {
   @UseGuards(BaseAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @RoleRequired(Role.ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'Lookup application by application ID (Admin/Staff only)' })
+  @ApiOperation({
+    summary: 'Lookup application by application ID (Admin/Staff only)',
+  })
   @ApiParam({ name: 'appId', type: Number, example: 1 })
-  @ApiResponse({ status: 200, description: 'Returns the application with user and property details' })
-  @ApiResponse({ status: 403, description: 'Insufficient role — must be ADMIN or STAFF' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the application with user and property details',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient role — must be ADMIN or STAFF',
+  })
   @ApiResponse({ status: 404, description: 'Application not found' })
   findByAppId(@Param('appId', ParseIntPipe) appId: number) {
     return this.applicationService.findByAppId(appId);
@@ -228,10 +296,18 @@ export class ApplicationController {
   @UseGuards(BaseAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @RoleRequired(Role.ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'Lookup applications by student UTA ID (Admin/Staff only)' })
+  @ApiOperation({
+    summary: 'Lookup applications by student UTA ID (Admin/Staff only)',
+  })
   @ApiParam({ name: 'utaId', type: String, example: '1001234567' })
-  @ApiResponse({ status: 200, description: 'Returns user info and all their applications' })
-  @ApiResponse({ status: 403, description: 'Insufficient role — must be ADMIN or STAFF' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns user info and all their applications',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient role — must be ADMIN or STAFF',
+  })
   @ApiResponse({ status: 404, description: 'User with given UTA ID not found' })
   findByUtaId(@Param('utaId') utaId: string) {
     return this.applicationService.findByUtaId(utaId);
@@ -244,8 +320,14 @@ export class ApplicationController {
   @ApiOperation({ summary: 'Change application status (Admin/Staff only)' })
   @ApiParam({ name: 'appId', type: Number, example: 1 })
   @ApiBody({ type: ChangeApplicationStatusDto })
-  @ApiResponse({ status: 200, description: 'Application status updated successfully' })
-  @ApiResponse({ status: 403, description: 'Insufficient role — must be ADMIN or STAFF' })
+  @ApiResponse({
+    status: 200,
+    description: 'Application status updated successfully',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient role — must be ADMIN or STAFF',
+  })
   @ApiResponse({ status: 404, description: 'Application not found' })
   updateStatus(
     @Param('appId', ParseIntPipe) appId: number,
@@ -261,7 +343,10 @@ export class ApplicationController {
   @ApiOperation({ summary: 'Delete an application (Admin/Staff only)' })
   @ApiParam({ name: 'appId', type: Number, example: 1 })
   @ApiResponse({ status: 200, description: 'Application deleted successfully' })
-  @ApiResponse({ status: 403, description: 'Insufficient role — must be ADMIN or STAFF' })
+  @ApiResponse({
+    status: 403,
+    description: 'Insufficient role — must be ADMIN or STAFF',
+  })
   @ApiResponse({ status: 404, description: 'Application not found' })
   remove(@Param('appId', ParseIntPipe) appId: number) {
     return this.applicationService.remove(appId);
