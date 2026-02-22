@@ -12,6 +12,7 @@ import { HousingModule } from './housing/housing.module';
 import { LeaseModule } from './lease/lease.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { PaymentModule } from './payment/payment.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { PaymentModule } from './payment/payment.module';
     LeaseModule,
     MaintenanceModule,
     PaymentModule,
+    ChatModule,
   ],
   controllers: [InternalApiController],
   providers: [InternalApiService, InternalApiResolver],

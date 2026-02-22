@@ -1,0 +1,106 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@common/prisma/prisma.service';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+@Injectable()
+export class ChatService {
+  constructor(private prisma: PrismaService) {}
+
+  async buildUserContext(userId: number): Promise<string> {
+    try {
+      const [lease, maintenance, payments] = await Promise.all([
+        this.prisma.lease.findFirst({
+          where: { userId },
+          include: {
+            unit: { include: { property: true } },
+            room: true,
+            bed: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.maintenanceRequest.findMany({
+          where: { createdByUserId: userId, status: { not: 'CLOSED' } },
+          take: 5,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.payment.findMany({
+          where: { lease: { userId } },
+          take: 5,
+          orderBy: { transactionDate: 'desc' },
+        }),
+      ]);
+
+      const ctx: string[] = [];
+
+      if (lease) {
+        ctx.push(`LEASE: Status=${lease.status}, Property=${lease.unit?.property?.name ?? 'N/A'}, Unit=${lease.unit?.unitNumber ?? 'N/A'}${lease.room ? `, Room ${lease.room.roomLetter}` : ''}${lease.bed ? `, Bed ${lease.bed.bedLetter}` : ''}, Period=${new Date(lease.startDate).toLocaleDateString()} to ${new Date(lease.endDate).toLocaleDateString()}, TotalDue=$${lease.totalDue}, DueThisMonth=$${lease.dueThisMonth}`);
+      } else {
+        ctx.push('LEASE: No active lease found.');
+      }
+
+      if (maintenance.length > 0) {
+        ctx.push(`OPEN MAINTENANCE (${maintenance.length}): ${maintenance.map(m => `${m.category} - ${m.status} (${m.priority})`).join(', ')}`);
+      } else {
+        ctx.push('MAINTENANCE: No open maintenance requests.');
+      }
+
+      if (payments.length > 0) {
+        const total = payments.filter(p => p.isSuccessful).reduce((s, p) => s + parseFloat(p.amountPaid.toString()), 0);
+        ctx.push(`RECENT PAYMENTS: ${payments.length} payment(s), $${total.toFixed(2)} total paid recently.`);
+      } else {
+        ctx.push('PAYMENTS: No recent payments found.');
+      }
+
+      return ctx.join('\n');
+    } catch {
+      return 'User context unavailable.';
+    }
+  }
+
+  async chat(userId: number, messages: { role: string; content: string }[]): Promise<string> {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+      throw new Error('GEMINI_API_KEY not configured');
+    }
+
+    const userContext = await this.buildUserContext(userId);
+
+    const systemInstruction = `You are Blaze, the friendly AI assistant for MavHousing — the official student housing portal for the University of Texas at Arlington (UTA).
+
+You help students with questions about:
+- Their lease (start/end dates, unit details, status)
+- Payments (what's owed, payment history, how to pay)
+- Maintenance requests (how to submit, status of existing requests)
+- Housing policies and general UTA housing information
+
+Be warm, helpful, concise, and professional. Use the student's real data below to give personalized answers.
+If you don't know something specific, direct them to contact the housing office.
+Do not make up information. Keep responses brief (2-4 sentences usually).
+
+STUDENT'S CURRENT HOUSING DATA:
+${userContext}`;
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+      systemInstruction,
+    });
+
+    // Gemini requires history to start with 'user' role — skip leading assistant messages
+    const rawHistory = messages
+      .slice(0, -1)
+      .filter(m => m.content && m.content.trim() !== '') // Gemini rejects empty text parts
+      .map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      }));
+    // Drop messages from the start until we hit a 'user' turn
+    const firstUserIdx = rawHistory.findIndex(m => m.role === 'user');
+    const history = firstUserIdx >= 0 ? rawHistory.slice(firstUserIdx) : [];
+
+    const chat = model.startChat({ history });
+    const lastMessage = messages[messages.length - 1].content;
+    const result = await chat.sendMessage(lastMessage);
+    return result.response.text();
+  }
+}
