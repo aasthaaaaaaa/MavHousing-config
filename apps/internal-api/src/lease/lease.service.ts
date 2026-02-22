@@ -21,6 +21,33 @@ export class LeaseService {
     });
   }
 
+  async createLease(data: {
+    userId: number;
+    leaseType: any;
+    unitId?: number;
+    roomId?: number;
+    bedId?: number;
+    startDate: string;
+    endDate: string;
+    totalDue: number;
+    dueThisMonth: number;
+  }) {
+    return this.prisma.lease.create({
+      data: {
+        userId: data.userId,
+        leaseType: data.leaseType || 'BY_BED',
+        assignedUnitId: data.unitId,
+        assignedRoomId: data.roomId,
+        assignedBedId: data.bedId,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+        totalDue: data.totalDue,
+        dueThisMonth: data.dueThisMonth,
+        status: 'PENDING_SIGNATURE',
+      },
+    });
+  }
+
   async getAllLeases() {
     return this.prisma.lease.findMany({
       include: {

@@ -11,6 +11,11 @@ export class LeaseController {
     return this.leaseService.getMyLease(userId);
   }
 
+  @Post('create')
+  async createLease(@Body() body: any) {
+    return this.leaseService.createLease(body);
+  }
+
   @Get('leases')
   async getAllLeases() {
     return this.leaseService.getAllLeases();

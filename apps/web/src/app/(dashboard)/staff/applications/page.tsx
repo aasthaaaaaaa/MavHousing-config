@@ -17,14 +17,15 @@ import {
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { User, MapPin, Calendar, FileText, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { CreateLeaseDialog } from "@/components/create-lease-dialog";
 
 interface Application {
   appId: number;
   term: string;
   status: string;
   submissionDate: string;
-  user: { netId: string; fName: string; lName: string; email: string };
-  preferredProperty: { name: string; address: string; propertyType?: string };
+  user: { userId: number; netId: string; fName: string; lName: string; email: string };
+  preferredProperty: { propertyId: number; name: string; address: string; propertyType?: string };
 }
 
 const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
@@ -50,6 +51,7 @@ export default function StaffApplicationsPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Application | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [leaseDialogOpen, setLeaseDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => { fetchApplications(); }, []);
@@ -229,23 +231,39 @@ export default function StaffApplicationsPage() {
                 {/* Status update */}
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Update Status</h3>
-                  <Select value={selected.status} onValueChange={val => updateStatus(selected.appId, val)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SUBMITTED">Submitted</SelectItem>
-                      <SelectItem value="UNDER_REVIEW">Under Review</SelectItem>
-                      <SelectItem value="APPROVED">Approved</SelectItem>
-                      <SelectItem value="REJECTED">Rejected</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Select value={selected.status} onValueChange={val => updateStatus(selected.appId, val)}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="SUBMITTED">Submitted</SelectItem>
+                        <SelectItem value="UNDER_REVIEW">Under Review</SelectItem>
+                        <SelectItem value="APPROVED">Approved</SelectItem>
+                        <SelectItem value="REJECTED">Rejected</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {selected.status === 'APPROVED' && (
+                      <Button onClick={() => setLeaseDialogOpen(true)}>Create Lease Offer</Button>
+                    )}
+                  </div>
                 </div>
               </div>
             </>
           )}
         </SheetContent>
       </Sheet>
+      
+      <CreateLeaseDialog 
+        open={leaseDialogOpen} 
+        onOpenChange={setLeaseDialogOpen} 
+        application={selected}
+        onLeaseCreated={() => {
+            // Can add logic to refresh or notify
+            toast({ title: "Lease Sent", description: "The lease has been dispatched to the student." });
+            setSheetOpen(false);
+        }}
+      />
     </div>
   );
 }

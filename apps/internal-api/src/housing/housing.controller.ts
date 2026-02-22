@@ -10,6 +10,11 @@ export class HousingController {
     return this.housingService.getProperties();
   }
 
+  @Get('properties/:propertyId/available-beds')
+  async getAvailableBeds(@Param('propertyId') propertyId: string) {
+    return this.housingService.getAvailableBeds(parseInt(propertyId, 10));
+  }
+
   @Get('terms')
   async getTerms() {
     return this.housingService.getTerms();

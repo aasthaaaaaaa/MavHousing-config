@@ -17,6 +17,37 @@ export class HousingService {
     });
   }
 
+  async getAvailableBeds(propertyId: number) {
+    return this.prisma.bed.findMany({
+      where: {
+        room: {
+          unit: {
+            propertyId,
+          }
+        },
+        leases: {
+          none: {
+            status: {
+              in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE']
+            }
+          }
+        }
+      },
+      include: {
+        room: {
+          include: {
+            unit: true
+          }
+        }
+      },
+      orderBy: [
+        { room: { unit: { unitNumber: 'asc' } } },
+        { room: { roomLetter: 'asc' } },
+        { bedLetter: 'asc' }
+      ]
+    });
+  }
+
   async getTerms() {
     // For MVP, return hardcoded terms
     // In production, this could come from a Terms table
@@ -67,6 +98,7 @@ export class HousingService {
       include: {
         user: {
           select: {
+            userId: true,
             netId: true,
             fName: true,
             lName: true,
@@ -75,6 +107,7 @@ export class HousingService {
         },
         preferredProperty: {
           select: {
+            propertyId: true,
             name: true,
             address: true,
           },
