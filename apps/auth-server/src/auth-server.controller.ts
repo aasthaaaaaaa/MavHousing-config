@@ -2,8 +2,7 @@ import {
   Body,
   Query,
   Controller,
-  Get,
-  Post,
+  Get, Post,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -15,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { AuthServerService } from './auth-server.service';
 import { UserSignup } from '../DTO/userSignUp.dto';
+import { UpdateUserDto } from '../DTO/updateUser.dto';
 import {
   ApiQuery,
   ApiOperation,
@@ -52,6 +52,7 @@ export class AuthServerController {
   @UseGuards(BaseAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Creates new account' })
+  @RoleRequired(Role.ADMIN, Role.STAFF)
   @ApiBody({
     type: UserSignup,
     examples: {
@@ -74,33 +75,15 @@ export class AuthServerController {
       },
     },
   })
-  @RoleRequired(Role.ADMIN, Role.STAFF)
-  async createNewUser(@Body() userData: UserSignup, @Request() req) {
-    const loggedInUserRole = req.user.role;
-
-    switch (userData.role) {
-      case Role.STUDENT:
-        return this.authServerService.createUser(userData);
-
-      case Role.STAFF:
-        if (loggedInUserRole !== Role.ADMIN) {
-          throw new ForbiddenException('Only admins can create staff accounts');
-        }
-        return this.authServerService.createUser(userData);
-
-      default:
-        return { message: 'Invalid role' };
+  async createUser(@Body() user:UserSignup){
+    const result = await this.authServerService.createUser(user)
+    if(result){
+      console.log(`user ${user.netId} was created`)
+      return 'created'
     }
-  }
-
-  @Delete('delete-user')
-  @UseGuards(BaseAuthGuard, RolesGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Deletes a user' })
-  @ApiQuery({ name: 'utaId' })
-  @RoleRequired(Role.ADMIN, Role.STAFF)
-  async deleteUser(@Query('utaId') utaId: string, @Request() req) {
-    return this.authServerService.deleteUser(utaId);
+    console.log(`user ${user.netId} already exists`)
+    return 'not created'
+    
   }
 
   @Get('get-all')

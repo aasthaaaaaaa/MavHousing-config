@@ -1,15 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserSignup } from '../DTO/userSignUp.dto';
-// Actually, looking at line 2 of previous file: import { UserSignup } from '../DTO/userSignUp.dto';
-// But the previous file content at line 2 said: import { UserSignup } from '../DTO/userSignUp.dto';
-// BUT wait, looking at my read of the file in step 14, auth-server.controller.ts was there.
-// The broken file in step 56 had: import { UserSignup } from '../DTO/userSignUp.dto';
-// Let's assume '../DTO/userSignUp.dto' is correct or I'll check.
-// I'll check for DTO existence first to be safe.
 import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
 import * as bcrypt from 'bcryptjs';
-import { PrismaService } from '@libs/db';
+import { PrismaService } from '@common/prisma/prisma.service';
 
 @Injectable()
 export class AuthServerService {
@@ -140,19 +134,19 @@ export class AuthServerService {
     console.log('Admin Role guard Passed');
     return { message: 'Admin Role guard Passed' };
   }
-  checkRBACStudent() {
+  async checkRBACStudent() {
     console.log('Student Role guard Passed');
     return { message: 'Student Role guard Passed' };
   }
-  checkRBACFaculty() {
+  async checkRBACFaculty() {
     console.log('Faculty Role guard Passed');
     return { message: 'Faculty Role guard Passed' };
   }
-  checkRBACGuest() {
+  async checkRBACGuest() {
     console.log('Guest Role guard Passed');
     return { message: 'Guest Role guard Passed' };
   }
-  checkRBACStaff() {
+  async checkRBACStaff() {
     console.log('Staff Role guard passed');
     return { message: 'Staff Role guard passed' };
   }

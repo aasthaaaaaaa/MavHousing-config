@@ -1,0 +1,34 @@
+[
+  {
+    "fName": "atiq",
+    "lName": "rahman",
+    "email": "axr0966@mavs.uta.edu",
+    "netId": "axr0966",
+    "password": "$2b$10$CfGUUUYrauirHtSHb3CbKOELjqxMgSSVaAGyR89v1ora0a7.Lj92K",
+    "role": "student"
+  },
+  {
+    "fName": "staff",
+    "lName": "one",
+    "email": "staff@uta.edu",
+    "netId": "staffone",
+    "password": "$2b$10$f5xa4/k5fr7ZK8HKJDN87eU99ooCdhgTetapb1FKvtcBkZJEgnDUu",
+    "role": "staff"
+  },
+  {
+    "fName": "admin",
+    "lName": "one",
+    "email": "adminone@uta.edu",
+    "netId": "adminone",
+    "password": "$2b$10$U7yJb9OpVqFLYoEzH1VUB.7qtMURIzqKcaSQUEcpB7G4GcD2gVdiS",
+    "role": "admin"
+  },
+  {
+    "fName": "Test",
+    "lName": "User",
+    "email": "testuser222@uta.edu",
+    "netId": "testuser222",
+    "password": "$2b$10$iX2fRTS4UgSu.HQ7hti8leF6y2UamA9eeNrTMDNKB8X3p9zJPBkfW",
+    "role": "student"
+  }
+]

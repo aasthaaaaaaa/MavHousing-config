@@ -8,6 +8,7 @@ async function bootstrap() {
   const config = new DocumentBuilder().setTitle('AuthServer').setDescription('API Playground for authentication services').addBearerAuth().build()
 
   const app = await NestFactory.create(AuthServerModule);
+  app.enableCors();
 
   app.useGlobalPipes(
     new ValidationPipe({

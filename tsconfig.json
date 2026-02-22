@@ -39,6 +39,9 @@
       ],
       "@mav-housing/prisma/*": [
         "generated/prisma/*"
+      ],
+      "@common/*": [
+        "common/*"
       ]
     }
   }

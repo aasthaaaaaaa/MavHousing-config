@@ -1,26 +1,53 @@
 import { Injectable } from '@nestjs/common';
-import { CreateLeaseDto } from './dto/create-lease.dto';
-import { UpdateLeaseDto } from './dto/update-lease.dto';
+import { PrismaService } from '@common/prisma/prisma.service';
 
 @Injectable()
 export class LeaseService {
-  create(createLeaseDto: CreateLeaseDto) {
-    return 'This action adds a new lease';
+  constructor(private prisma: PrismaService) {}
+
+  async getMyLease(userId: number) {
+    return this.prisma.lease.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        unit: {
+          include: {
+            property: true,
+          },
+        },
+        room: true,
+        bed: true,
+      },
+    });
   }
 
-  findAll() {
-    return `This action returns all lease`;
+  async getAllLeases() {
+    return this.prisma.lease.findMany({
+      include: {
+        user: {
+          select: {
+            netId: true,
+            fName: true,
+            lName: true,
+            email: true,
+          },
+        },
+        unit: {
+          include: {
+            property: true,
+          },
+        },
+        room: true,
+        bed: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} lease`;
-  }
-
-  update(id: number, updateLeaseDto: UpdateLeaseDto) {
-    return `This action updates a #${id} lease`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} lease`;
+  async updateLeaseStatus(leaseId: number, status: string) {
+    return this.prisma.lease.update({
+      where: { leaseId },
+      data: { status: status as any, updatedAt: new Date() },
+    });
   }
 }

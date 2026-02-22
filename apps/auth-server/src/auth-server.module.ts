@@ -4,11 +4,13 @@ import { AuthServerController } from './auth-server.controller';
 import { AuthServerService } from './auth-server.service';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
+import { PrismaModule } from '@common/prisma/prisma.module';
 import { DbModule } from '@libs/db';
 import { LoggerModule, AllExceptionsFilter } from '@libs/common';
 
 @Module({
   imports: [
+    PrismaModule,
     DbModule,
     LoggerModule,
     JwtModule.register({
