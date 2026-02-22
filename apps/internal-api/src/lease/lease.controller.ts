@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Patch, Param, Body } from '@nestjs/common';
+import { Controller, Get, Req, Patch, Param, Body, Post, Delete } from '@nestjs/common';
 import { LeaseService } from './lease.service';
 
 @Controller('lease')
@@ -9,6 +9,11 @@ export class LeaseController {
   async getMyLease(@Req() req: any) {
     const userId = parseInt(req.query.userId) || 1;
     return this.leaseService.getMyLease(userId);
+  }
+
+  @Post('create')
+  async createLease(@Body() body: any) {
+    return this.leaseService.createLease(body);
   }
 
   @Get('leases')

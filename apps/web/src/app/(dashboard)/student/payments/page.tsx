@@ -78,8 +78,11 @@ export default function PaymentsPage() {
         fetch(`http://localhost:3009/payment/summary?userId=${user!.userId}`),
         fetch(`http://localhost:3009/payment/my-payments?userId=${user!.userId}`),
       ]);
-      const sumData = await sumRes.json();
-      const payData = await payRes.json();
+      let sumData = null;
+      let payData = [];
+      try { if (sumRes.ok) sumData = await sumRes.json(); } catch (e) {}
+      try { if (payRes.ok) payData = await payRes.json(); } catch (e) {}
+
       setSummary(sumData);
       setPayments(Array.isArray(payData) ? payData : []);
       if (sumData?.dueThisMonth) setAmount(String(sumData.dueThisMonth));

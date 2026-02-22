@@ -205,6 +205,27 @@ model Application {
   term                String    @db.VarChar(20)
   status              ApplicationStatus @default(DRAFT)
   preferredPropertyId Int?
+  
+  // -- New Full Application Fields --
+  // Personal & Academic
+  classification      String?   @db.VarChar(50) // e.g., Freshman, Sophomore, Graduate
+  expectedGraduation  String?   @db.VarChar(20) // e.g., Spring 2028
+  
+  // Emergency Contact
+  emergencyContactName  String? @db.VarChar(100)
+  emergencyContactPhone String? @db.VarChar(20)
+  emergencyContactRelation String? @db.VarChar(50)
+  
+  // Lifestyle & Roommate Matching
+  sleepSchedule       String?   @db.VarChar(50) // e.g., Early Bird, Night Owl
+  cleanliness         String?   @db.VarChar(50) // e.g., Very Neat, Casual, Messy
+  noiseLevel          String?   @db.VarChar(50) // e.g., Quiet, Moderate, Loud
+  smokingPreference   String?   @db.VarChar(50) // e.g., Non-Smoker, Don't Mind
+  
+  // Accommodations & Notes
+  dietaryRestrictions String?   @db.Text
+  specialAccommodations String? @db.Text
+  
   submissionDate      DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt

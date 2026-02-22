@@ -82,9 +82,9 @@ export default function StaffDashboard() {
     try {
       const [apps, maint, payments, leases] = await Promise.all([
         fetch("http://localhost:3009/housing/applications").then(r => r.json()).catch(() => []),
-        fetch("http://localhost:3009/maintenance/all").then(r => r.json()).catch(() => []),
+        fetch("http://localhost:3009/maintenance/requests").then(r => r.json()).catch(() => []),
         fetch("http://localhost:3009/payment/all").then(r => r.json()).catch(() => []),
-        fetch("http://localhost:3009/lease/all").then(r => r.json()).catch(() => []),
+        fetch("http://localhost:3009/lease/leases").then(r => r.json()).catch(() => []),
       ]);
       const a = Array.isArray(apps) ? apps : [];
       const m = Array.isArray(maint) ? maint : [];

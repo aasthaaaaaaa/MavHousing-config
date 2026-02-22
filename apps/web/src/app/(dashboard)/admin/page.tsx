@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import Cookies from "js-cookie";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,8 +37,11 @@ const appChartConfig = {
 } satisfies ChartConfig;
 
 const PIE_COLORS = [
-  "hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))", "hsl(var(--chart-5))",
+  "#3b82f6", // blue-500 for students
+  "#f59e0b", // amber-500 for admin
+  "#10b981", // emerald-500 for staff
+  "#8b5cf6", // violet-500
+  "#ef4444", // red-500
 ];
 
 function fmt(v: number) {
@@ -61,11 +65,14 @@ export default function AdminDashboard() {
 
   async function fetchStats() {
     try {
+      const token = Cookies.get('access_token');
       const [usersRes, appsRes, leasesRes, maintRes, paymentsRes] = await Promise.all([
-        fetch("http://localhost:3007/users").then(r => r.json()).catch(() => []),
+        fetch("http://localhost:3004/auth/users", {
+          headers: { Authorization: `Bearer ${token}` }
+        }).then(r => r.ok ? r.json() : []).catch(() => []),
         fetch("http://localhost:3009/housing/applications").then(r => r.json()).catch(() => []),
-        fetch("http://localhost:3009/lease/all").then(r => r.json()).catch(() => []),
-        fetch("http://localhost:3009/maintenance/all").then(r => r.json()).catch(() => []),
+        fetch("http://localhost:3009/lease/leases").then(r => r.json()).catch(() => []),
+        fetch("http://localhost:3009/maintenance/requests").then(r => r.json()).catch(() => []),
         fetch("http://localhost:3009/payment/all").then(r => r.json()).catch(() => []),
       ]);
 
@@ -75,9 +82,12 @@ export default function AdminDashboard() {
       const maint = Array.isArray(maintRes) ? maintRes : [];
       const payments = Array.isArray(paymentsRes) ? paymentsRes : [];
 
-      // Group users by role
+      // Group users by role (normalize case)
       const roleMap: Record<string, number> = {};
-      users.forEach((u: any) => { roleMap[u.role] = (roleMap[u.role] ?? 0) + 1; });
+      users.forEach((u: any) => { 
+        const r = u.role?.toUpperCase() || 'UNKNOWN';
+        roleMap[r] = (roleMap[r] ?? 0) + 1; 
+      });
 
       // Group apps by status
       const appStatusMap: Record<string, number> = {};
@@ -85,8 +95,8 @@ export default function AdminDashboard() {
 
       setStats({
         totalUsers: users.length,
-        staffCount: users.filter((u: any) => u.role === "STAFF").length,
-        studentCount: users.filter((u: any) => u.role === "STUDENT").length,
+        staffCount: users.filter((u: any) => u.role?.toUpperCase() === "STAFF").length,
+        studentCount: users.filter((u: any) => u.role?.toUpperCase() === "STUDENT").length,
         totalApplications: apps.length,
         pendingApplications: apps.filter((a: any) => ["SUBMITTED", "UNDER_REVIEW"].includes(a.status)).length,
         totalLeases: leases.length,
@@ -151,14 +161,16 @@ export default function AdminDashboard() {
               <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">No user data</div>
             ) : (
               <div className="flex items-center gap-6">
-                <PieChart width={160} height={160}>
-                  <Pie data={stats!.usersByRole} dataKey="count" nameKey="role" cx="50%" cy="50%" outerRadius={70} strokeWidth={2}>
-                    {stats!.usersByRole.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                </PieChart>
+                <ChartContainer config={userChartConfig} className="w-[160px] h-[160px]">
+                  <PieChart>
+                    <Pie data={stats!.usersByRole} dataKey="count" nameKey="role" cx="50%" cy="50%" outerRadius={70} strokeWidth={2}>
+                      {stats!.usersByRole.map((_, i) => (
+                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                  </PieChart>
+                </ChartContainer>
                 <div className="space-y-2">
                   {stats!.usersByRole.map((r, i) => (
                     <div key={r.role} className="flex items-center gap-2">
@@ -189,7 +201,7 @@ export default function AdminDashboard() {
                   <XAxis dataKey="status" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="count" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ChartContainer>
             )}
@@ -243,7 +255,7 @@ export default function AdminDashboard() {
             ) : (
               <div>
                 {stats!.recentUsers.map((u, i) => (
-                  <div key={u.userId}>
+                  <div key={u.netId}>
                     {i > 0 && <Separator />}
                     <div className="flex items-center justify-between px-6 py-3">
                       <div className="flex items-center gap-3">

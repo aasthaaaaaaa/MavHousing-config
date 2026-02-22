@@ -2,32 +2,12 @@
 
 import * as React from "react"
 import {
-  closestCenter,
-  DndContext,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type UniqueIdentifier,
-} from "@dnd-kit/core"
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
-import {
-  arrayMove,
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import {
   IconChevronDown,
   IconChevronLeft,
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
   IconDotsVertical,
-  IconGripVertical,
   IconLayoutColumns,
   IconPlus,
 } from "@tabler/icons-react"
@@ -108,51 +88,6 @@ import { EditUserSheet } from "@/components/edit-user-sheet"
 
 import { userSchema, type UserData } from "@/lib/types"
 
-// Create a separate component for the drag handle
-function DragHandle({ id }: { id: string }) {
-  const { attributes, listeners } = useSortable({
-    id,
-  })
-
-  return (
-    <Button
-      {...attributes}
-      {...listeners}
-      variant="ghost"
-      size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent cursor-grab active:cursor-grabbing"
-    >
-      <IconGripVertical className="text-muted-foreground size-4" />
-      <span className="sr-only">Drag to reorder</span>
-    </Button>
-  )
-}
-
-// Helper component for draggable rows
-function DraggableRow({ row }: { row: Row<UserData> }) {
-  const { transform, transition, setNodeRef, isDragging } = useSortable({
-    id: row.original.netId,
-  })
-
-  return (
-    <TableRow
-      data-state={row.getIsSelected() && "selected"}
-      data-dragging={isDragging}
-      ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition: transition,
-      }}
-    >
-      {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>
-          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-        </TableCell>
-      ))}
-    </TableRow>
-  )
-}
 
 export function UserDataTable({
   data: initialData,
@@ -195,39 +130,6 @@ export function UserDataTable({
   }
 
   const columns = React.useMemo<ColumnDef<UserData>[]>(() => [
-    {
-        id: "drag",
-        header: () => null,
-        cell: ({ row }) => <DragHandle id={row.original.netId} />,
-        enableSorting: false,
-        enableHiding: false,
-    },
-    {
-        id: "select",
-        header: ({ table }) => (
-        <div className="flex items-center justify-center">
-            <Checkbox
-            checked={
-                table.getIsAllPageRowsSelected() ||
-                (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-            />
-        </div>
-        ),
-        cell: ({ row }) => (
-        <div className="flex items-center justify-center">
-            <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-            />
-        </div>
-        ),
-        enableSorting: false,
-        enableHiding: false,
-    },
     {
         accessorKey: "netId",
         header: "NetID",
@@ -292,23 +194,9 @@ export function UserDataTable({
     },
   ], [])
   
-  // We need a stable ID for the DnD context
-  const sortableId = React.useId()
-  
-  const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  )
-
-  const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => data?.map(({ netId }) => netId) || [],
-    [data]
-  )
-
   const table = useReactTable({
     data,
-    columns, // Uses memoized columns with closure over handlers
+    columns,
     state: {
       sorting,
       columnVisibility,
@@ -316,7 +204,7 @@ export function UserDataTable({
       columnFilters,
       pagination,
     },
-    getRowId: (row) => row.netId, // Use netId as unique ID
+    getRowId: (row) => row.netId,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
@@ -330,17 +218,6 @@ export function UserDataTable({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
-
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
-    if (active && over && active.id !== over.id) {
-      setData((data) => {
-        const oldIndex = data.findIndex(item => item.netId === active.id)
-        const newIndex = data.findIndex(item => item.netId === over.id)
-        return arrayMove(data, oldIndex, newIndex)
-      })
-    }
-  }
 
   return (
     <div className="space-y-4 p-4">
@@ -392,13 +269,6 @@ export function UserDataTable({
       </div>
       
       <div className="rounded-md border">
-          <DndContext
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
-            id={sortableId}
-          >
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -420,14 +290,15 @@ export function UserDataTable({
               </TableHeader>
               <TableBody>
                 {table.getRowModel().rows?.length ? (
-                  <SortableContext
-                    items={dataIds}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {table.getRowModel().rows.map((row) => (
-                      <DraggableRow key={row.id} row={row} />
-                    ))}
-                  </SortableContext>
+                  table.getRowModel().rows.map((row: any) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell: any) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
                 ) : (
                   <TableRow>
                     <TableCell
@@ -440,14 +311,9 @@ export function UserDataTable({
                 )}
               </TableBody>
             </Table>
-          </DndContext>
-      </div>
-
-        <div className="flex items-center justify-between space-x-2 py-4">
-         <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
           </div>
+        
+        <div className="flex items-center justify-between space-x-2 py-4">
           <div className="space-x-2">
             <Button
               variant="outline"

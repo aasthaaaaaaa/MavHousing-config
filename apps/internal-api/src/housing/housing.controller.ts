@@ -10,6 +10,11 @@ export class HousingController {
     return this.housingService.getProperties();
   }
 
+  @Get('properties/:propertyId/available-beds')
+  async getAvailableBeds(@Param('propertyId') propertyId: string) {
+    return this.housingService.getAvailableBeds(parseInt(propertyId, 10));
+  }
+
   @Get('terms')
   async getTerms() {
     return this.housingService.getTerms();
@@ -24,6 +29,17 @@ export class HousingController {
     return this.housingService.createApplication(userId, {
       term: body.term,
       preferredPropertyId: body.preferredPropertyId,
+      classification: body.classification,
+      expectedGraduation: body.expectedGraduation,
+      emergencyContactName: body.emergencyContactName,
+      emergencyContactPhone: body.emergencyContactPhone,
+      emergencyContactRelation: body.emergencyContactRelation,
+      sleepSchedule: body.sleepSchedule,
+      cleanliness: body.cleanliness,
+      noiseLevel: body.noiseLevel,
+      smokingPreference: body.smokingPreference,
+      dietaryRestrictions: body.dietaryRestrictions,
+      specialAccommodations: body.specialAccommodations,
     });
   }
 
@@ -42,5 +58,10 @@ export class HousingController {
   @Patch('applications/:id/status')
   async updateApplicationStatus(@Param('id') id: string, @Body() body: { status: string }) {
     return this.housingService.updateApplicationStatus(parseInt(id), body.status);
+  }
+
+  @Get('students')
+  async getStudents() {
+    return this.housingService.getStudents();
   }
 }

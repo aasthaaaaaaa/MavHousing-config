@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Building2, Calendar, CreditCard, BedDouble, DoorOpen, Key } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -49,6 +50,7 @@ function formatMoney(val: string) {
 export default function MyLeasePage() {
   const [lease, setLease] = useState<Lease | null>(null);
   const [loading, setLoading] = useState(true);
+  const [signing, setSigning] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -58,12 +60,29 @@ export default function MyLeasePage() {
   async function fetchLease() {
     try {
       const res = await fetch(`http://localhost:3009/lease/my-lease?userId=${user!.userId}`);
+      if (!res.ok) throw new Error("Not found");
       const data = await res.json();
       setLease(data);
     } catch {
       setLease(null);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleSignLease() {
+    setSigning(true);
+    try {
+      await fetch(`http://localhost:3009/lease/leases/${lease!.leaseId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "SIGNED" }),
+      });
+      setLease({ ...lease!, status: "SIGNED", signedAt: new Date().toISOString() });
+    } catch {
+      // Could add toast here
+    } finally {
+      setSigning(false);
     }
   }
 
@@ -95,6 +114,23 @@ export default function MyLeasePage() {
         <h1 className="text-2xl font-bold">My Lease</h1>
         <p className="text-muted-foreground">Your current lease agreement details</p>
       </div>
+
+      {lease.status === 'PENDING_SIGNATURE' && (
+        <Card className="border-primary/50 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="text-primary">Action Required: Sign Your Lease</CardTitle>
+            <CardDescription className="text-base text-foreground mt-2">
+              You have been offered a housing assignment! Please review the details below. 
+              By clicking "Accept & Sign Lease", you agree to the terms and financial obligations of this lease.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button size="lg" onClick={handleSignLease} disabled={signing}>
+              {signing ? "Signing..." : "Accept & Sign Lease"}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Property Card */}
       {lease.unit && (

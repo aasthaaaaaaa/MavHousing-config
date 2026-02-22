@@ -1,3 +1,5 @@
+"use client";
+import { useAuth } from "@/context/AuthContext";
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -13,12 +15,15 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import BlazeChat from "@/components/blaze-chat"
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const { user } = useAuth();
+  const isStudent = user?.role?.toLowerCase() === "student";
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -44,6 +49,7 @@ export default function DashboardLayout({
           {children}
         </div>
       </SidebarInset>
+      {isStudent && <BlazeChat />}
     </SidebarProvider>
   )
 }

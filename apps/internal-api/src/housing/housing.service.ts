@@ -17,6 +17,37 @@ export class HousingService {
     });
   }
 
+  async getAvailableBeds(propertyId: number) {
+    return this.prisma.bed.findMany({
+      where: {
+        room: {
+          unit: {
+            propertyId,
+          }
+        },
+        leases: {
+          none: {
+            status: {
+              in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE']
+            }
+          }
+        }
+      },
+      include: {
+        room: {
+          include: {
+            unit: true
+          }
+        }
+      },
+      orderBy: [
+        { room: { unit: { unitNumber: 'asc' } } },
+        { room: { roomLetter: 'asc' } },
+        { bedLetter: 'asc' }
+      ]
+    });
+  }
+
   async getTerms() {
     // For MVP, return hardcoded terms
     // In production, this could come from a Terms table
@@ -33,6 +64,17 @@ export class HousingService {
         userId,
         term: applicationData.term,
         preferredPropertyId: applicationData.preferredPropertyId,
+        classification: applicationData.classification,
+        expectedGraduation: applicationData.expectedGraduation,
+        emergencyContactName: applicationData.emergencyContactName,
+        emergencyContactPhone: applicationData.emergencyContactPhone,
+        emergencyContactRelation: applicationData.emergencyContactRelation,
+        sleepSchedule: applicationData.sleepSchedule,
+        cleanliness: applicationData.cleanliness,
+        noiseLevel: applicationData.noiseLevel,
+        smokingPreference: applicationData.smokingPreference,
+        dietaryRestrictions: applicationData.dietaryRestrictions,
+        specialAccommodations: applicationData.specialAccommodations,
         status: 'SUBMITTED',
         submissionDate: new Date(),
       },
@@ -56,6 +98,7 @@ export class HousingService {
       include: {
         user: {
           select: {
+            userId: true,
             netId: true,
             fName: true,
             lName: true,
@@ -64,6 +107,7 @@ export class HousingService {
         },
         preferredProperty: {
           select: {
+            propertyId: true,
             name: true,
             address: true,
           },
@@ -79,6 +123,14 @@ export class HousingService {
     return this.prisma.application.update({
       where: { appId },
       data: { status: status as any },
+    });
+  }
+
+  async getStudents() {
+    return this.prisma.user.findMany({
+      where: { role: 'STUDENT' },
+      select: { userId: true, netId: true, fName: true, lName: true, email: true },
+      orderBy: { lName: 'asc' },
     });
   }
 }
