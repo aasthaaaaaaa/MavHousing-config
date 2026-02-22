@@ -24,6 +24,17 @@ export class HousingController {
     return this.housingService.createApplication(userId, {
       term: body.term,
       preferredPropertyId: body.preferredPropertyId,
+      classification: body.classification,
+      expectedGraduation: body.expectedGraduation,
+      emergencyContactName: body.emergencyContactName,
+      emergencyContactPhone: body.emergencyContactPhone,
+      emergencyContactRelation: body.emergencyContactRelation,
+      sleepSchedule: body.sleepSchedule,
+      cleanliness: body.cleanliness,
+      noiseLevel: body.noiseLevel,
+      smokingPreference: body.smokingPreference,
+      dietaryRestrictions: body.dietaryRestrictions,
+      specialAccommodations: body.specialAccommodations,
     });
   }
 
