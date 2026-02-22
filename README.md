@@ -36,6 +36,7 @@ The frontend communicates directly with both `auth-server` (for login) and `inte
 - **My Lease** — View active lease details: property, unit/room/bed, lease period, and financial summary
 - **Maintenance** — Submit maintenance requests by category (Plumbing, HVAC, Electrical, etc.) and priority; track status
 - **Payments** — View balance summary, make simulated payments, and see full payment history
+- **Blaze AI Assistant** — Floating smart chatbot powered by Gemini that answers questions using the student's real-time housing context (lease info, balance, open tickets)
 
 ### 🏢 Staff Portal (`/staff`)
 - **Applications** — Review all student applications, approve or reject with status updates
@@ -71,10 +72,19 @@ npm install
 
 ### Environment Setup
 
-Each service needs a `.env` file. The key variable for `auth-server` and `internal-api`:
+Create a `.env` file in the root of the project. The key variables required are:
+
 ```env
-DATABASE_URL="postgresql://postgres:password@localhost:5432/mavhousing"
-JWT_SECRET="your-secret"
+# Database Configuration
+# NOTE: Replace "postgres" with your local PostgreSQL username. 
+# On Mac (Homebrew/Postgres.app), this is usually your system username.
+SQL_DATABASE_URL="postgresql://postgres:password@localhost:5432/mavhousing"
+
+# Authentication
+JWT_SECRET="your-secret-key"
+
+# AI Integration (Required for Blaze Chatbot)
+GEMINI_API_KEY="your_gemini_api_key_here"
 ```
 
 ### Run
