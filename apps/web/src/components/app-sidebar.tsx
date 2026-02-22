@@ -80,8 +80,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     admin: [
       { title: "Dashboard", url: "/admin", icon: Home },
       { title: "User Management", url: "/admin/users", icon: Users },
-      { title: "System Logs", url: "#", icon: FileText },
-      { title: "Settings", url: "#", icon: Settings2 },
     ]
   };
 

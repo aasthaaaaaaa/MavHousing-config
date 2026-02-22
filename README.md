@@ -19,7 +19,7 @@ The project is a **Turborepo monorepo** with three independent services:
 ```
 apps/
   web/              → Next.js frontend (port 3000)
-  auth-server/      → JWT authentication service (port 3007)
+  auth-server/      → JWT authentication service (port 3004)
   internal-api/     → Core business logic API (port 3009)
 packages/
   common/
