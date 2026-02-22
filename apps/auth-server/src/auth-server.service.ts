@@ -1,5 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserSignup } from '../DTO/userSignUp.dto';
+import { UpdateUserDto } from '../DTO/updateUser.dto';
 import { JwtService } from '@nestjs/jwt';
 import { randomUUID } from 'crypto';
 import * as bcrypt from 'bcryptjs';
@@ -83,6 +88,58 @@ export class AuthServerService {
     return true;
   }
 
+  // UPDATE by netId
+  async updateUser(netId: string, data: UpdateUserDto) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { netId },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundException(`User with netId ${netId} not found`);
+    }
+
+    const roleMapping: Record<string, any> = {
+      student: 'STUDENT',
+      admin: 'ADMIN',
+      staff: 'STAFF',
+    };
+
+    const updateData: any = {};
+    if (data.fName !== undefined) updateData.fName = data.fName;
+    if (data.lName !== undefined) updateData.lName = data.lName;
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.role !== undefined)
+      updateData.role = roleMapping[data.role] || data.role.toUpperCase();
+
+    const updated = await this.prisma.user.update({
+      where: { netId },
+      data: updateData,
+    });
+
+    return {
+      ...updated,
+      phone: updated.phone !== null ? updated.phone.toString() : null,
+    };
+  }
+
+  // DELETE by netId
+  async deleteUserByNetId(netId: string) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { netId },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundException(`User with netId ${netId} not found`);
+    }
+
+    await this.prisma.user.delete({
+      where: { netId },
+    });
+
+    console.log(`User ${netId} deleted.`);
+    return { deleted: true, netId };
+  }
+
   // READ
   async getAllUser() {
     const users = await this.prisma.user.findMany();
@@ -114,7 +171,9 @@ export class AuthServerService {
     if (user) {
       const isMatch = await bcrypt.compare(password, user.passwordHash);
       if (!isMatch) {
-        throw new UnauthorizedException('password wrong');
+        throw new UnauthorizedException(
+          'Incorrect password. Please try again.',
+        );
       }
 
       const payload = {
@@ -126,7 +185,7 @@ export class AuthServerService {
         access_token: await this.jwtService.signAsync(payload),
       };
     }
-    throw new UnauthorizedException('no user like that');
+    throw new UnauthorizedException('No account found with that NetID.');
   }
 
   // RBAC Checks

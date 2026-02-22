@@ -48,9 +48,16 @@ export function LoginForm({
       }
     } catch (err: any) {
       if (err.response) {
-        setError(err.response.data.message || 'Login failed');
+        const msg = err.response.data?.message;
+        // message can be a string, array, or object — safely coerce to string
+        const errorText = typeof msg === 'string'
+          ? msg
+          : Array.isArray(msg)
+            ? msg.join(', ')
+            : 'Login failed';
+        setError(errorText);
       } else {
-        setError('Network error. Please check if auth-server is running.');
+        setError('Network error. Please check if the server is running.');
       }
     } finally {
         setLoading(false);

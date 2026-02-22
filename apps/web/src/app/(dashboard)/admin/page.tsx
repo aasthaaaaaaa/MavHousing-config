@@ -67,7 +67,7 @@ export default function AdminDashboard() {
     try {
       const token = Cookies.get('access_token');
       const [usersRes, appsRes, leasesRes, maintRes, paymentsRes] = await Promise.all([
-        fetch("http://localhost:3004/auth/users", {
+        fetch("http://localhost:3009/auth/get-all", {
           headers: { Authorization: `Bearer ${token}` }
         }).then(r => r.ok ? r.json() : []).catch(() => []),
         fetch("http://localhost:3009/housing/applications").then(r => r.json()).catch(() => []),

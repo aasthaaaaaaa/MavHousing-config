@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -96,6 +97,20 @@ export class AuthServerController {
   @ApiQuery({ name: 'netId', required: true, type: String })
   findOne(@Query('netId') netId: string) {
     return this.authServerService.findOne(netId);
+  }
+
+  @Patch('users/:netId')
+  @ApiOperation({ summary: 'Update a user by netId' })
+  @ApiBearerAuth()
+  updateUser(@Param('netId') netId: string, @Body() updateData: UpdateUserDto) {
+    return this.authServerService.updateUser(netId, updateData);
+  }
+
+  @Delete('users/:netId')
+  @ApiOperation({ summary: 'Delete a user by netId' })
+  @ApiBearerAuth()
+  deleteUserByNetId(@Param('netId') netId: string) {
+    return this.authServerService.deleteUserByNetId(netId);
   }
 
   @Post('login')
