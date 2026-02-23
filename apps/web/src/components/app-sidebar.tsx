@@ -93,9 +93,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="#">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <House className="size-4" />
-                </div>
+                <img src="/mavhousing.PNG" alt="MavHousing" className="size-8 rounded-lg" />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">MavHousing</span>
                   <span className="truncate text-xs">{role.charAt(0).toUpperCase() + role.slice(1)} Portal</span>

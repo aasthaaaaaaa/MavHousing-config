@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   FileText, Wrench, CreditCard, Home, CheckCircle,
-  ArrowRight, Building2, Users, Shield
+  ArrowRight, Users, Shield
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -13,9 +13,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
-              <Building2 className="h-4 w-4 text-white" />
-            </div>
+            <Image src="/mavhousing.PNG" alt="MavHousing" width={32} height={32} className="rounded-lg" />
             <span className="text-lg font-bold tracking-tight">MavHousing</span>
           </div>
           <div className="hidden gap-8 sm:flex">
@@ -251,9 +249,7 @@ export default function LandingPage() {
       <footer className="border-t border-gray-100 bg-white py-10">
         <div className="mx-auto max-w-6xl px-6 text-center">
           <div className="mb-4 flex items-center justify-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600">
-              <Building2 className="h-3.5 w-3.5 text-white" />
-            </div>
+            <Image src="/mavhousing.PNG" alt="MavHousing" width={28} height={28} className="rounded-lg" />
             <span className="font-bold">MavHousing</span>
           </div>
           <p className="text-sm text-gray-500">

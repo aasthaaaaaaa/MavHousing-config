@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Mav Housing",
   description: "Mav Housing",
+  icons: {
+    icon: "/mavhousing.PNG",
+  },
 };
 
 import { AuthProvider } from "../context/AuthContext";
