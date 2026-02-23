@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Building2, Calendar, CreditCard, BedDouble, DoorOpen, Key } from "lucide-react";
+import { Building2, Calendar, CreditCard, BedDouble, DoorOpen, Key, Users } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 interface Lease {
@@ -28,6 +29,19 @@ interface Lease {
   };
   room?: { roomLetter: string };
   bed?: { bedLetter: string };
+  occupants?: {
+    occupantId: number;
+    occupantType: string;
+    moveInDate: string | null;
+    moveOutDate: string | null;
+    user: {
+      userId: number;
+      netId: string;
+      fName: string;
+      lName: string;
+      email: string;
+    };
+  }[];
 }
 
 const STATUS_STYLES: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
@@ -109,7 +123,7 @@ export default function MyLeasePage() {
   const statusCfg = STATUS_STYLES[lease.status] || STATUS_STYLES.SIGNED;
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
+    <div className="p-6 min-w-3xl max-w-7xl mx-auto space-y-3">
       <div>
         <h1 className="text-2xl font-bold">My Lease</h1>
         <p className="text-muted-foreground">Your current lease agreement details</p>
@@ -120,8 +134,8 @@ export default function MyLeasePage() {
           <CardHeader>
             <CardTitle className="text-primary">Action Required: Sign Your Lease</CardTitle>
             <CardDescription className="text-base text-foreground mt-2">
-              You have been offered a housing assignment! Please review the details below. 
-              By clicking "Accept & Sign Lease", you agree to the terms and financial obligations of this lease.
+              You have been offered a housing assignment! Please review the details below.
+              By clicking &quot;Accept &amp; Sign Lease&quot;, you agree to the terms and financial obligations of this lease.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -132,104 +146,148 @@ export default function MyLeasePage() {
         </Card>
       )}
 
-      {/* Property Card */}
-      {lease.unit && (
+      {/* Grid: Property (left) | Dates + Financials (right) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Property Card — left column */}
+        {lease.unit && (
+          <Card className="md:row-span-2">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-primary" />
+                  <CardTitle>{lease.unit.property.name}</CardTitle>
+                </div>
+                <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
+              </div>
+              <CardDescription>{lease.unit.property.address}</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Unit</p>
+                <p className="font-medium">{lease.unit.unitNumber}</p>
+              </div>
+              {lease.unit.floorLevel && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Floor</p>
+                  <p className="font-medium">{lease.unit.floorLevel}</p>
+                </div>
+              )}
+              {lease.room && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                    <DoorOpen className="h-3 w-3" /> Room
+                  </p>
+                  <p className="font-medium">Room {lease.room.roomLetter}</p>
+                </div>
+              )}
+              {lease.bed && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                    <BedDouble className="h-3 w-3" /> Bed
+                  </p>
+                  <p className="font-medium">Bed {lease.bed.bedLetter}</p>
+                </div>
+              )}
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Lease Type</p>
+                <p className="font-medium capitalize">{lease.leaseType.replace("_", " ")}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Property Type</p>
+                <p className="font-medium">{lease.unit.property.propertyType}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Dates Card — right top */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-primary" />
-                <CardTitle>{lease.unit.property.name}</CardTitle>
-              </div>
-              <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              <CardTitle>Lease Period</CardTitle>
             </div>
-            <CardDescription>{lease.unit.property.address}</CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Unit</p>
-              <p className="font-medium">{lease.unit.unitNumber}</p>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Start Date</span>
+              <span className="font-medium">{formatDate(lease.startDate)}</span>
             </div>
-            {lease.unit.floorLevel && (
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Floor</p>
-                <p className="font-medium">{lease.unit.floorLevel}</p>
-              </div>
-            )}
-            {lease.room && (
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                  <DoorOpen className="h-3 w-3" /> Room
-                </p>
-                <p className="font-medium">Room {lease.room.roomLetter}</p>
-              </div>
-            )}
-            {lease.bed && (
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                  <BedDouble className="h-3 w-3" /> Bed
-                </p>
-                <p className="font-medium">Bed {lease.bed.bedLetter}</p>
-              </div>
-            )}
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Lease Type</p>
-              <p className="font-medium capitalize">{lease.leaseType.replace("_", " ")}</p>
+            <div className="flex justify-between">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">End Date</span>
+              <span className="font-medium">{formatDate(lease.endDate)}</span>
             </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Property Type</p>
-              <p className="font-medium">{lease.unit.property.propertyType}</p>
+            <div className="flex justify-between">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                <Key className="h-3 w-3" /> Signed
+              </span>
+              <span className="font-medium">{formatDate(lease.signedAt)}</span>
             </div>
           </CardContent>
         </Card>
+
+        {/* Financials Card — right bottom */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              <CardTitle>Financial Summary</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Total Due (Full Term)</span>
+              <span className="font-semibold text-lg">{formatMoney(lease.totalDue)}</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Due This Month</span>
+              <span className="font-bold text-xl text-primary">{formatMoney(lease.dueThisMonth)}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* People on My Lease — full width */}
+      {lease.occupants && lease.occupants.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              <CardTitle>People on My Lease</CardTitle>
+            </div>
+            <CardDescription>{lease.occupants.length} occupant{lease.occupants.length !== 1 ? 's' : ''}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Net ID</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Move-in Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {lease.occupants.map((occ) => (
+                  <TableRow key={occ.occupantId}>
+                    <TableCell className="font-medium">{occ.user.fName} {occ.user.lName}</TableCell>
+                    <TableCell>{occ.user.netId}</TableCell>
+                    <TableCell>{occ.user.email}</TableCell>
+                    <TableCell>
+                      <Badge variant={occ.occupantType === 'LEASE_HOLDER' ? 'default' : 'secondary'}>
+                        {occ.occupantType.replace('_', ' ')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{occ.moveInDate ? formatDate(occ.moveInDate) : '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
-
-      {/* Dates Card */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            <CardTitle>Lease Period</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-6 sm:grid-cols-3">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Start Date</p>
-            <p className="font-medium">{formatDate(lease.startDate)}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">End Date</p>
-            <p className="font-medium">{formatDate(lease.endDate)}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-              <Key className="h-3 w-3" /> Signed
-            </p>
-            <p className="font-medium">{formatDate(lease.signedAt)}</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Financials Card */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-primary" />
-            <CardTitle>Financial Summary</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Total Due (Full Term)</span>
-            <span className="font-semibold text-lg">{formatMoney(lease.totalDue)}</span>
-          </div>
-          <Separator />
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">Due This Month</span>
-            <span className="font-bold text-xl text-primary">{formatMoney(lease.dueThisMonth)}</span>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

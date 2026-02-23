@@ -17,6 +17,19 @@ export class LeaseService {
         },
         room: true,
         bed: true,
+        occupants: {
+          include: {
+            user: {
+              select: {
+                userId: true,
+                netId: true,
+                fName: true,
+                lName: true,
+                email: true,
+              },
+            },
+          },
+        },
       },
     });
   }
