@@ -179,6 +179,9 @@ export class AuthServerService {
       const payload = {
         username: user.netId,
         role: user.role.toLowerCase(),
+        userId: user.userId,
+        fName: user.fName,
+        lName: user.lName,
         jti: randomUUID(),
       };
       return {
