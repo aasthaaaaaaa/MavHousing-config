@@ -13,6 +13,7 @@ import { LeaseModule } from './lease/lease.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { PaymentModule } from './payment/payment.module';
 import { ApplicationModule } from './application/application.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ApplicationModule } from './application/application.module';
     MaintenanceModule,
     PaymentModule,
     ApplicationModule,
+    ChatModule,
   ],
   controllers: [InternalApiController],
   providers: [InternalApiService, InternalApiResolver],
