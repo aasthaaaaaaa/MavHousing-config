@@ -144,19 +144,23 @@ npm run start:dev auth-server
 
 ## Available Scripts
 
-| Script              | Command                       | Description                                |
-| ------------------- | ----------------------------- | ------------------------------------------ |
-| **Dev**             | `npm run start:dev <service>` | Start a service in watch mode              |
-| **Debug**           | `npm run start:debug`         | Start with debugger attached               |
-| **Build**           | `npm run build`               | Build the project                          |
-| **Production**      | `npm run start:prod`          | Run the production build                   |
-| **Lint**            | `npm run lint`                | Lint & auto-fix code                       |
-| **Format**          | `npm run format`              | Format code with Prettier                  |
-| **Test**            | `npm run test`                | Run unit tests                             |
-| **Test (Watch)**    | `npm run test:watch`          | Run tests in watch mode                    |
-| **Test (Coverage)** | `npm run test:cov`            | Run tests with coverage report             |
-| **Test (E2E)**      | `npm run test:e2e`            | Run end-to-end tests                       |
-| **Seed**            | `npm run seed`                | Generate Prisma client & seed the database |
+| Script              | Command                       | Description                                     |
+| ------------------- | ----------------------------- | ----------------------------------------------- |
+| **Dev**             | `npm run start:dev <service>` | Start a service in watch mode                   |
+| **Debug**           | `npm run start:debug`         | Start with debugger attached                    |
+| **Build**           | `npm run build`               | Build the project                               |
+| **Production**      | `npm run start:prod`          | Run the production build                        |
+| **Lint**            | `npm run lint`                | Lint & auto-fix code                            |
+| **Format**          | `npm run format`              | Format code with Prettier                       |
+| **Test**            | `npm run test`                | Run unit tests                                  |
+| **Test (Watch)**    | `npm run test:watch`          | Run tests in watch mode                         |
+| **Test (Coverage)** | `npm run test:cov`            | Run tests with coverage report                  |
+| **Test (E2E)**      | `npm run test:e2e`            | Run end-to-end tests                            |
+| **Seed**            | `npm run seed`                | Generate Prisma client & seed the database      |
+| **Web Dev**         | `npm run web:dev`             | Starts Next.js in development mode (hot reload) |
+| **Web Build**       | `npm run web:build`           | Creates a production build                      |
+| **Web Start**       | `npm run web:start`           | Serves the production build                     |
+| **Web Lint**        | `npm run web:lint`            | Runs ESLint on the web app                      |
 
 ---
 
