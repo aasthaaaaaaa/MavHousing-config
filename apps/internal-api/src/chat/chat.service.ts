@@ -103,4 +103,117 @@ ${userContext}`;
     const result = await chat.sendMessage(lastMessage);
     return result.response.text();
   }
+
+  async getOrCreateRoom(leaseId: number): Promise<any> {
+    let room = await this.prisma.chatRoom.findUnique({
+      where: { leaseId },
+    });
+
+    if (!room) {
+      room = await this.prisma.chatRoom.create({
+        data: { leaseId },
+      });
+    }
+
+    return room;
+  }
+
+  async getLeaseMembers(leaseId: number): Promise<number[]> {
+    const lease = await this.prisma.lease.findUnique({
+      where: { leaseId },
+      include: {
+        occupants: true,
+      },
+    });
+
+    if (!lease) return [];
+
+    const memberIds = new Set<number>();
+    memberIds.add(lease.userId);
+    lease.occupants.forEach((occ) => memberIds.add(occ.userId));
+
+    return Array.from(memberIds);
+  }
+
+  async saveMessage(roomId: string, senderId: number, content: string) {
+    return this.prisma.chatMessage.create({
+      data: {
+        roomId,
+        senderId,
+        content,
+      },
+      include: {
+        sender: {
+          select: {
+            fName: true,
+            lName: true,
+            email: true,
+          },
+        },
+        readReceipts: {
+          include: {
+            user: {
+              select: {
+                fName: true,
+                lName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async getChatHistory(leaseId: number) {
+    const room = await this.getOrCreateRoom(leaseId);
+    return this.prisma.chatMessage.findMany({
+      where: { roomId: room.id },
+      include: {
+        sender: {
+          select: {
+            fName: true,
+            lName: true,
+            email: true,
+          },
+        },
+        readReceipts: {
+          include: {
+            user: {
+              select: {
+                fName: true,
+                lName: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async markAsRead(messageId: string, userId: number) {
+    return this.prisma.readReceipt.upsert({
+      where: {
+        messageId_userId: {
+          messageId,
+          userId,
+        },
+      },
+      update: {
+        readAt: new Date(),
+      },
+      create: {
+        messageId,
+        userId,
+      },
+      include: {
+        user: {
+          select: {
+            fName: true,
+            lName: true,
+          },
+        },
+      },
+    });
+  }
 }

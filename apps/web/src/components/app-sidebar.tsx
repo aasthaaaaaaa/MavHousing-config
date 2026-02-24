@@ -19,7 +19,8 @@ import {
   Wrench,
   CreditCard,
   LogOut,
-  House
+  House,
+  MessageSquare
 } from "lucide-react"
 
 import {
@@ -51,6 +52,7 @@ import {
 import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { ModeToggle } from "./mode-toggle"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user, logout } = useAuth();
@@ -68,6 +70,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       { title: "My Lease", url: "/student/my-lease", icon: FileText },
       { title: "Maintenance", url: "/student/maintenance/my-requests", icon: Wrench },
       { title: "Payments", url: "/student/payments", icon: CreditCard },
+      { title: "Lease Chat", url: "/student/chat", icon: MessageSquare },
     ],
     staff: [
       { title: "Dashboard", url: "/staff", icon: Home },
@@ -91,15 +94,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <img src="/mavhousing.PNG" alt="MavHousing" className="size-8 rounded-lg" />
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">MavHousing</span>
-                  <span className="truncate text-xs">{role.charAt(0).toUpperCase() + role.slice(1)} Portal</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
+            <div className="flex items-center justify-between px-2 w-full">
+              <SidebarMenuButton size="lg" asChild className="flex-1">
+                <a href="#">
+                  <img src="/mavhousing.PNG" alt="MavHousing" className="size-8 rounded-lg" />
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">MavHousing</span>
+                    <span className="truncate text-xs">{role.charAt(0).toUpperCase() + role.slice(1)} Portal</span>
+                  </div>
+                </a>
+              </SidebarMenuButton>
+              <ModeToggle />
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -125,12 +131,31 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-             <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <SidebarMenuButton
-                    size="lg"
-                    className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                  >
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarImage src="" alt={user?.username || "User"} />
+                    <AvatarFallback className="rounded-lg">{(user?.username || "U").substring(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">{user?.username || "User"}</span>
+                    <span className="truncate text-xs">{role}</span>
+                  </div>
+                  <LogOut className="ml-auto size-4" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                side="bottom"
+                align="end"
+                sideOffset={4}
+              >
+                <DropdownMenuLabel className="p-0 font-normal">
+                  <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                     <Avatar className="h-8 w-8 rounded-lg">
                       <AvatarImage src="" alt={user?.username || "User"} />
                       <AvatarFallback className="rounded-lg">{(user?.username || "U").substring(0, 2).toUpperCase()}</AvatarFallback>
@@ -139,34 +164,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <span className="truncate font-semibold">{user?.username || "User"}</span>
                       <span className="truncate text-xs">{role}</span>
                     </div>
-                    <LogOut className="ml-auto size-4" />
-                  </SidebarMenuButton>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                  side="bottom"
-                  align="end"
-                  sideOffset={4}
-                >
-                  <DropdownMenuLabel className="p-0 font-normal">
-                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                      <Avatar className="h-8 w-8 rounded-lg">
-                        <AvatarImage src="" alt={user?.username || "User"} />
-                        <AvatarFallback className="rounded-lg">{(user?.username || "U").substring(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">{user?.username || "User"}</span>
-                        <span className="truncate text-xs">{role}</span>
-                      </div>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
