@@ -39,27 +39,27 @@ async function main() {
     console.log('   ✅ Database cleared\n');
 
     // 1. Create Users
-    console.log('👥 Creating users (7 students + 5 staff + 1 admin)...');
-    const users = await Promise.all(
-      mockUsers.map(async (user) => {
-        const hashedPassword = await bcrypt.hash(user.passwordHash, 10);
-        return prisma.user.create({
-          data: {
-            ...user,
-            passwordHash: hashedPassword,
-          },
-        });
-      }),
-    );
+    console.log('👥 Creating users...');
+    const users: any[] = [];
+    for (const user of mockUsers) {
+      const hashedPassword = await bcrypt.hash(user.passwordHash, 10);
+      const created = await prisma.user.create({
+        data: {
+          ...user,
+          passwordHash: hashedPassword,
+        },
+      });
+      users.push(created);
+    }
     console.log(`   ✅ Created ${users.length} users\n`);
 
     // 2. Create Properties
-    console.log(
-      '🏢 Creating properties (Meadow Run, Heights on Pecan, Timber Brooks, Cardinal Commons)...',
-    );
-    const properties = await Promise.all(
-      mockProperties.map((prop) => prisma.property.create({ data: prop })),
-    );
+    console.log('🏢 Creating properties...');
+    const properties: any[] = [];
+    for (const prop of mockProperties) {
+      const created = await prisma.property.create({ data: prop });
+      properties.push(created);
+    }
     console.log(`   ✅ Created ${properties.length} properties`);
     properties.forEach((prop) =>
       console.log(`      - ${prop.name} (${prop.leaseType})`),
@@ -68,30 +68,39 @@ async function main() {
 
     // 3. Create Units
     console.log('🏠 Creating units...');
-    const units = await Promise.all(
-      mockUnits.map((unit) => prisma.unit.create({ data: unit })),
-    );
+    const units: any[] = [];
+    for (const unit of mockUnits) {
+      const created = await prisma.unit.create({ data: unit });
+      units.push(created);
+    }
     console.log(`   ✅ Created ${units.length} units\n`);
 
     // 4. Create Rooms (only for BY_ROOM and BY_BED properties)
-    console.log('🚪 Creating rooms (BY_ROOM & BY_BED properties only)...');
-    const rooms = await Promise.all(
-      mockRooms.map((room) => prisma.room.create({ data: room })),
-    );
+    console.log('🚪 Creating rooms...');
+    const rooms: any[] = [];
+    for (const room of mockRooms) {
+      const created = await prisma.room.create({ data: room });
+      rooms.push(created);
+    }
     console.log(`   ✅ Created ${rooms.length} rooms\n`);
 
     // 5. Create Beds (only for BY_BED properties)
-    console.log('🛏️  Creating beds (BY_BED properties only)...');
-    const beds = await Promise.all(
-      mockBeds.map(({ unitId, ...bed }) => prisma.bed.create({ data: bed })),
-    );
+    console.log('🛏️  Creating beds...');
+    const beds: any[] = [];
+    for (const bed of mockBeds) {
+      const { unitId, ...bedData } = bed as any;
+      const created = await prisma.bed.create({ data: bedData });
+      beds.push(created);
+    }
     console.log(`   ✅ Created ${beds.length} beds\n`);
 
     // 6. Create Applications
     console.log('📝 Creating applications...');
-    const applications = await Promise.all(
-      mockApplications.map((app) => prisma.application.create({ data: app })),
-    );
+    const applications: any[] = [];
+    for (const app of mockApplications) {
+      const created = await prisma.application.create({ data: app });
+      applications.push(created);
+    }
     console.log(`   ✅ Created ${applications.length} applications`);
     console.log('      Status breakdown:');
     console.log(
@@ -105,10 +114,12 @@ async function main() {
     );
 
     // 7. Create Leases
-    console.log('📋 Creating leases (mixed types)...');
-    const leases = await Promise.all(
-      mockLeases.map((lease) => prisma.lease.create({ data: lease })),
-    );
+    console.log('📋 Creating leases...');
+    const leases: any[] = [];
+    for (const lease of mockLeases) {
+      const created = await prisma.lease.create({ data: lease });
+      leases.push(created);
+    }
     console.log(`   ✅ Created ${leases.length} leases`);
     console.log('      Lease type breakdown:');
     console.log(
@@ -123,11 +134,11 @@ async function main() {
 
     // 8. Create Occupants
     console.log('👫 Creating occupants...');
-    const occupants = await Promise.all(
-      mockOccupants.map((occupant) =>
-        prisma.occupant.create({ data: occupant }),
-      ),
-    );
+    const occupants: any[] = [];
+    for (const occupant of mockOccupants) {
+      const created = await prisma.occupant.create({ data: occupant });
+      occupants.push(created);
+    }
     console.log(`   ✅ Created ${occupants.length} occupants`);
     console.log('      Occupant type breakdown:');
     console.log(
@@ -139,9 +150,11 @@ async function main() {
 
     // 9. Create Payments
     console.log('💳 Creating payments...');
-    const payments = await Promise.all(
-      mockPayments.map((payment) => prisma.payment.create({ data: payment })),
-    );
+    const payments: any[] = [];
+    for (const payment of mockPayments) {
+      const created = await prisma.payment.create({ data: payment });
+      payments.push(created);
+    }
     console.log(`   ✅ Created ${payments.length} payments`);
     const totalPaid = payments.reduce(
       (sum, p) => sum + Number(p.amountPaid),
@@ -151,11 +164,11 @@ async function main() {
 
     // 10. Create Maintenance Requests
     console.log('🔧 Creating maintenance requests...');
-    const maintenance = await Promise.all(
-      mockMaintenanceRequests.map((req) =>
-        prisma.maintenanceRequest.create({ data: req }),
-      ),
-    );
+    const maintenance: any[] = [];
+    for (const req of mockMaintenanceRequests) {
+      const created = await prisma.maintenanceRequest.create({ data: req });
+      maintenance.push(created);
+    }
     console.log(`   ✅ Created ${maintenance.length} maintenance requests`);
     console.log('      Status breakdown:');
     console.log(

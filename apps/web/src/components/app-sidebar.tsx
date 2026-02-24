@@ -19,7 +19,8 @@ import {
   Wrench,
   CreditCard,
   LogOut,
-  House
+  House,
+  MessageSquare
 } from "lucide-react"
 
 import {
@@ -69,6 +70,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       { title: "My Lease", url: "/student/my-lease", icon: FileText },
       { title: "Maintenance", url: "/student/maintenance/my-requests", icon: Wrench },
       { title: "Payments", url: "/student/payments", icon: CreditCard },
+      { title: "Lease Chat", url: "/student/chat", icon: MessageSquare },
     ],
     staff: [
       { title: "Dashboard", url: "/staff", icon: Home },

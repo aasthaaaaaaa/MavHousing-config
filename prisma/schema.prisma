@@ -1,0 +1,319 @@
+generator client {
+  provider   = "prisma-client-js"
+  output     = "../generated/prisma"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("SQL_DATABASE_URL")
+}
+
+model User {
+  userId              Int                  @id @default(autoincrement())
+  utaId               String               @unique @db.VarChar(10)
+  netId               String               @unique @db.VarChar(20)
+  fName               String               @db.VarChar(50)
+  mName               String?              @db.VarChar(50)
+  lName               String               @db.VarChar(50)
+  email               String               @unique @db.VarChar(100)
+  phone               BigInt?
+  dob                 DateTime?
+  gender              Gender?
+  passwordHash        String               @db.VarChar(255)
+  role                UserRole             @default(STUDENT)
+  studentStatus       StudentStatus?
+  staffPosition       StaffPosition?
+  requiresAdaAccess   Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  applications        Application[]
+  sentMessages        ChatMessage[]
+  readReceipts        ReadReceipt[]
+  leases              Lease[]
+  maintenanceAssigned MaintenanceRequest[] @relation("MaintenanceAssignedTo")
+  maintenanceCreated  MaintenanceRequest[] @relation("MaintenanceCreatedBy")
+  occupancies         Occupant[]           @relation("Occupants")
+
+  @@map("users")
+}
+
+model Property {
+  propertyId    Int           @id @default(autoincrement())
+  name          String        @db.VarChar(100)
+  address       String?
+  propertyType  PropertyType
+  leaseType     LeaseType
+  phone         BigInt?
+  totalCapacity Int?
+  createdAt     DateTime      @default(now())
+  applicants    Application[] @relation("PreferredProperty")
+  units         Unit[]
+
+  @@map("properties")
+}
+
+model Unit {
+  unitId            Int      @id @default(autoincrement())
+  propertyId        Int
+  unitNumber        String   @db.VarChar(10)
+  floorLevel        Int?
+  requiresAdaAccess Boolean  @default(false)
+  maxOccupancy      Int?
+  leases            Lease[]
+  rooms             Room[]
+  property          Property @relation(fields: [propertyId], references: [propertyId], onDelete: Cascade)
+
+  @@map("units")
+}
+
+model Room {
+  roomId     Int     @id @default(autoincrement())
+  unitId     Int
+  roomLetter String  @db.Char(1)
+  beds       Bed[]
+  leases     Lease[]
+  unit       Unit    @relation(fields: [unitId], references: [unitId], onDelete: Cascade)
+
+  @@map("rooms")
+}
+
+model Bed {
+  bedId     Int     @id @default(autoincrement())
+  roomId    Int
+  bedLetter String  @db.VarChar(5)
+  room      Room    @relation(fields: [roomId], references: [roomId], onDelete: Cascade)
+  leases    Lease[]
+
+  @@map("beds")
+}
+
+model Application {
+  appId                    Int               @id @default(autoincrement())
+  userId                   Int
+  term                     String            @db.VarChar(20)
+  status                   ApplicationStatus @default(DRAFT)
+  preferredPropertyId      Int?
+  submissionDate           DateTime?
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  classification           String?           @db.VarChar(50)
+  cleanliness              String?           @db.VarChar(50)
+  dietaryRestrictions      String?
+  emergencyContactName     String?           @db.VarChar(100)
+  emergencyContactPhone    String?           @db.VarChar(20)
+  emergencyContactRelation String?           @db.VarChar(50)
+  expectedGraduation       String?           @db.VarChar(20)
+  noiseLevel               String?           @db.VarChar(50)
+  sleepSchedule            String?           @db.VarChar(50)
+  smokingPreference        String?           @db.VarChar(50)
+  specialAccommodations    String?
+  preferredProperty        Property?         @relation("PreferredProperty", fields: [preferredPropertyId], references: [propertyId])
+  user                     User              @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@unique([userId, term])
+  @@map("applications")
+}
+
+model Lease {
+  leaseId             Int                  @id @default(autoincrement())
+  userId              Int
+  leaseType           LeaseType
+  assignedUnitId      Int?
+  assignedRoomId      Int?
+  assignedBedId       Int?
+  startDate           DateTime
+  endDate             DateTime
+  totalDue            Decimal              @db.Decimal(10, 2)
+  dueThisMonth        Decimal              @db.Decimal(10, 2)
+  status              LeaseStatus          @default(SIGNED)
+  signedAt            DateTime             @default(now())
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  chatRoom            ChatRoom?
+  bed                 Bed?                 @relation(fields: [assignedBedId], references: [bedId])
+  room                Room?                @relation(fields: [assignedRoomId], references: [roomId])
+  unit                Unit?                @relation(fields: [assignedUnitId], references: [unitId])
+  user                User                 @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  maintenanceRequests MaintenanceRequest[]
+  occupants           Occupant[]
+  payments            Payment[]
+
+  @@map("leases")
+}
+
+model Occupant {
+  occupantId   Int          @id @default(autoincrement())
+  leaseId      Int
+  userId       Int
+  occupantType OccupantType
+  moveInDate   DateTime?
+  moveOutDate  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  lease        Lease        @relation(fields: [leaseId], references: [leaseId], onDelete: Cascade)
+  user         User         @relation("Occupants", fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("occupants")
+}
+
+model Payment {
+  paymentId       Int           @id @default(autoincrement())
+  leaseId         Int
+  amountPaid      Decimal       @db.Decimal(10, 2)
+  method          PaymentMethod
+  transactionDate DateTime      @default(now())
+  isSuccessful    Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  lease           Lease         @relation(fields: [leaseId], references: [leaseId], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model MaintenanceRequest {
+  requestId       Int                 @id @default(autoincrement())
+  leaseId         Int
+  createdByUserId Int
+  assignedStaffId Int?
+  category        MaintenanceCategory
+  description     String
+  status          MaintenanceStatus   @default(OPEN)
+  priority        MaintenancePriority @default(MEDIUM)
+  createdAt       DateTime            @default(now())
+  resolvedAt      DateTime?
+  updatedAt       DateTime            @updatedAt
+  assignedStaff   User?               @relation("MaintenanceAssignedTo", fields: [assignedStaffId], references: [userId])
+  createdBy       User                @relation("MaintenanceCreatedBy", fields: [createdByUserId], references: [userId], onDelete: Cascade)
+  lease           Lease               @relation(fields: [leaseId], references: [leaseId], onDelete: Cascade)
+
+  @@map("maintenance_requests")
+}
+
+model ChatRoom {
+  id        String        @id @default(cuid())
+  leaseId   Int?          @unique
+  name      String?
+  createdAt DateTime      @default(now())
+  messages  ChatMessage[]
+  lease     Lease?        @relation(fields: [leaseId], references: [leaseId])
+
+  @@map("chat_rooms")
+}
+
+model ChatMessage {
+  id           String        @id @default(cuid())
+  roomId       String
+  senderId     Int
+  content      String
+  isSystem     Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  room         ChatRoom      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender       User          @relation(fields: [senderId], references: [userId])
+  readReceipts ReadReceipt[]
+
+  @@map("chat_messages")
+}
+
+model ReadReceipt {
+  id        String      @id @default(cuid())
+  messageId String
+  userId    Int
+  readAt    DateTime    @default(now())
+  message   ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [userId])
+
+  @@unique([messageId, userId])
+  @@map("chat_read_receipts")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum UserRole {
+  STUDENT
+  STAFF
+  ADMIN
+  DRAFT
+}
+
+enum StudentStatus {
+  APPLICANT
+  RESIDENT
+}
+
+enum StaffPosition {
+  MANAGEMENT
+  RESIDENT_A
+  DESK_A
+  SECURITY
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum LeaseStatus {
+  DRAFT
+  PENDING_SIGNATURE
+  SIGNED
+  ACTIVE
+  COMPLETED
+  TERMINATED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_TRANSFER
+  CHECK
+  CASH
+}
+
+enum LeaseType {
+  BY_UNIT
+  BY_ROOM
+  BY_BED
+}
+
+enum PropertyType {
+  RESIDENCE_HALL
+  APARTMENT
+}
+
+enum OccupantType {
+  LEASE_HOLDER
+  OCCUPANT
+  ROOMMATE
+}
+
+enum MaintenanceCategory {
+  PLUMBING
+  HVAC
+  ELECTRICAL
+  INTERNET
+  APPLIANCE
+  STRUCTURAL
+  OTHER
+}
+
+enum MaintenanceStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum MaintenancePriority {
+  LOW
+  MEDIUM
+  HIGH
+  EMERGENCY
+}

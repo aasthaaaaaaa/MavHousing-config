@@ -7,7 +7,12 @@ export class LeaseService {
 
   async getMyLease(userId: number) {
     return this.prisma.lease.findFirst({
-      where: { userId },
+      where: {
+        OR: [
+          { userId },
+          { occupants: { some: { userId } } },
+        ],
+      },
       orderBy: { createdAt: 'desc' },
       include: {
         unit: {
