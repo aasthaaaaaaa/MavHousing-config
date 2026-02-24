@@ -69,5 +69,11 @@ export class HousingController {
   async getHierarchy() {
     return this.housingService.getHierarchy();
   }
+
+  @Get('occupancy-stats')
+  async getOccupancyStats() {
+    return this.housingService.getOccupancyStats();
+  }
 }
+
 

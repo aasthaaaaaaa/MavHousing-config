@@ -189,5 +189,116 @@ export class HousingService {
       orderBy: { name: 'asc' },
     });
   }
+
+  async getOccupancyStats() {
+    // Fetch all properties with their units and active lease occupants
+    const properties = await this.prisma.property.findMany({
+      include: {
+        units: {
+          include: {
+            leases: {
+              where: {
+                status: {
+                  in: ['SIGNED', 'ACTIVE'] as any
+                }
+              },
+              include: {
+                occupants: true
+              }
+            },
+            rooms: {
+              include: {
+                leases: {
+                  where: {
+                    status: {
+                      in: ['SIGNED', 'ACTIVE'] as any
+                    }
+                  },
+                  include: {
+                    occupants: true
+                  }
+                },
+                beds: {
+                  include: {
+                    leases: {
+                      where: {
+                        status: {
+                          in: ['SIGNED', 'ACTIVE'] as any
+                        }
+                      },
+                      include: {
+                        occupants: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: { name: 'asc' }
+    });
+
+    // Aggregate stats per property
+    const stats = properties.map(property => {
+      let totalCapacity = 0;
+      let occupiedCount = 0;
+
+      property.units.forEach(unit => {
+        // Add unit max occupancy to total capacity
+        totalCapacity += unit.maxOccupancy || 0;
+
+        // Count occupants in unit-level leases
+        unit.leases.forEach(lease => {
+          occupiedCount += lease.occupants.length;
+        });
+
+        // Count occupants in room-level leases
+        unit.rooms.forEach(room => {
+          room.leases.forEach(lease => {
+            occupiedCount += lease.occupants.length;
+          });
+
+          // Count occupants in bed-level leases
+          room.beds.forEach(bed => {
+            bed.leases.forEach(lease => {
+              occupiedCount += lease.occupants.length;
+            });
+          });
+        });
+      });
+
+      const vacancyRate = totalCapacity > 0 
+        ? ((totalCapacity - occupiedCount) / totalCapacity) * 100 
+        : 0;
+
+      return {
+        propertyId: property.propertyId,
+        propertyName: property.name,
+        propertyType: property.propertyType,
+        totalCapacity,
+        occupiedBeds: occupiedCount,
+        vacantBeds: totalCapacity - occupiedCount,
+        vacancyRate: parseFloat(vacancyRate.toFixed(2))
+      };
+    });
+
+    const systemTotalCapacity = stats.reduce((sum, s) => sum + s.totalCapacity, 0);
+    const systemOccupied = stats.reduce((sum, s) => sum + s.occupiedBeds, 0);
+    const systemVacancyRate = systemTotalCapacity > 0
+      ? ((systemTotalCapacity - systemOccupied) / systemTotalCapacity) * 100
+      : 0;
+
+    return {
+      overview: {
+        totalCapacity: systemTotalCapacity,
+        occupiedBeds: systemOccupied,
+        vacantBeds: systemTotalCapacity - systemOccupied,
+        vacancyRate: parseFloat(systemVacancyRate.toFixed(2))
+      },
+      properties: stats
+    };
+  }
 }
 
