@@ -19,9 +19,7 @@ import {
   Wrench,
   CreditCard,
   LogOut,
-  House,
-  Sun,
-  Moon
+  House
 } from "lucide-react"
 
 import {
@@ -53,17 +51,11 @@ import {
 import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useTheme } from "next-themes"
+import { ModeToggle } from "./mode-toggle"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user, logout } = useAuth();
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleLogout = () => {
     logout();
@@ -100,15 +92,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <img src="/mavhousing.PNG" alt="MavHousing" className="size-8 rounded-lg" />
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">MavHousing</span>
-                  <span className="truncate text-xs">{role.charAt(0).toUpperCase() + role.slice(1)} Portal</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
+            <div className="flex items-center justify-between px-2 w-full">
+              <SidebarMenuButton size="lg" asChild className="flex-1">
+                <a href="#">
+                  <img src="/mavhousing.PNG" alt="MavHousing" className="size-8 rounded-lg" />
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">MavHousing</span>
+                    <span className="truncate text-xs">{role.charAt(0).toUpperCase() + role.slice(1)} Portal</span>
+                  </div>
+                </a>
+              </SidebarMenuButton>
+              <ModeToggle />
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -169,15 +164,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </div>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-                  {mounted && theme === 'dark' ? (
-                    <Sun className="mr-2 h-4 w-4" />
-                  ) : (
-                    <Moon className="mr-2 h-4 w-4" />
-                  )}
-                  Toggle Theme
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
