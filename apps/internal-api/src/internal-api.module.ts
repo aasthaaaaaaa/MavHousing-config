@@ -1,3 +1,5 @@
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 import { Module } from '@nestjs/common';
 import { InternalApiController } from './internal-api.controller';
 import { InternalApiService } from './internal-api.service';
@@ -14,9 +16,18 @@ import { MaintenanceModule } from './maintenance/maintenance.module';
 import { PaymentModule } from './payment/payment.module';
 import { ApplicationModule } from './application/application.module';
 import { ChatModule } from './chat/chat.module';
+import { AnnouncementsModule } from './announcements/announcements.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGO_URI'),
+      }),
+      inject: [ConfigService],
+    }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
@@ -31,6 +42,7 @@ import { ChatModule } from './chat/chat.module';
     PaymentModule,
     ApplicationModule,
     ChatModule,
+    AnnouncementsModule,
   ],
   controllers: [InternalApiController],
   providers: [InternalApiService, InternalApiResolver],

@@ -20,7 +20,8 @@ import {
   CreditCard,
   LogOut,
   House,
-  MessageSquare
+  MessageSquare,
+  Megaphone
 } from "lucide-react"
 
 import {
@@ -79,12 +80,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       { title: "Maintenance", url: "/staff/maintenance", icon: Wrench },
       { title: "Payments", url: "/staff/payments", icon: CreditCard },
       { title: "Occupancy", url: "/staff/occupancy", icon: Users },
+      { title: "Announcements", url: "/staff/announcements", icon: Megaphone },
     ],
     admin: [
       { title: "Dashboard", url: "/admin", icon: Home },
       { title: "User Management", url: "/admin/users", icon: Users },
       { title: "Birds View", url: "/admin/birds-view", icon: Map },
       { title: "Occupancy Dashboard", url: "/admin/occupancy", icon: PieChart },
+      { title: "Announcements", url: "/admin/announcements", icon: Megaphone },
     ]
 
 
