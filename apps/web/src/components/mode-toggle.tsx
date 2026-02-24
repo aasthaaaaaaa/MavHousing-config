@@ -14,6 +14,15 @@ import {
 
 export function ModeToggle() {
     const { setTheme } = useTheme()
+    const [mounted, setMounted] = React.useState(false)
+
+    React.useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    if (!mounted) {
+        return <Button variant="ghost" size="icon" className="h-8 w-8" disabled />
+    }
 
     return (
         <DropdownMenu>

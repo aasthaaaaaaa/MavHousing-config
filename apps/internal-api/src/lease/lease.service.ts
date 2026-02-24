@@ -124,4 +124,77 @@ export class LeaseService {
   async removeOccupant(occupantId: number) {
     return this.prisma.occupant.delete({ where: { occupantId } });
   }
+
+  async reassignUserToLease(userId: number, targetLeaseId: number, asHolder: boolean) {
+    // 1. Fetch Target Lease and Unit Info
+    const targetLease = await this.prisma.lease.findUnique({
+      where: { leaseId: targetLeaseId },
+      include: {
+        unit: true,
+        occupants: true,
+      },
+    });
+
+    if (!targetLease) {
+      throw new Error(`Target lease ${targetLeaseId} not found`);
+    }
+
+    const unit = targetLease.unit;
+    if (!unit) {
+      throw new Error(`Lease ${targetLeaseId} is not associated with a unit`);
+    }
+
+    // 2. Occupancy Check
+    const currentOccupancy = await this.prisma.occupant.count({
+      where: {
+        lease: {
+          assignedUnitId: unit.unitId,
+        },
+      },
+    });
+
+    if (unit.maxOccupancy && currentOccupancy >= unit.maxOccupancy) {
+      throw new Error(
+        `Unit ${unit.unitNumber} is at maximum occupancy (${unit.maxOccupancy})`,
+      );
+    }
+
+    // 3. Holder Check
+    if (asHolder) {
+      const existingHolder = targetLease.occupants.find(
+        (o) => o.occupantType === 'LEASE_HOLDER',
+      );
+      if (existingHolder) {
+        throw new Error(
+          `Lease ${targetLeaseId} already has a lease holder (${existingHolder.userId})`,
+        );
+      }
+    }
+
+    // 4. Perform Switch
+    return this.prisma.$transaction(async (tx) => {
+      // Remove user from any existing occupant roles they have in ANY lease
+      await tx.occupant.deleteMany({
+        where: { userId: userId },
+      });
+
+      // Add to new lease
+      const newOccupant = await tx.occupant.create({
+        data: {
+          leaseId: targetLeaseId,
+          userId: userId,
+          occupantType: asHolder ? 'LEASE_HOLDER' : 'OCCUPANT',
+        },
+      });
+
+      // Update student status to resident if they were an applicant
+      await tx.user.update({
+        where: { userId },
+        data: { studentStatus: 'RESIDENT' },
+      });
+
+      return newOccupant;
+    });
+  }
 }
+

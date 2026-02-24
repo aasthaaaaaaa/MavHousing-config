@@ -28,4 +28,16 @@ export class LeaseController {
   ) {
     return this.leaseService.updateLeaseStatus(parseInt(id), body.status);
   }
+
+  @Patch('reassign')
+  async reassignUser(
+    @Body() body: { userId: number; leaseId: number; asHolder: boolean },
+  ) {
+    return this.leaseService.reassignUserToLease(
+      body.userId,
+      body.leaseId,
+      body.asHolder,
+    );
+  }
 }
+

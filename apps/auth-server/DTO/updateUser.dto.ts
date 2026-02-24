@@ -5,16 +5,6 @@ import { Role } from "./role.enum";
 export class UpdateUserDto {
     @ApiProperty()
     @IsOptional()
-    @IsString()
-    readonly fName?: string;
-
-    @ApiProperty()
-    @IsOptional()
-    @IsString()
-    readonly lName?: string;
-
-    @ApiProperty()
-    @IsOptional()
     @IsEmail()
     readonly email?: string;
 
@@ -22,4 +12,25 @@ export class UpdateUserDto {
     @IsOptional()
     @IsEnum(Role)
     readonly role?: Role;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    readonly gender?: string;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    readonly studentStatus?: string;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    readonly staffPosition?: string;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsString()
+    readonly requiresAdaAccess?: boolean;
 }
+

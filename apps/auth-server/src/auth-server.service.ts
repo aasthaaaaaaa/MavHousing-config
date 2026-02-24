@@ -105,11 +105,16 @@ export class AuthServerService {
     };
 
     const updateData: any = {};
-    if (data.fName !== undefined) updateData.fName = data.fName;
-    if (data.lName !== undefined) updateData.lName = data.lName;
     if (data.email !== undefined) updateData.email = data.email;
     if (data.role !== undefined)
       updateData.role = roleMapping[data.role] || data.role.toUpperCase();
+    if (data.gender !== undefined) updateData.gender = data.gender;
+    if (data.studentStatus !== undefined)
+      updateData.studentStatus = data.studentStatus;
+    if (data.staffPosition !== undefined)
+      updateData.staffPosition = data.staffPosition;
+    if (data.requiresAdaAccess !== undefined)
+      updateData.requiresAdaAccess = data.requiresAdaAccess;
 
     const updated = await this.prisma.user.update({
       where: { netId },
