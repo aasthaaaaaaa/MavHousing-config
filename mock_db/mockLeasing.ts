@@ -251,23 +251,41 @@ export const mockOccupants = [
   // ============================================
   // MEADOW RUN (BY_UNIT LEASES - multiple occupants per lease)
   // ============================================
-  // Lease 1: North Tower - Unit 101
+  // Lease 1: North Tower - Unit 101 (John's unit — 3 people)
   {
     leaseId: 1,
-    userId: 2,
+    userId: 2, // John
     occupantType: OccupantType.LEASE_HOLDER,
     moveInDate: new Date('2025-01-15'),
   },
+  {
+    leaseId: 1,
+    userId: 3, // Emily — roommate
+    occupantType: OccupantType.ROOMMATE,
+    moveInDate: new Date('2025-01-15'),
+  },
+  {
+    leaseId: 1,
+    userId: 1, // Aalok — additional occupant
+    occupantType: OccupantType.OCCUPANT,
+    moveInDate: new Date('2025-01-20'),
+  },
 
-  // Lease 2: North Tower - Unit 102
+  // Lease 2: North Tower - Unit 102 (Emily's unit — 2 people)
   {
     leaseId: 2,
-    userId: 3,
+    userId: 3, // Emily
     occupantType: OccupantType.LEASE_HOLDER,
     moveInDate: new Date('2025-01-15'),
   },
+  {
+    leaseId: 2,
+    userId: 5, // Sophia — roommate
+    occupantType: OccupantType.ROOMMATE,
+    moveInDate: new Date('2025-01-16'),
+  },
 
-  // Lease 3: North Tower - Unit 103 (ADA)
+  // Lease 3: North Tower - Unit 103 ADA (Michael — solo)
   {
     leaseId: 3,
     userId: 4,
@@ -275,21 +293,33 @@ export const mockOccupants = [
     moveInDate: new Date('2025-01-15'),
   },
 
-  // Lease 4: South Tower - Unit 101
+  // Lease 4: South Tower - Unit 101 (Sophia's unit — 3 people)
   {
     leaseId: 4,
-    userId: 5,
+    userId: 5, // Sophia
     occupantType: OccupantType.LEASE_HOLDER,
     moveInDate: new Date('2025-01-15'),
   },
+  {
+    leaseId: 4,
+    userId: 7, // Alicia — roommate
+    occupantType: OccupantType.ROOMMATE,
+    moveInDate: new Date('2025-01-18'),
+  },
+  {
+    leaseId: 4,
+    userId: 6, // Christopher — additional occupant
+    occupantType: OccupantType.OCCUPANT,
+    moveInDate: new Date('2025-01-19'),
+  },
 
   // ============================================
-  // HEIGHTS ON PECAN (BY_ROOM LEASES - 1 occupant per room)
+  // HEIGHTS ON PECAN (BY_ROOM LEASES)
   // ============================================
   // Lease 5: East - Unit 101 Room A
   {
     leaseId: 5,
-    userId: 6,
+    userId: 6, // Christopher
     occupantType: OccupantType.LEASE_HOLDER,
     moveInDate: new Date('2025-01-15'),
   },
@@ -297,23 +327,29 @@ export const mockOccupants = [
   // Lease 6: East - Unit 101 Room B
   {
     leaseId: 6,
-    userId: 7,
+    userId: 7, // Alicia
     occupantType: OccupantType.LEASE_HOLDER,
     moveInDate: new Date('2025-01-15'),
   },
 
-  // Lease 7: East - Unit 102 Room A
+  // Lease 7: East - Unit 102 Room A (Aalok's room — 2 people)
   {
     leaseId: 7,
-    userId: 1,
+    userId: 1, // Aalok
     occupantType: OccupantType.LEASE_HOLDER,
     moveInDate: new Date('2025-01-15'),
+  },
+  {
+    leaseId: 7,
+    userId: 4, // Michael — roommate sharing the room
+    occupantType: OccupantType.ROOMMATE,
+    moveInDate: new Date('2025-01-17'),
   },
 
   // Lease 8: West - Unit 101 Room A
   {
     leaseId: 8,
-    userId: 2,
+    userId: 2, // John
     occupantType: OccupantType.LEASE_HOLDER,
     moveInDate: new Date('2025-01-15'),
   },
