@@ -89,8 +89,8 @@ export function ChatRoom({ leaseId, userId, userName }: ChatRoomProps) {
                                     </div>
                                     <div
                                         className={`rounded-2xl px-4 py-2 text-sm shadow-sm transition-all duration-200 ${isMe
-                                                ? "bg-primary text-primary-foreground rounded-tr-none hover:bg-primary/90"
-                                                : "bg-muted text-muted-foreground rounded-tl-none hover:bg-muted/80"
+                                            ? "bg-primary text-primary-foreground rounded-tr-none hover:bg-primary/90"
+                                            : "bg-muted text-muted-foreground rounded-tl-none hover:bg-muted/80"
                                             }`}
                                     >
                                         {msg.content}
