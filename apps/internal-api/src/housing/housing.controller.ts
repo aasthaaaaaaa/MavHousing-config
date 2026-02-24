@@ -64,4 +64,10 @@ export class HousingController {
   async getStudents() {
     return this.housingService.getStudents();
   }
+
+  @Get('hierarchy')
+  async getHierarchy() {
+    return this.housingService.getHierarchy();
+  }
 }
+

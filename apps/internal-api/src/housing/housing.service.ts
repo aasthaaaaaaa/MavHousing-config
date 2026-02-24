@@ -133,4 +133,61 @@ export class HousingService {
       orderBy: { lName: 'asc' },
     });
   }
+
+  async getHierarchy() {
+    return this.prisma.property.findMany({
+      include: {
+        units: {
+          include: {
+            leases: {
+              where: { status: { in: ['SIGNED', 'ACTIVE'] as any } },
+              include: {
+                occupants: {
+                  include: {
+                    user: {
+                      select: { userId: true, netId: true, fName: true, lName: true },
+                    },
+                  },
+                },
+              },
+            },
+            rooms: {
+              include: {
+                leases: {
+                  where: { status: { in: ['SIGNED', 'ACTIVE'] as any } },
+                  include: {
+                    occupants: {
+                      include: {
+                        user: {
+                          select: { userId: true, netId: true, fName: true, lName: true },
+                        },
+                      },
+                    },
+                  },
+                },
+                beds: {
+                  include: {
+                    leases: {
+                      where: { status: { in: ['SIGNED', 'ACTIVE'] as any } },
+                      include: {
+                        occupants: {
+                          include: {
+                            user: {
+                              select: { userId: true, netId: true, fName: true, lName: true },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+  }
 }
+

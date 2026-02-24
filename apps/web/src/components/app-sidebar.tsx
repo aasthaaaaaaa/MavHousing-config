@@ -83,7 +83,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     admin: [
       { title: "Dashboard", url: "/admin", icon: Home },
       { title: "User Management", url: "/admin/users", icon: Users },
+      { title: "Birds View", url: "/admin/birds-view", icon: Map },
     ]
+
   };
 
   const role = user?.role as keyof typeof navItems || 'student';
