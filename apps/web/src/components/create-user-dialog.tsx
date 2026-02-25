@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +22,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { authApi } from "@/lib/api";
+import { Check, X } from "lucide-react";
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -68,15 +69,44 @@ export function CreateUserDialog({
     });
   };
 
-  const validatePassword = (password: string) => {
-    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/.test(password);
-  };
+  const passwordChecks = useMemo(() => {
+    const pw = formData.passwordHash;
+    const lower = pw.toLowerCase();
+
+    // Collect personal-info segments (name parts + email segments)
+    const forbidden = [formData.fName, formData.lName]
+      .filter(Boolean)
+      .map((s) => s.toLowerCase());
+    if (formData.email) {
+      forbidden.push(
+        ...formData.email
+          .split(/[@._\-]/)
+          .filter(Boolean)
+          .map((s) => s.toLowerCase())
+      );
+    }
+
+    const containsPersonalInfo =
+      pw.length > 0 &&
+      forbidden.some((word) => word.length > 0 && lower.includes(word));
+
+    return {
+      minLength: pw.length >= 10,
+      hasUpper: /[A-Z]/.test(pw),
+      hasLower: /[a-z]/.test(pw),
+      hasNumber: /\d/.test(pw),
+      hasSpecial: /[!@#$%^&*(),.?":{}|<>_\-+=~`[\]\\;/]/.test(pw),
+      noPersonalInfo: pw.length === 0 ? false : !containsPersonalInfo,
+    };
+  }, [formData.passwordHash, formData.fName, formData.lName, formData.email]);
+
+  const allPasswordValid = Object.values(passwordChecks).every(Boolean);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!validatePassword(formData.passwordHash)) {
-      toast.error("Password must be at least 10 chars with uppercase, lowercase, number, and special character.");
+    if (!allPasswordValid) {
+      toast.error("Please fix all password requirements before submitting.");
       return;
     }
 
@@ -204,9 +234,38 @@ export function CreateUserDialog({
               onChange={(e) => setFormData({ ...formData, passwordHash: e.target.value })}
               required
             />
-            <p className="text-xs text-muted-foreground">
-              Min 10 chars, uppercase, lowercase, number, and special character.
-            </p>
+            {/* Live password requirements checklist */}
+            {formData.passwordHash.length > 0 && (
+              <ul className="mt-2 space-y-1 text-xs">
+                {([
+                  ["minLength", "At least 10 characters"],
+                  ["hasUpper", "At least one uppercase letter (A-Z)"],
+                  ["hasLower", "At least one lowercase letter (a-z)"],
+                  ["hasNumber", "At least one number (0-9)"],
+                  ["hasSpecial", "At least one special character (!@#$%…)"],
+                  ["noPersonalInfo", "Does not contain your name or email"],
+                ] as const).map(([key, label]) => {
+                  const passed = passwordChecks[key as keyof typeof passwordChecks];
+                  return (
+                    <li key={key} className="flex items-center gap-1.5">
+                      {passed ? (
+                        <Check className="h-3.5 w-3.5 text-green-500 shrink-0" />
+                      ) : (
+                        <X className="h-3.5 w-3.5 text-red-500 shrink-0" />
+                      )}
+                      <span className={passed ? "text-green-600" : "text-red-500"}>
+                        {label}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {formData.passwordHash.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Min 10 chars, uppercase, lowercase, number, special character, and no personal info.
+              </p>
+            )}
           </div>
 
           {/* Role & Gender */}
@@ -316,7 +375,7 @@ export function CreateUserDialog({
             <Button type="button" variant="outline" onClick={() => { resetForm(); onOpenChange(false); }}>
               Cancel
             </Button>
-            <Button type="submit" disabled={submitting}>
+            <Button type="submit" disabled={submitting || !allPasswordValid}>
               {submitting ? "Creating..." : "Create User"}
             </Button>
           </DialogFooter>

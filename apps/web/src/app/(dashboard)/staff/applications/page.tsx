@@ -18,6 +18,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { User, MapPin, Calendar, FileText, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { CreateLeaseDialog } from "@/components/create-lease-dialog";
+import { getApplicationStatusClass } from "@/lib/status-colors";
 
 interface Application {
   appId: number;
@@ -27,19 +28,6 @@ interface Application {
   user: { userId: number; netId: string; fName: string; lName: string; email: string };
   preferredProperty: { propertyId: number; name: string; address: string; propertyType?: string };
 }
-
-const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  DRAFT: "outline", SUBMITTED: "default", UNDER_REVIEW: "secondary",
-  APPROVED: "default", REJECTED: "destructive",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  APPROVED: "text-green-600 border-green-300 bg-green-50",
-  SUBMITTED: "text-blue-600 border-blue-300 bg-blue-50",
-  UNDER_REVIEW: "text-yellow-600 border-yellow-300 bg-yellow-50",
-  REJECTED: "text-red-600 border-red-300 bg-red-50",
-  DRAFT: "",
-};
 
 function fmtDate(d?: string) {
   if (!d) return "N/A";
@@ -88,16 +76,21 @@ export default function StaffApplicationsPage() {
     setSheetOpen(true);
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-muted-foreground">Loading applications...</div>;
+  if (loading) return (
+    <div className="flex flex-1 flex-col gap-6 p-6">
+      <div className="h-12 w-72 bg-muted animate-pulse rounded-xl" />
+      <div className="h-96 bg-muted animate-pulse rounded-2xl" />
+    </div>
+  );
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
-      <div>
+      <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both">
         <h1 className="text-2xl font-bold tracking-tight">Housing Applications</h1>
-        <p className="text-muted-foreground">Review and manage student housing applications ({applications.length} total)</p>
+        <p className="text-muted-foreground text-sm mt-0.5">Review and manage student housing applications ({applications.length} total)</p>
       </div>
 
-      <Card>
+      <Card className="animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl py-0 gap-0" style={{ animationDelay: "80ms" }}>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -115,7 +108,7 @@ export default function StaffApplicationsPage() {
               {applications.map((app) => (
                 <TableRow
                   key={app.appId}
-                  className="cursor-pointer hover:bg-muted/50"
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => openDetail(app)}
                 >
                   <TableCell className="font-medium pl-6">{app.user.fName} {app.user.lName}</TableCell>
@@ -130,8 +123,8 @@ export default function StaffApplicationsPage() {
                   </TableCell>
                   <TableCell>
                     <Badge
-                      variant={STATUS_VARIANTS[app.status] ?? "default"}
-                      className={STATUS_COLORS[app.status] ?? ""}
+                      variant="outline"
+                      className={`${getApplicationStatusClass(app.status)} rounded-full px-2.5`}
                     >
                       {app.status.replace("_", " ")}
                     </Badge>
@@ -169,8 +162,8 @@ export default function StaffApplicationsPage() {
               {/* Status badge */}
               <div className="mb-6 px-6">
                 <Badge
-                  variant={STATUS_VARIANTS[selected.status] ?? "default"}
-                  className={`${STATUS_COLORS[selected.status] ?? ""} text-sm px-3 py-1`}
+                  variant="outline"
+                  className={`${getApplicationStatusClass(selected.status)} text-sm px-3 py-1`}
                 >
                   {selected.status.replace("_", " ")}
                 </Badge>
