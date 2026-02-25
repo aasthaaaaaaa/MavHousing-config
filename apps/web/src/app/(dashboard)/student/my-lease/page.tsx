@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Building2, Calendar, CreditCard, BedDouble, DoorOpen, Key, Users } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { getLeaseStatusClass, getOccupantTypeClass } from "@/lib/status-colors";
 
 interface Lease {
   leaseId: number;
@@ -43,15 +44,6 @@ interface Lease {
     };
   }[];
 }
-
-const STATUS_STYLES: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
-  DRAFT: { variant: "outline", label: "Draft" },
-  PENDING_SIGNATURE: { variant: "secondary", label: "Pending Signature" },
-  SIGNED: { variant: "default", label: "Signed" },
-  ACTIVE: { variant: "default", label: "Active" },
-  COMPLETED: { variant: "secondary", label: "Completed" },
-  TERMINATED: { variant: "destructive", label: "Terminated" },
-};
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -102,8 +94,14 @@ export default function MyLeasePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 text-muted-foreground">
-        Loading your lease...
+      <div className="flex flex-1 flex-col gap-6 p-6">
+        <div className="h-10 w-40 bg-muted animate-pulse rounded-xl" />
+        <div className="h-28 bg-muted animate-pulse rounded-2xl" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-52 bg-muted animate-pulse rounded-2xl" style={{ animationDelay: `${i * 70}ms` }} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -120,17 +118,17 @@ export default function MyLeasePage() {
     );
   }
 
-  const statusCfg = STATUS_STYLES[lease.status] || STATUS_STYLES.SIGNED;
+  const statusLabel = lease.status.replace(/_/g, " ");
 
   return (
     <div className="p-6 min-w-3xl max-w-7xl mx-auto space-y-3">
-      <div>
-        <h1 className="text-2xl font-bold">My Lease</h1>
-        <p className="text-muted-foreground">Your current lease agreement details</p>
+      <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both">
+        <h1 className="text-2xl font-bold tracking-tight">My Lease</h1>
+        <p className="text-muted-foreground text-sm mt-0.5">Your current lease agreement details</p>
       </div>
 
       {lease.status === 'PENDING_SIGNATURE' && (
-        <Card className="border-primary/50 bg-primary/5">
+        <Card className="border-primary/50 bg-primary/5 rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "80ms" }}>
           <CardHeader>
             <CardTitle className="text-primary">Action Required: Sign Your Lease</CardTitle>
             <CardDescription className="text-base text-foreground mt-2">
@@ -146,18 +144,17 @@ export default function MyLeasePage() {
         </Card>
       )}
 
-      {/* Grid: Property (left) | Dates + Financials (right) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Property Card — left column */}
         {lease.unit && (
-          <Card className="md:row-span-2">
+          <Card className="md:row-span-2 rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "150ms" }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-primary" />
                   <CardTitle>{lease.unit.property.name}</CardTitle>
                 </div>
-                <Badge variant={statusCfg.variant}>{statusCfg.label}</Badge>
+                <Badge variant="outline" className={`${getLeaseStatusClass(lease.status)} rounded-full px-2.5`}>{statusLabel}</Badge>
               </div>
               <CardDescription>{lease.unit.property.address}</CardDescription>
             </CardHeader>
@@ -201,7 +198,7 @@ export default function MyLeasePage() {
         )}
 
         {/* Dates Card — right top */}
-        <Card>
+        <Card className="rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "220ms" }}>
           <CardHeader>
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
@@ -227,7 +224,7 @@ export default function MyLeasePage() {
         </Card>
 
         {/* Financials Card — right bottom */}
-        <Card>
+        <Card className="rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "290ms" }}>
           <CardHeader>
             <div className="flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-primary" />
@@ -248,9 +245,8 @@ export default function MyLeasePage() {
         </Card>
       </div>
 
-      {/* People on My Lease — full width */}
       {lease.occupants && lease.occupants.length > 0 && (
-        <Card>
+        <Card className="rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "360ms" }}>
           <CardHeader>
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
@@ -271,12 +267,12 @@ export default function MyLeasePage() {
               </TableHeader>
               <TableBody>
                 {lease.occupants.map((occ) => (
-                  <TableRow key={occ.occupantId}>
+                  <TableRow key={occ.occupantId} className="transition-colors">
                     <TableCell className="font-medium">{occ.user.fName} {occ.user.lName}</TableCell>
                     <TableCell>{occ.user.netId}</TableCell>
                     <TableCell>{occ.user.email}</TableCell>
                     <TableCell>
-                      <Badge variant={occ.occupantType === 'LEASE_HOLDER' ? 'default' : 'secondary'}>
+                      <Badge variant="outline" className={`${getOccupantTypeClass(occ.occupantType)} rounded-full px-2.5`}>
                         {occ.occupantType.replace('_', ' ')}
                       </Badge>
                     </TableCell>

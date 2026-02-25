@@ -1,5 +1,6 @@
 "use client";
 import { useAuth } from "@/context/AuthContext";
+import { usePathname } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -23,7 +24,15 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const { user } = useAuth();
+  const pathname = usePathname();
   const isStudent = user?.role?.toLowerCase() === "student";
+  const usesPillNavbar = pathname.startsWith("/admin") || pathname.startsWith("/staff") || pathname.startsWith("/student");
+
+  // All roles use their own pill navbar layout — render children directly
+  if (usesPillNavbar) {
+    return <>{children}</>;
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />

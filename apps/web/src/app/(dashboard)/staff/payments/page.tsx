@@ -68,31 +68,33 @@ export default function StaffPaymentsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+      <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both">
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
           <DollarSign className="h-6 w-6 text-primary" /> Payment Records
         </h1>
-        <p className="text-muted-foreground">All tenant payment transactions</p>
+        <p className="text-muted-foreground text-sm mt-0.5">All tenant payment transactions</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
           { label: "Total Transactions", value: stats.total, color: "text-blue-600" },
           { label: "Successful", value: stats.successful, color: "text-green-600" },
           { label: "Total Revenue", value: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(stats.revenue), color: "text-primary" },
-        ].map(s => (
-          <Card key={s.label} className="text-center">
+        ].map((s, idx) => (
+          <Card
+            key={s.label}
+            className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl text-center transition-all hover:shadow-md hover:-translate-y-0.5"
+            style={{ animationDelay: `${80 + idx * 70}ms` }}
+          >
             <CardContent className="pt-4 pb-4">
-              <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+              <p className={`text-2xl font-bold tracking-tight ${s.color}`}>{s.value}</p>
               <p className="text-sm text-muted-foreground mt-1">{s.label}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Filter */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both" style={{ animationDelay: "300ms" }}>
         <Select value={filterMethod} onValueChange={setFilterMethod}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Filter by method" />
@@ -107,8 +109,7 @@ export default function StaffPaymentsPage() {
         <p className="text-sm text-muted-foreground">{filtered.length} record{filtered.length !== 1 ? "s" : ""}</p>
       </div>
 
-      {/* Table */}
-      <Card>
+      <Card className="animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl py-0 gap-0" style={{ animationDelay: "380ms" }}>
         <CardContent className="p-0">
           {loading ? (
             <p className="text-center text-muted-foreground py-12">Loading payments...</p>
@@ -128,7 +129,7 @@ export default function StaffPaymentsPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map(p => (
-                  <TableRow key={p.paymentId}>
+                  <TableRow key={p.paymentId} className="transition-colors">
                     <TableCell>
                       <div>
                         <p className="font-medium">{p.lease.user.fName} {p.lease.user.lName}</p>

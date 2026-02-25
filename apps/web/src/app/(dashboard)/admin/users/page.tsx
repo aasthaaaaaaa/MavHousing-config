@@ -39,28 +39,37 @@ export default function UserManagementPage() {
     }
   }, [authLoading]);
 
-  if (loading) return <div className="p-8">Loading users...</div>;
+  if (loading) return (
+    <div className="p-6 space-y-6">
+      <div className="h-12 w-64 bg-muted animate-pulse rounded-xl" />
+      <div className="h-96 bg-muted animate-pulse rounded-2xl" />
+    </div>
+  );
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">User Management</h1>
+    <div className="p-6 space-y-6">
+      <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">User Management</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Create, edit, and manage staff &amp; student accounts.</p>
+        </div>
         <div className="flex items-center gap-2">
           <Button onClick={() => setCreateOpen(true)}>
             <IconPlus className="size-4 mr-1" />
             Create User
           </Button>
-          <Button onClick={fetchUsers} variant="outline">Refresh List</Button>
+          <Button onClick={fetchUsers} variant="outline">Refresh</Button>
         </div>
       </div>
 
-      <div className="border rounded-lg overflow-hidden bg-background">
+      <div
+        className="animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both border rounded-2xl overflow-hidden bg-background"
+        style={{ animationDelay: "80ms" }}
+      >
          <UserDataTable data={users} onUserUpdated={fetchUsers} />
       </div>
       
-      <div className="text-sm text-muted-foreground mt-4">
-        Tip: Click on a user's name to view details in a drawer. Drag rows to reorder (local only).
-      </div>
+      <p className="text-sm text-muted-foreground">Tip: Click on a user's name to view details in a drawer.</p>
 
       <CreateUserDialog
         open={createOpen}

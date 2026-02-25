@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { User, MapPin, Users, Trash2, UserPlus, Building2, Bed } from "lucide-react";
+import { getLeaseStatusClass, getOccupantTypeClass } from "@/lib/status-colors";
 
 interface OccupantUser {
   userId: number;
@@ -40,12 +40,6 @@ interface Lease {
   bed?: { bedLetter: string };
   occupants: Occupant[];
 }
-
-const TYPE_BADGE: Record<string, string> = {
-  LEASE_HOLDER: "bg-blue-100 text-blue-800 border-blue-200",
-  ROOMMATE: "bg-purple-100 text-purple-800 border-purple-200",
-  OCCUPANT: "bg-green-100 text-green-800 border-green-200",
-};
 
 function getLocation(l: Lease) {
   if (!l.unit) return "—";
@@ -162,37 +156,50 @@ export default function StaffOccupancyPage() {
     totalOccupants: leases.reduce((s, l) => s + l.occupants.length, 0),
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-muted-foreground">Loading occupancy data...</div>;
+  if (loading) return (
+    <div className="flex flex-1 flex-col gap-6 p-6">
+      <div className="h-12 w-72 bg-muted animate-pulse rounded-xl" />
+      <div className="grid gap-4 grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-28 bg-muted animate-pulse rounded-2xl" style={{ animationDelay: `${i * 80}ms` }} />
+        ))}
+      </div>
+      <div className="h-96 bg-muted animate-pulse rounded-2xl" />
+    </div>
+  );
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
-      {/* Header */}
-      <div>
+      <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both">
         <h1 className="text-2xl font-bold tracking-tight">Occupancy Management</h1>
-        <p className="text-muted-foreground">View and manage who is assigned to each lease unit.</p>
+        <p className="text-muted-foreground text-sm mt-0.5">View and manage who is assigned to each lease unit.</p>
       </div>
 
-      {/* Stat cards */}
       <div className="grid gap-4 grid-cols-3">
         {[
-          { label: "Active Leases", value: stats.total, icon: Building2 },
-          { label: "With Roommates", value: stats.withRoommates, icon: Users },
-          { label: "Total Occupants", value: stats.totalOccupants, icon: User },
-        ].map(({ label, value, icon: Icon }) => (
-          <Card key={label}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-              <Icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{value}</p>
+          { label: "Active Leases", value: stats.total, icon: Building2, iconBg: "bg-blue-500/10 dark:bg-blue-500/20", iconColor: "text-blue-500" },
+          { label: "With Roommates", value: stats.withRoommates, icon: Users, iconBg: "bg-violet-500/10 dark:bg-violet-500/20", iconColor: "text-violet-500" },
+          { label: "Total Occupants", value: stats.totalOccupants, icon: User, iconBg: "bg-emerald-500/10 dark:bg-emerald-500/20", iconColor: "text-emerald-500" },
+        ].map(({ label, value, icon: Icon, iconBg, iconColor }, idx) => (
+          <Card
+            key={label}
+            className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5 py-0 gap-0"
+            style={{ animationDelay: `${80 + idx * 70}ms` }}
+          >
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-muted-foreground">{label}</span>
+                <div className={`h-8 w-8 rounded-xl ${iconBg} flex items-center justify-center`}>
+                  <Icon className={`h-4 w-4 ${iconColor}`} />
+                </div>
+              </div>
+              <p className="text-3xl font-bold tracking-tight">{value}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Search */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both" style={{ animationDelay: "300ms" }}>
         <Input
           placeholder="Search by name, NetID, or property..."
           value={search}
@@ -202,8 +209,7 @@ export default function StaffOccupancyPage() {
         <p className="text-sm text-muted-foreground">{filtered.length} lease{filtered.length !== 1 ? "s" : ""}</p>
       </div>
 
-      {/* Table */}
-      <Card>
+      <Card className="animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl py-0 gap-0" style={{ animationDelay: "380ms" }}>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -224,7 +230,7 @@ export default function StaffOccupancyPage() {
               ) : filtered.map(lease => (
                 <TableRow
                   key={lease.leaseId}
-                  className="cursor-pointer hover:bg-muted/50"
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => { setSelected(lease); setSheetOpen(true); }}
                 >
                   <TableCell className="pl-6">
@@ -255,7 +261,7 @@ export default function StaffOccupancyPage() {
                     </div>
                   </TableCell>
                   <TableCell className="pr-6">
-                    <Badge variant={lease.status === "ACTIVE" ? "default" : "secondary"} className="text-xs">
+                    <Badge variant="outline" className={`${getLeaseStatusClass(lease.status)} text-xs rounded-full px-2.5`}>
                       {lease.status}
                     </Badge>
                   </TableCell>
@@ -277,24 +283,22 @@ export default function StaffOccupancyPage() {
               </SheetHeader>
 
               <div className="space-y-6 px-6">
-                {/* Lease holder info */}
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Lease Holder</h3>
                   <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <User className="h-4 w-4 text-primary" />
+                    <div className="h-9 w-9 rounded-full bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                      <User className="h-4 w-4 text-blue-500" />
                     </div>
                     <div>
                       <p className="font-medium text-sm">{selected.user.fName} {selected.user.lName}</p>
                       <p className="text-xs text-muted-foreground">{selected.user.netId} · {selected.user.email}</p>
                     </div>
-                    <Badge className="ml-auto text-xs border bg-blue-100 text-blue-800 border-blue-200">LEASE HOLDER</Badge>
+                    <Badge variant="outline" className={`ml-auto text-xs rounded-full px-2.5 ${getOccupantTypeClass("LEASE_HOLDER")}`}>LEASE HOLDER</Badge>
                   </div>
                 </div>
 
-                <Separator />
+                <div className="h-px bg-border" />
 
-                {/* Current occupants */}
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                     Occupants ({selected.occupants.length})
@@ -305,14 +309,14 @@ export default function StaffOccupancyPage() {
                     <div className="space-y-2">
                       {selected.occupants.map(occ => (
                         <div key={occ.occupantId} className="flex items-center gap-3 p-3 rounded-lg border">
-                          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                          <div className="h-8 w-8 rounded-full bg-violet-500/10 dark:bg-violet-500/20 flex items-center justify-center text-xs font-semibold text-violet-600 dark:text-violet-400 flex-shrink-0">
                             {occ.user.fName[0]}{occ.user.lName[0]}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm truncate">{occ.user.fName} {occ.user.lName}</p>
                             <p className="text-xs text-muted-foreground">{occ.user.netId}</p>
                           </div>
-                          <Badge className={`text-xs border flex-shrink-0 ${TYPE_BADGE[occ.occupantType] ?? ""}`}>
+                          <Badge variant="outline" className={`text-xs rounded-full px-2.5 flex-shrink-0 ${getOccupantTypeClass(occ.occupantType)}`}>
                             {occ.occupantType.replace("_", " ")}
                           </Badge>
                           <Button
@@ -330,9 +334,8 @@ export default function StaffOccupancyPage() {
                   )}
                 </div>
 
-                <Separator />
+                <div className="h-px bg-border" />
 
-                {/* Add occupant */}
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Assign Occupant</h3>
                   <div className="space-y-3">
@@ -369,9 +372,8 @@ export default function StaffOccupancyPage() {
                   </div>
                 </div>
 
-                <Separator />
+                <div className="h-px bg-border" />
 
-                {/* Unit details */}
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Unit Details</h3>
                   <div className="space-y-2 text-sm">
