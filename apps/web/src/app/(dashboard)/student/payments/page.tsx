@@ -39,8 +39,16 @@ const PAYMENT_METHODS = [
   { value: "DEBIT_CARD", label: "Debit Card" },
   { value: "BANK_TRANSFER", label: "Bank Transfer (ACH)" },
   { value: "CHECK", label: "Check" },
-  { value: "CASH", label: "Cash" },
 ];
+
+function getCardType(number: string) {
+  const cleanNumber = number.replace(/\D/g, "");
+  if (cleanNumber.startsWith("4")) return "Visa";
+  if (/^5[1-5]/.test(cleanNumber) || /^2[2-7]/.test(cleanNumber)) return "Mastercard";
+  if (/^3[47]/.test(cleanNumber)) return "Amex";
+  if (/^6011/.test(cleanNumber) || /^65/.test(cleanNumber) || /^64[4-9]/.test(cleanNumber) || /^622/.test(cleanNumber)) return "Discover";
+  return "";
+}
 
 function fmt(val: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(val);
@@ -66,6 +74,14 @@ export default function PaymentsPage() {
   const [payError, setPayError] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [emailOptIn, setEmailOptIn] = useState(true);
+
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
+  const [nameOnCard, setNameOnCard] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [routingNumber, setRoutingNumber] = useState("");
+  const [checkNumber, setCheckNumber] = useState("");
 
   useEffect(() => {
     if (user?.userId) fetchAll();
@@ -94,6 +110,25 @@ export default function PaymentsPage() {
   async function handlePay(e: React.FormEvent) {
     e.preventDefault();
     if (!amount || parseFloat(amount) <= 0) { setPayError("Enter a valid amount."); return; }
+
+    // Validations based on method
+    if (method === "CREDIT_CARD" || method === "DEBIT_CARD") {
+      if (!cardNumber || !cardExpiry || !cardCvv || !nameOnCard) {
+        setPayError("Please fill out all card details.");
+        return;
+      }
+    } else if (method === "BANK_TRANSFER") {
+      if (!accountNumber || !routingNumber) {
+        setPayError("Please provide account and routing numbers.");
+        return;
+      }
+    } else if (method === "CHECK") {
+      if (!accountNumber || !routingNumber || !checkNumber) {
+        setPayError("Please provide account, routing, and check numbers.");
+        return;
+      }
+    }
+
     setPayError("");
     setPaying(true);
     try {
@@ -103,6 +138,9 @@ export default function PaymentsPage() {
         body: JSON.stringify({ userId: user!.userId, amount: parseFloat(amount), method }),
       });
       setDialogOpen(false);
+      // Reset fields
+      setCardNumber(""); setCardExpiry(""); setCardCvv(""); setNameOnCard("");
+      setAccountNumber(""); setRoutingNumber(""); setCheckNumber("");
       await fetchAll();
     } catch {
       setPayError("Payment failed. Please try again.");
@@ -307,7 +345,7 @@ export default function PaymentsPage() {
                   <button
                     key={m.value}
                     type="button"
-                    onClick={() => setMethod(m.value)}
+                    onClick={() => { setMethod(m.value); setPayError(""); }}
                     className={`flex items-start justify-between p-3 rounded-lg border text-left transition-colors ${
                       method === m.value
                         ? "border-primary bg-primary/5 ring-1 ring-primary"
@@ -322,6 +360,52 @@ export default function PaymentsPage() {
                 ))}
               </div>
             </div>
+
+            {/* Dynamic Fields */}
+            {(method === "CREDIT_CARD" || method === "DEBIT_CARD") && (
+              <div className="space-y-4 pt-2 border-t mt-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Label htmlFor="cardNumber">Card Number</Label>
+                    <span className="text-xs font-semibold text-primary">{getCardType(cardNumber)}</span>
+                  </div>
+                  <Input id="cardNumber" placeholder="0000 0000 0000 0000" value={cardNumber} onChange={e => setCardNumber(e.target.value)} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="expiry">Expiry Date</Label>
+                    <Input id="expiry" placeholder="MM/YY" value={cardExpiry} onChange={e => setCardExpiry(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cvv">CVV</Label>
+                    <Input id="cvv" placeholder="123" value={cardCvv} onChange={e => setCardCvv(e.target.value)} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="nameOnCard">Name on Card</Label>
+                  <Input id="nameOnCard" placeholder="John Doe" value={nameOnCard} onChange={e => setNameOnCard(e.target.value)} />
+                </div>
+              </div>
+            )}
+
+            {(method === "BANK_TRANSFER" || method === "CHECK") && (
+              <div className="space-y-4 pt-2 border-t mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="routingNumber">Routing Number</Label>
+                  <Input id="routingNumber" placeholder="000000000" value={routingNumber} onChange={e => setRoutingNumber(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="accountNumber">Account Number</Label>
+                  <Input id="accountNumber" placeholder="000000000000" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} />
+                </div>
+                {method === "CHECK" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="checkNumber">Check Number</Label>
+                    <Input id="checkNumber" placeholder="1001" value={checkNumber} onChange={e => setCheckNumber(e.target.value)} />
+                  </div>
+                )}
+              </div>
+            )}
 
             {payError && (
               <p className="text-sm text-destructive flex items-center gap-1">
