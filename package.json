@@ -31,6 +31,8 @@
   "dependencies": {
     "@apollo/server": "^5.1.0",
     "@as-integrations/express5": "^1.1.2",
+    "@aws-sdk/client-s3": "^3.997.0",
+    "@aws-sdk/s3-request-presigner": "^3.997.0",
     "@google/generative-ai": "^0.24.1",
     "@nestjs/apollo": "^13.2.1",
     "@nestjs/common": "^11.0.1",
