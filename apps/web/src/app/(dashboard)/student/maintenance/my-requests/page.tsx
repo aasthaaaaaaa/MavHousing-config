@@ -87,7 +87,6 @@ export default function MyRequestsPage() {
       ) : (
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
           {requests.map((req, idx) => {
-            const status = STATUS_CONFIG[req.status] ?? STATUS_CONFIG.OPEN;
             return (
               <Card
                 key={req.requestId}
