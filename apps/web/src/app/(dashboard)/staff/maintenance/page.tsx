@@ -6,6 +6,11 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Wrench, MapPin, User, Calendar, AlertTriangle, Paperclip, Send, Download, ExternalLink, Trash2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Wrench, MapPin, User, Calendar, AlertTriangle } from "lucide-react";
 import { getMaintenanceStatusClass, getPriorityClass } from "@/lib/status-colors";
@@ -18,9 +23,18 @@ interface MaintenanceRequest {
   status: string;
   createdAt: string;
   resolvedAt?: string;
+  resolutionReason?: string;
   createdBy: { netId: string; fName: string; lName: string; email: string };
   assignedStaff?: { userId: number; fName: string; lName: string };
   lease?: { unit?: { unitNumber: string; property: { name: string; address: string } }; room?: { roomLetter: string } };
+}
+
+interface MaintenanceComment {
+  id: string;
+  content?: string;
+  attachmentUrl?: string;
+  createdAt: string;
+  user: { fName: string; lName: string };
 }
 
 interface StaffMember { userId: number; fName: string; lName: string; netId: string }
@@ -44,7 +58,13 @@ export default function StaffMaintenancePage() {
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [filterPriority, setFilterPriority] = useState("ALL");
   const [selected, setSelected] = useState<MaintenanceRequest | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [resolutionPrompt, setResolutionPrompt] = useState<{ requestId: number } | null>(null);
+  const [resolutionReason, setResolutionReason] = useState("");
+  const [comments, setComments] = useState<MaintenanceComment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [postingComment, setPostingComment] = useState(false);
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -58,15 +78,23 @@ export default function StaffMaintenancePage() {
     setLoading(false);
   }
 
-  async function handleStatusChange(requestId: number, status: string) {
+  async function handleStatusChange(requestId: number, status: string, reason?: string) {
+    if (status === "RESOLVED" && !reason) {
+      setResolutionPrompt({ requestId });
+      return;
+    }
     setUpdating(requestId);
     try {
       await fetch(`http://localhost:3009/maintenance/requests/${requestId}/status`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, resolutionReason: reason }),
       });
-      setRequests(prev => prev.map(r => r.requestId === requestId ? { ...r, status } : r));
-      if (selected?.requestId === requestId) setSelected(prev => prev ? { ...prev, status } : null);
+      setRequests(prev => prev.map(r => r.requestId === requestId ? { ...r, status, resolutionReason: reason } : r));
+      if (selected?.requestId === requestId) setSelected(prev => prev ? { ...prev, status, resolutionReason: reason } : null);
+      if (status === "RESOLVED") {
+        setResolutionPrompt(null);
+        setResolutionReason("");
+      }
     } finally { setUpdating(null); }
   }
 
@@ -89,9 +117,82 @@ export default function StaffMaintenancePage() {
     } finally { setUpdating(null); }
   }
 
-  function open(r: MaintenanceRequest) { setSelected(r); setSheetOpen(true); }
+  async function fetchComments(reqId: number) {
+    const res = await fetch(`http://localhost:3009/maintenance/requests/${reqId}/comments`);
+    if (res.ok) setComments(await res.json());
+  }
 
-  const filtered = requests.filter(r =>
+  async function handlePostComment() {
+    if (!selected) return;
+    if (!newComment.trim() && !attachment) return;
+    setPostingComment(true);
+    let attachmentUrl = undefined;
+
+    if (attachment) {
+      const formData = new FormData();
+      formData.append("file", attachment);
+      try {
+        const uploadRes = await fetch("http://localhost:3009/maintenance/upload", {
+          method: "POST",
+          body: formData,
+        });
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
+          attachmentUrl = uploadData.url;
+        } else {
+          const errData = await uploadRes.json();
+          alert(`File upload failed: ${errData.message?.message || errData.message || 'Server error'}`);
+          setPostingComment(false);
+          return;
+        }
+      } catch (err) {
+        alert("An error occurred while uploading. Please check server logs.");
+        setPostingComment(false);
+        return;
+      }
+    }
+
+    await fetch(`http://localhost:3009/maintenance/requests/${selected.requestId}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: 1, content: newComment, attachmentUrl }),
+    });
+
+    setNewComment("");
+    setAttachment(null);
+    fetchComments(selected.requestId);
+    setPostingComment(false);
+  }
+
+  async function handleDeleteComment(commentId: string) {
+    if (!confirm("Are you sure you want to delete this comment?")) return;
+    try {
+      const res = await fetch(`http://localhost:3009/maintenance/comments/${commentId}`, { method: "DELETE" });
+      if (res.ok) {
+        setComments(prev => prev.filter(c => c.id !== commentId));
+      } else {
+        alert("Failed to delete comment");
+      }
+    } catch {
+      alert("An error occurred while deleting the comment.");
+    }
+  }
+
+  function open(r: MaintenanceRequest) {
+    setSelected(r);
+    setIsDetailsOpen(true);
+    fetchComments(r.requestId);
+  }
+
+  const sortedRequests = [...requests].sort((a, b) => {
+    const aIsDone = a.status === "RESOLVED" || a.status === "CLOSED";
+    const bIsDone = b.status === "RESOLVED" || b.status === "CLOSED";
+    if (aIsDone && !bIsDone) return 1;
+    if (!aIsDone && bIsDone) return -1;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
+  const filtered = sortedRequests.filter(r =>
     (filterStatus === "ALL" || r.status === filterStatus) &&
     (filterPriority === "ALL" || r.priority === filterPriority)
   );
@@ -199,15 +300,15 @@ export default function StaffMaintenancePage() {
         </CardContent>
       </Card>
 
-      {/* Detail Sheet */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+      {/* Detail Dialog */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="sm:max-w-[70vw] w-[90vw] max-h-[90vh] overflow-y-auto sm:p-0 p-0 gap-0">
           {selected && (
-            <>
-              <SheetHeader className="pb-4 px-6">
-                <SheetTitle>Request #{selected.requestId}</SheetTitle>
-                <SheetDescription>{selected.category} · {fmtDate(selected.createdAt)}</SheetDescription>
-              </SheetHeader>
+            <div className="py-6">
+              <DialogHeader className="pb-4 px-6 pt-2">
+                <DialogTitle>Request #{selected.requestId}</DialogTitle>
+                <DialogDescription>{selected.category} · {fmtDate(selected.createdAt)}</DialogDescription>
+              </DialogHeader>
 
               <div className="px-6 mb-6 flex items-center gap-2">
                 <Badge variant="outline" className={`${getMaintenanceStatusClass(selected.status)} text-sm px-3 py-1`}>
@@ -219,69 +320,74 @@ export default function StaffMaintenancePage() {
               </div>
 
               <div className="space-y-6 px-6">
-                {/* Submitter */}
-                <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Submitted By</h3>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" /><span className="font-medium">{selected.createdBy.fName} {selected.createdBy.lName}</span></div>
-                    <div className="flex items-center gap-2"><span className="h-4 w-4" /><span className="text-sm text-muted-foreground">{selected.createdBy.netId}</span></div>
-                    <div className="flex items-center gap-2"><span className="h-4 w-4" /><span className="text-sm text-muted-foreground">{selected.createdBy.email}</span></div>
+                {/* 2x2 Grid for Core Details */}
+                <div className="grid grid-cols-2 gap-y-6 gap-x-6">
+                  {/* Submitter */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Submitted By</h3>
+                    <div className="space-y-1.5 flex flex-col justify-end">
+                      <div className="flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" /><span className="font-medium">{selected.createdBy.fName} {selected.createdBy.lName}</span></div>
+                      <div className="flex items-center gap-2"><span className="h-4 w-4" /><span className="text-sm text-muted-foreground">{selected.createdBy.netId}</span></div>
+                      <div className="flex items-center gap-2"><span className="h-4 w-4" /><span className="text-sm text-muted-foreground">{selected.createdBy.email}</span></div>
+                    </div>
                   </div>
-                </div>
-                <Separator />
 
-                {/* Location */}
-                <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Location</h3>
-                  <div className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                    <span className="text-sm">{getLocation(selected)}</span>
+                  {/* Location */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Location</h3>
+                    <div className="flex items-start gap-2 h-[68px]">
+                      <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                      <span className="text-sm">{getLocation(selected)}</span>
+                    </div>
+                  </div>
+
+                  {/* Assign staff */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Assigned To</h3>
+                    <div className="flex flex-col justify-end h-[68px]">
+                      {selected.assignedStaff ? (
+                        <p className="text-sm font-medium mb-2">{selected.assignedStaff.fName} {selected.assignedStaff.lName}</p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground mb-2">Not yet assigned</p>
+                      )}
+                      <Select
+                        value={selected.assignedStaff ? String(selected.assignedStaff.userId) : "none"}
+                        onValueChange={val => val !== "none" && handleAssignStaff(selected.requestId, parseInt(val))}
+                        disabled={updating === selected.requestId}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Assign staff..." /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Unassigned</SelectItem>
+                          {staffList.map(s => <SelectItem key={s.userId} value={String(s.userId)}>{s.fName} {s.lName}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Update Status</h3>
+                    <div className="flex flex-col justify-end h-[68px]">
+                      <Select
+                        value={selected.status}
+                        onValueChange={val => handleStatusChange(selected.requestId, val)}
+                        disabled={updating === selected.requestId}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {STATUSES.map(s => <SelectItem key={s} value={s}>{s.replace("_", " ")}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
+
                 <Separator />
 
                 {/* Description */}
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Description</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{selected.description}</p>
-                </div>
-                <Separator />
-
-                {/* Assign staff */}
-                <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Assigned To</h3>
-                  {selected.assignedStaff ? (
-                    <p className="text-sm font-medium mb-2">{selected.assignedStaff.fName} {selected.assignedStaff.lName}</p>
-                  ) : (
-                    <p className="text-sm text-muted-foreground mb-2">Not yet assigned</p>
-                  )}
-                  <Select
-                    value={selected.assignedStaff ? String(selected.assignedStaff.userId) : "none"}
-                    onValueChange={val => val !== "none" && handleAssignStaff(selected.requestId, parseInt(val))}
-                    disabled={updating === selected.requestId}
-                  >
-                    <SelectTrigger><SelectValue placeholder="Assign staff..." /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Unassigned</SelectItem>
-                      {staffList.map(s => <SelectItem key={s.userId} value={String(s.userId)}>{s.fName} {s.lName}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Separator />
-
-                {/* Status */}
-                <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Update Status</h3>
-                  <Select
-                    value={selected.status}
-                    onValueChange={val => handleStatusChange(selected.requestId, val)}
-                    disabled={updating === selected.requestId}
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {STATUSES.map(s => <SelectItem key={s} value={s}>{s.replace("_", " ")}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 {selected.resolvedAt && (
@@ -293,11 +399,116 @@ export default function StaffMaintenancePage() {
                     </div>
                   </>
                 )}
+
+                {/* Resolution Reason */}
+                {selected.status === "RESOLVED" && selected.resolutionReason && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Resolution Reason</h3>
+                      <p className="text-sm border-l-2 border-green-500 pl-3 py-1 bg-green-50/50 rounded-r-md text-muted-foreground">{selected.resolutionReason}</p>
+                    </div>
+                  </>
+                )}
+
+                <Separator />
+
+                {/* Comments Section */}
+                <div>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Comments & Updates</h3>
+
+                  <div className="space-y-4 mb-4">
+                    {comments.map(c => (
+                      <div key={c.id} className="bg-muted/30 p-3 rounded-lg text-sm">
+                        <div className="flex justify-between items-center mb-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">{c.user.fName} {c.user.lName}</span>
+                            <span className="text-xs text-muted-foreground">{fmtDate(c.createdAt)}</span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-red-500 hover:bg-red-50"
+                            onClick={() => handleDeleteComment(c.id)}
+                            title="Delete comment"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        {c.content && <p className="text-muted-foreground whitespace-pre-wrap">{c.content}</p>}
+                        {c.attachmentUrl && (
+                          <div className="mt-2">
+                            {c.attachmentUrl.match(/\\.(jpeg|jpg|gif|png)$/i) ? (
+                              <a href={c.attachmentUrl} target="_blank" rel="noopener noreferrer">
+                                <img src={c.attachmentUrl} alt="Attachment" className="h-20 w-auto rounded border hover:opacity-80 transition-opacity" />
+                              </a>
+                            ) : (
+                              <a href={c.attachmentUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-blue-600 hover:underline">
+                                <ExternalLink className="h-4 w-4" /> Download Attachment
+                              </a>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {comments.length === 0 && <p className="text-sm text-muted-foreground italic">No comments yet.</p>}
+                  </div>
+
+                  {/* Add Comment */}
+                  <div className="space-y-2">
+                    <Textarea
+                      placeholder="Type a comment..."
+                      value={newComment} onChange={e => setNewComment(e.target.value)}
+                      className="text-sm min-h-[60px]"
+                    />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" className="h-8 relative overflow-hidden" disabled={postingComment}>
+                          <Paperclip className="h-4 w-4 mr-1" />
+                          <span className="text-xs">{attachment ? attachment.name : "Attach"}</span>
+                          <input
+                            type="file"
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                            onChange={e => setAttachment(e.target.files?.[0] || null)}
+                            disabled={postingComment}
+                          />
+                        </Button>
+                        {attachment && (
+                          <Button variant="ghost" size="sm" className="h-8 text-xs text-red-500" onClick={() => setAttachment(null)}>Clear</Button>
+                        )}
+                      </div>
+                      <Button size="sm" className="h-8" onClick={handlePostComment} disabled={postingComment || (!newComment.trim() && !attachment)}>
+                        <Send className="h-4 w-4 mr-1" />
+                        <span className="text-xs">Send</span>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </>
+            </div>
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!resolutionPrompt} onOpenChange={(open) => !open && setResolutionPrompt(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Resolve Request</DialogTitle>
+            <DialogDescription>Please provide a reason or summary for resolving this request.</DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="Work performed, parts replaced, etc."
+            value={resolutionReason}
+            onChange={(e) => setResolutionReason(e.target.value)}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResolutionPrompt(null)}>Cancel</Button>
+            <Button onClick={() => resolutionPrompt && handleStatusChange(resolutionPrompt.requestId, "RESOLVED", resolutionReason)} disabled={!resolutionReason.trim()}>
+              Save & Resolve
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

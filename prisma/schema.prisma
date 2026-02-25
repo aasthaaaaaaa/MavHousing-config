@@ -33,6 +33,7 @@ model User {
   leases              Lease[]
   maintenanceAssigned MaintenanceRequest[] @relation("MaintenanceAssignedTo")
   maintenanceCreated  MaintenanceRequest[] @relation("MaintenanceCreatedBy")
+  maintenanceComments MaintenanceComment[]
   occupancies         Occupant[]           @relation("Occupants")
 
   @@map("users")
@@ -181,12 +182,27 @@ model MaintenanceRequest {
   priority        MaintenancePriority @default(MEDIUM)
   createdAt       DateTime            @default(now())
   resolvedAt      DateTime?
+  resolutionReason String?
   updatedAt       DateTime            @updatedAt
   assignedStaff   User?               @relation("MaintenanceAssignedTo", fields: [assignedStaffId], references: [userId])
   createdBy       User                @relation("MaintenanceCreatedBy", fields: [createdByUserId], references: [userId], onDelete: Cascade)
   lease           Lease               @relation(fields: [leaseId], references: [leaseId], onDelete: Cascade)
+  comments        MaintenanceComment[]
 
   @@map("maintenance_requests")
+}
+
+model MaintenanceComment {
+  id            String             @id @default(cuid())
+  requestId     Int
+  userId        Int
+  content       String?            @db.Text
+  attachmentUrl String?            @db.Text
+  createdAt     DateTime           @default(now())
+  request       MaintenanceRequest @relation(fields: [requestId], references: [requestId], onDelete: Cascade)
+  user          User               @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("maintenance_comments")
 }
 
 model ChatRoom {
