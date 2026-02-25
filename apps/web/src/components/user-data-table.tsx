@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { getRoleBadgeClass } from "@/lib/role-colors"
 import {
   IconChevronDown,
   IconChevronLeft,
@@ -151,9 +152,9 @@ export function UserDataTable({
         accessorKey: "role",
         header: "Role",
         cell: ({ row }) => {
-            const role = row.getValue("role") as string;
+            const role = (row.getValue("role") as string).toLowerCase();
             return (
-                <Badge variant={role === 'admin' ? 'destructive' : role === 'staff' ? 'default' : 'secondary'}>
+                <Badge className={`${getRoleBadgeClass(role)} border font-medium capitalize`} variant="outline">
                     {role}
                 </Badge>
             )
@@ -380,8 +381,11 @@ function TableCellViewer({ item }: { item: UserData }) {
       <DrawerContent>
         <DrawerHeader className="gap-1">
           <DrawerTitle>{item.fName} {item.lName}</DrawerTitle>
-          <DrawerDescription>
-            NetID: {item.netId} | Role: {item.role}
+          <DrawerDescription className="flex items-center gap-2">
+            NetID: {item.netId} ·{" "}
+            <Badge className={`${getRoleBadgeClass(item.role)} border font-medium capitalize`} variant="outline">
+              {item.role}
+            </Badge>
           </DrawerDescription>
         </DrawerHeader>
         
@@ -407,7 +411,11 @@ function TableCellViewer({ item }: { item: UserData }) {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="role" className="text-right"> Role </Label>
-                        <Input id="role" value={item.role} className="col-span-3" readOnly />
+                        <div className="col-span-3">
+                          <Badge className={`${getRoleBadgeClass(item.role)} border font-medium capitalize`} variant="outline">
+                            {item.role}
+                          </Badge>
+                        </div>
                     </div>
                  </div>
             </TabsContent>

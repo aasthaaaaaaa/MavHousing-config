@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DollarSign, CheckCircle2, Receipt, Loader2, AlertCircle } from "lucide-react";
+import { getPaymentStatusClass } from "@/lib/status-colors";
 
 interface PaymentSummary {
   totalDue: number;
@@ -115,7 +116,18 @@ export default function PaymentsPage() {
   const totalHistory = payments.reduce((s, p) => s + parseFloat(p.amountPaid), 0);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64 text-muted-foreground">Loading payments...</div>;
+    return (
+      <div className="flex flex-1 flex-col gap-6 p-6">
+        <div className="h-10 w-56 bg-muted animate-pulse rounded-xl" />
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-28 bg-muted animate-pulse rounded-2xl" style={{ animationDelay: `${i * 70}ms` }} />
+          ))}
+        </div>
+        <div className="h-20 bg-muted animate-pulse rounded-2xl" />
+        <div className="h-64 bg-muted animate-pulse rounded-2xl" />
+      </div>
+    );
   }
 
   if (!summary) {
@@ -130,11 +142,10 @@ export default function PaymentsPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Payments</h1>
-          <p className="text-muted-foreground">Manage your rent payments and view payment history</p>
+          <p className="text-muted-foreground text-sm mt-0.5">Manage your rent payments and view payment history</p>
         </div>
         <Button onClick={() => setDialogOpen(true)} variant="outline">
           <Receipt className="h-4 w-4 mr-2" /> Make a Payment
@@ -143,7 +154,7 @@ export default function PaymentsPage() {
 
       {/* 3 stat cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-        <Card>
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5" style={{ animationDelay: "80ms" }}>
           <CardContent className="pt-5 pb-5">
             <div className="flex items-start justify-between">
               <div>
@@ -162,7 +173,7 @@ export default function PaymentsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5" style={{ animationDelay: "150ms" }}>
           <CardContent className="pt-5 pb-5">
             <div className="flex items-start justify-between">
               <div>
@@ -175,7 +186,7 @@ export default function PaymentsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5" style={{ animationDelay: "220ms" }}>
           <CardContent className="pt-5 pb-5">
             <div className="flex items-start justify-between">
               <div>
@@ -190,7 +201,7 @@ export default function PaymentsPage() {
       </div>
 
       {/* Progress card */}
-      <Card>
+      <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl" style={{ animationDelay: "290ms" }}>
         <CardContent className="pt-5 pb-5">
           <div className="flex items-start justify-between mb-1">
             <div>
@@ -217,7 +228,7 @@ export default function PaymentsPage() {
       </Card>
 
       {/* Payment History */}
-      <Card>
+      <Card className="animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl" style={{ animationDelay: "360ms" }}>
         <CardHeader className="pb-3">
           <CardTitle>Payment History</CardTitle>
           <CardDescription>View all your past transactions and receipts</CardDescription>
@@ -242,7 +253,7 @@ export default function PaymentsPage() {
                 </TableRow>
               ) : (
                 payments.map((p, idx) => (
-                  <TableRow key={p.paymentId}>
+                  <TableRow key={p.paymentId} className="transition-colors">
                     <TableCell className="text-sm text-muted-foreground whitespace-nowrap pl-8">
                       {fmtDate(p.transactionDate)}
                     </TableCell>
@@ -254,7 +265,7 @@ export default function PaymentsPage() {
                       {p.method.replace(/_/g, " ")}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={p.isSuccessful ? "outline" : "destructive"} className={p.isSuccessful ? "text-green-600 border-green-300 bg-green-50" : ""}>
+                      <Badge variant="outline" className={`${getPaymentStatusClass(p.isSuccessful)} rounded-full px-2.5`}>
                         {p.isSuccessful ? <><CheckCircle2 className="h-3 w-3 mr-1" />Completed</> : "Failed"}
                       </Badge>
                     </TableCell>

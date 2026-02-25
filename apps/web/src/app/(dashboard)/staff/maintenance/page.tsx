@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Wrench, MapPin, User, Calendar, AlertTriangle } from "lucide-react";
+import { getMaintenanceStatusClass, getPriorityClass } from "@/lib/status-colors";
 
 interface MaintenanceRequest {
   requestId: number;
@@ -25,17 +26,6 @@ interface MaintenanceRequest {
 interface StaffMember { userId: number; fName: string; lName: string; netId: string }
 
 const STATUSES = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"];
-
-const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  OPEN: "secondary", IN_PROGRESS: "default", RESOLVED: "outline", CLOSED: "outline",
-};
-
-const PRIORITY_COLORS: Record<string, string> = {
-  LOW: "bg-green-100 text-green-800 border-green-200",
-  MEDIUM: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  HIGH: "bg-orange-100 text-orange-800 border-orange-200",
-  EMERGENCY: "bg-red-100 text-red-800 border-red-200",
-};
 
 function fmtDate(d?: string) {
   if (!d) return "—";
@@ -115,30 +105,32 @@ export default function StaffMaintenancePage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
-      <div>
+      <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both">
         <h1 className="text-2xl font-bold tracking-tight">Maintenance Requests</h1>
-        <p className="text-muted-foreground">Review and manage all incoming maintenance requests</p>
+        <p className="text-muted-foreground text-sm mt-0.5">Review and manage all incoming maintenance requests</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
           { label: "Open", value: stats.open, color: "text-blue-600" },
           { label: "In Progress", value: stats.inProgress, color: "text-yellow-600" },
           { label: "Resolved", value: stats.resolved, color: "text-green-600" },
           { label: "Emergency", value: stats.emergency, color: "text-red-600" },
-        ].map(s => (
-          <Card key={s.label} className="text-center">
-            <CardContent className="pt-4 pb-4">
-              <p className={`text-3xl font-bold ${s.color}`}>{s.value}</p>
+        ].map((s, idx) => (
+          <Card
+            key={s.label}
+            className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5 py-0 gap-0"
+            style={{ animationDelay: `${80 + idx * 70}ms` }}
+          >
+            <CardContent className="p-4 text-center">
+              <p className={`text-3xl font-bold tracking-tight ${s.color}`}>{s.value}</p>
               <p className="text-sm text-muted-foreground mt-1">{s.label}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-3 flex-wrap items-center">
+      <div className="flex gap-3 flex-wrap items-center animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both" style={{ animationDelay: "360ms" }}>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-40"><SelectValue placeholder="All Statuses" /></SelectTrigger>
           <SelectContent>
@@ -156,8 +148,7 @@ export default function StaffMaintenancePage() {
         <p className="text-sm text-muted-foreground">{filtered.length} request{filtered.length !== 1 ? "s" : ""}</p>
       </div>
 
-      {/* Table */}
-      <Card>
+      <Card className="animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl py-0 gap-0" style={{ animationDelay: "440ms" }}>
         <CardContent className="p-0">
           {loading ? (
             <p className="text-center text-muted-foreground py-12">Loading requests...</p>
@@ -177,20 +168,20 @@ export default function StaffMaintenancePage() {
               </TableHeader>
               <TableBody>
                 {filtered.map(req => (
-                  <TableRow key={req.requestId} className="cursor-pointer hover:bg-muted/50" onClick={() => open(req)}>
+                  <TableRow key={req.requestId} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => open(req)}>
                     <TableCell className="pl-6">
                       <p className="font-medium">{req.createdBy.fName} {req.createdBy.lName}</p>
                       <p className="text-xs text-muted-foreground">{req.createdBy.netId}</p>
                     </TableCell>
                     <TableCell className="text-sm">{req.category}</TableCell>
                     <TableCell>
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${PRIORITY_COLORS[req.priority]}`}>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${getPriorityClass(req.priority)}`}>
                         {req.priority}
                       </span>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{fmtDate(req.createdAt)}</TableCell>
                     <TableCell>
-                      <Badge variant={STATUS_VARIANTS[req.status] ?? "secondary"}>{req.status.replace("_", " ")}</Badge>
+                      <Badge variant="outline" className={`${getMaintenanceStatusClass(req.status)} rounded-full px-2.5`}>{req.status.replace("_", " ")}</Badge>
                     </TableCell>
                     <TableCell className="pr-6 text-right" onClick={e => e.stopPropagation()}>
                       <Select value={req.status} onValueChange={val => handleStatusChange(req.requestId, val)} disabled={updating === req.requestId}>
@@ -219,10 +210,10 @@ export default function StaffMaintenancePage() {
               </SheetHeader>
 
               <div className="px-6 mb-6 flex items-center gap-2">
-                <Badge variant={STATUS_VARIANTS[selected.status] ?? "secondary"} className="text-sm px-3 py-1">
+                <Badge variant="outline" className={`${getMaintenanceStatusClass(selected.status)} text-sm px-3 py-1`}>
                   {selected.status.replace("_", " ")}
                 </Badge>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${PRIORITY_COLORS[selected.priority]}`}>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${getPriorityClass(selected.priority)}`}>
                   {selected.priority}
                 </span>
               </div>

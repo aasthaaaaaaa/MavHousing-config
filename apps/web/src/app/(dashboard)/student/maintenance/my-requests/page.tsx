@@ -5,8 +5,9 @@ import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wrench, Clock, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { Wrench, Clock, CheckCircle2, XCircle } from "lucide-react";
 import Link from "next/link";
+import { getMaintenanceStatusClass, getPriorityClass } from "@/lib/status-colors";
 
 interface MaintenanceRequest {
   requestId: number;
@@ -19,20 +20,6 @@ interface MaintenanceRequest {
   assignedStaff?: { fName: string; lName: string };
   lease?: { unit?: { unitNumber: string; property: { name: string } }; room?: { roomLetter: string } };
 }
-
-const STATUS_CONFIG: Record<string, { label: string; icon: React.ReactNode; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  OPEN: { label: "Open", icon: <Clock className="h-3 w-3" />, variant: "secondary" },
-  IN_PROGRESS: { label: "In Progress", icon: <Wrench className="h-3 w-3" />, variant: "default" },
-  RESOLVED: { label: "Resolved", icon: <CheckCircle2 className="h-3 w-3" />, variant: "outline" },
-  CLOSED: { label: "Closed", icon: <XCircle className="h-3 w-3" />, variant: "outline" },
-};
-
-const PRIORITY_COLORS: Record<string, string> = {
-  LOW: "bg-green-100 text-green-800 border-green-200",
-  MEDIUM: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  HIGH: "bg-orange-100 text-orange-800 border-orange-200",
-  EMERGENCY: "bg-red-100 text-red-800 border-red-200",
-};
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -62,15 +49,24 @@ export default function MyRequestsPage() {
   }
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64 text-muted-foreground">Loading your requests...</div>;
+    return (
+      <div className="flex flex-1 flex-col gap-6 p-6">
+        <div className="h-10 w-64 bg-muted animate-pulse rounded-xl" />
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-40 bg-muted animate-pulse rounded-2xl" style={{ animationDelay: `${i * 70}ms` }} />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Maintenance Requests</h1>
-          <p className="text-muted-foreground">{requests.length} request{requests.length !== 1 ? "s" : ""} submitted</p>
+          <p className="text-muted-foreground text-sm mt-0.5">{requests.length} request{requests.length !== 1 ? "s" : ""} submitted</p>
         </div>
         <Button asChild>
           <Link href="/student/maintenance">+ New Request</Link>
@@ -78,7 +74,7 @@ export default function MyRequestsPage() {
       </div>
 
       {requests.length === 0 ? (
-        <Card>
+        <Card className="rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "80ms" }}>
           <CardContent className="flex flex-col items-center py-16 text-center">
             <Wrench className="h-10 w-10 text-muted-foreground mb-3" />
             <h3 className="font-semibold text-lg mb-1">No requests yet</h3>
@@ -90,10 +86,14 @@ export default function MyRequestsPage() {
         </Card>
       ) : (
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-          {requests.map(req => {
+          {requests.map((req, idx) => {
             const status = STATUS_CONFIG[req.status] ?? STATUS_CONFIG.OPEN;
             return (
-              <Card key={req.requestId}>
+              <Card
+                key={req.requestId}
+                className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5"
+                style={{ animationDelay: `${80 + idx * 70}ms` }}
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-2">
@@ -110,11 +110,15 @@ export default function MyRequestsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className={`text-xs font-medium border rounded-full px-2 py-0.5 ${PRIORITY_COLORS[req.priority]}`}>
+                      <span className={`text-xs font-medium border rounded-full px-2 py-0.5 ${getPriorityClass(req.priority)}`}>
                         {req.priority}
                       </span>
-                      <Badge variant={status.variant} className="flex items-center gap-1">
-                        {status.icon} {status.label}
+                      <Badge variant="outline" className={`${getMaintenanceStatusClass(req.status)} flex items-center gap-1 rounded-full px-2.5`}>
+                        {req.status === "OPEN" && <Clock className="h-3 w-3" />}
+                        {req.status === "IN_PROGRESS" && <Wrench className="h-3 w-3" />}
+                        {req.status === "RESOLVED" && <CheckCircle2 className="h-3 w-3" />}
+                        {req.status === "CLOSED" && <XCircle className="h-3 w-3" />}
+                        {req.status.replace("_", " ")}
                       </Badge>
                     </div>
                   </div>

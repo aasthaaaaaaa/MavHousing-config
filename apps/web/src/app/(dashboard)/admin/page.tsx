@@ -5,11 +5,12 @@ import { useAuth } from "@/context/AuthContext";
 import Cookies from "js-cookie";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getRoleBadgeClass } from "@/lib/role-colors";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Pie, PieChart, Cell } from "recharts";
-import { Users, Building2, FileText, Wrench, CreditCard, ShieldCheck, ChevronRight } from "lucide-react";
+import { Users, Building2, FileText, CreditCard, ShieldCheck, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 interface SystemStats {
@@ -114,79 +115,64 @@ export default function AdminDashboard() {
   }
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64 text-muted-foreground">Loading dashboard...</div>;
+    return (
+      <div className="flex flex-1 flex-col gap-6 p-6">
+        <div className="h-12 w-64 bg-muted animate-pulse rounded-xl" />
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-28 bg-muted animate-pulse rounded-2xl" style={{ animationDelay: `${i * 80}ms` }} />
+          ))}
+        </div>
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+          <div className="h-56 bg-muted animate-pulse rounded-2xl" />
+          <div className="h-56 bg-muted animate-pulse rounded-2xl" style={{ animationDelay: "120ms" }} />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Admin Dashboard
-        </h1>
-        <p className="text-muted-foreground">System-wide overview of MavHousing.</p>
+
+      <div
+        className="animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both"
+        style={{ animationDelay: "0ms" }}
+      >
+        <h1 className="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
+        <p className="text-muted-foreground text-sm mt-0.5">System-wide overview of MavHousing.</p>
       </div>
 
-      {/* Stat cards */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {[
           { label: "Total Users", value: stats!.totalUsers, sub: `${stats!.staffCount} staff · ${stats!.studentCount} students`, icon: Users },
           { label: "Applications", value: stats!.totalApplications, sub: `${stats!.pendingApplications} pending`, icon: FileText, accent: stats!.pendingApplications > 0 ? "text-orange-500" : undefined },
           { label: "Active Leases", value: stats!.activeLeases, sub: `of ${stats!.totalLeases} total`, icon: Building2 },
           { label: "Total Revenue", value: fmt(stats!.totalRevenue), sub: "all time", icon: CreditCard },
-        ].map(({ label, value, sub, icon: Icon, accent }) => (
-          <Card key={label}>
+        ].map(({ label, value, sub, icon: Icon, accent }, idx) => (
+          <Card
+            key={label}
+            className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5"
+            style={{ animationDelay: `${80 + idx * 70}ms` }}
+          >
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-              <Icon className="h-4 w-4 text-muted-foreground" />
+              <div className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center">
+                <Icon className="h-4 w-4 text-muted-foreground" />
+              </div>
             </CardHeader>
             <CardContent>
-              <p className={`text-2xl font-bold ${accent ?? ""}`}>{value}</p>
+              <p className={`text-3xl font-bold tracking-tight ${accent ?? ""}`}>{value}</p>
               <p className="text-xs text-muted-foreground mt-1">{sub}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Charts row */}
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        {/* Users by Role — Pie */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Users by Role</CardTitle>
-            <CardDescription>{stats!.totalUsers} total registered users</CardDescription>
-          </CardHeader>
-          <CardContent className="flex items-center justify-center">
-            {stats!.usersByRole.length === 0 ? (
-              <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">No user data</div>
-            ) : (
-              <div className="flex items-center gap-6">
-                <ChartContainer config={userChartConfig} className="w-[160px] h-[160px]">
-                  <PieChart>
-                    <Pie data={stats!.usersByRole} dataKey="count" nameKey="role" cx="50%" cy="50%" outerRadius={70} strokeWidth={2}>
-                      {stats!.usersByRole.map((_, i) => (
-                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                  </PieChart>
-                </ChartContainer>
-                <div className="space-y-2">
-                  {stats!.usersByRole.map((r, i) => (
-                    <div key={r.role} className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
-                      <span className="text-sm">{r.role}</span>
-                      <span className="text-sm font-semibold ml-auto">{r.count}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Applications by Status — Bar */}
-        <Card>
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
+        <Card
+          className="lg:col-span-2 animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all hover:shadow-md"
+          style={{ animationDelay: "360ms" }}
+        >
           <CardHeader>
             <CardTitle className="text-base">Applications by Status</CardTitle>
             <CardDescription>{stats!.totalApplications} total applications</CardDescription>
@@ -195,56 +181,98 @@ export default function AdminDashboard() {
             {stats!.appsByStatus.length === 0 ? (
               <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">No application data</div>
             ) : (
-              <ChartContainer config={appChartConfig} className="h-48 w-full">
+              <ChartContainer config={appChartConfig} className="h-52 w-full">
                 <BarChart data={stats!.appsByStatus} margin={{ left: -20, right: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
                   <XAxis dataKey="status" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" fill="#3b82f6" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ChartContainer>
             )}
           </CardContent>
         </Card>
+
+        <Card
+          className="animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all hover:shadow-md"
+          style={{ animationDelay: "430ms" }}
+        >
+          <CardHeader>
+            <CardTitle className="text-base">Users by Role</CardTitle>
+            <CardDescription>{stats!.totalUsers} registered users</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center gap-4 pt-2">
+            {stats!.usersByRole.length === 0 ? (
+              <div className="h-48 flex items-center justify-center text-sm text-muted-foreground">No user data</div>
+            ) : (
+              <>
+                <ChartContainer config={userChartConfig} className="w-[140px] h-[140px]">
+                  <PieChart>
+                    <Pie data={stats!.usersByRole} dataKey="count" nameKey="role" cx="50%" cy="50%" outerRadius={62} innerRadius={28} strokeWidth={2}>
+                      {stats!.usersByRole.map((_, i) => (
+                        <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                  </PieChart>
+                </ChartContainer>
+                <div className="w-full space-y-2">
+                  {stats!.usersByRole.map((r, i) => (
+                    <div key={r.role} className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                      <span className="text-sm text-muted-foreground flex-1">{r.role}</span>
+                      <span className="text-sm font-semibold tabular-nums">{r.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Bottom row — Quick actions + Recent users */}
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
 
-        {/* Quick actions */}
-        <div className="space-y-3">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Quick Actions</h2>
+        <div
+          className="animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both flex flex-col gap-3"
+          style={{ animationDelay: "500ms" }}
+        >
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest px-1">Quick Actions</p>
           {[
-            { label: "User Management", desc: "Create, edit, and manage staff & student accounts", href: "/admin/users", icon: Users, color: "text-purple-600" },
-            { label: "Role & Permissions", desc: "Configure access levels and role assignments", href: "#", icon: ShieldCheck, color: "text-indigo-600" },
+            { label: "User Management", desc: "Manage staff & student accounts", href: "/admin/users", icon: Users, color: "bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400" },
+            { label: "Role & Permissions", desc: "Configure access levels", href: "#", icon: ShieldCheck, color: "bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400" },
           ].map(action => (
-            <Card key={action.label} className="hover:bg-muted/50 transition-colors">
+            <Card key={action.label} className="rounded-2xl transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:bg-muted/30">
               <CardContent className="p-4">
                 <Link href={action.href} className="flex items-center justify-between gap-3 group">
                   <div className="flex items-center gap-3">
-                    <action.icon className={`h-5 w-5 flex-shrink-0 ${action.color}`} />
+                    <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 ${action.color}`}>
+                      <action.icon className="h-4 w-4" />
+                    </div>
                     <div>
-                      <p className="font-medium text-sm">{action.label}</p>
-                      <p className="text-xs text-muted-foreground">{action.desc}</p>
+                      <p className="font-semibold text-sm">{action.label}</p>
+                      <p className="text-xs text-muted-foreground leading-tight">{action.desc}</p>
                     </div>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform duration-200 flex-shrink-0" />
                 </Link>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Recent users (colspan 2) */}
-        <Card className="lg:col-span-2">
+        <Card
+          className="lg:col-span-2 animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all hover:shadow-md"
+          style={{ animationDelay: "560ms" }}
+        >
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-base">Recent Users</CardTitle>
                 <CardDescription>Latest accounts registered</CardDescription>
               </div>
-              <Button variant="ghost" size="sm" className="h-7 text-xs gap-0.5" asChild>
+              <Button variant="ghost" size="sm" className="h-7 text-xs gap-0.5 rounded-lg" asChild>
                 <Link href="/admin/users">View all <ChevronRight className="h-3 w-3" /></Link>
               </Button>
             </div>
@@ -255,19 +283,19 @@ export default function AdminDashboard() {
             ) : (
               <div>
                 {stats!.recentUsers.map((u, i) => (
-                  <div key={u.netId}>
+                  <div key={u.netId} className="transition-colors hover:bg-muted/40">
                     {i > 0 && <Separator />}
                     <div className="flex items-center justify-between px-6 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                        <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-xs font-bold flex-shrink-0 ring-2 ring-background">
                           {u.fName?.[0]}{u.lName?.[0]}
                         </div>
                         <div>
-                          <p className="text-sm font-medium">{u.fName} {u.lName}</p>
+                          <p className="text-sm font-semibold leading-tight">{u.fName} {u.lName}</p>
                           <p className="text-xs text-muted-foreground">{u.netId} · {u.email}</p>
                         </div>
                       </div>
-                      <Badge variant={u.role === "ADMIN" ? "default" : u.role === "STAFF" ? "secondary" : "outline"} className="text-xs">
+                      <Badge className={`${getRoleBadgeClass(u.role)} border font-medium capitalize text-xs rounded-full px-2.5`} variant="outline">
                         {u.role}
                       </Badge>
                     </div>

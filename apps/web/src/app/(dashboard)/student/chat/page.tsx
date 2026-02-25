@@ -33,8 +33,9 @@ export default function StudentChatPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-full text-muted-foreground pt-20">
-                Loading your chat...
+            <div className="flex flex-1 flex-col gap-6 p-6">
+                <div className="h-10 w-48 bg-muted animate-pulse rounded-xl" />
+                <div className="flex-1 bg-muted animate-pulse rounded-2xl min-h-[400px]" />
             </div>
         );
     }
@@ -53,11 +54,11 @@ export default function StudentChatPage() {
 
     return (
         <div className="p-6 h-[calc(100vh-4rem)] flex flex-col">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold">Lease Chat</h1>
-                <p className="text-muted-foreground">Chat with other members on your lease</p>
+            <div className="mb-6 animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both">
+                <h1 className="text-2xl font-bold tracking-tight">Lease Chat</h1>
+                <p className="text-muted-foreground text-sm mt-0.5">Chat with other members on your lease</p>
             </div>
-            <div className="flex-1 flex items-center justify-center">
+            <div className="flex-1 flex items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both" style={{ animationDelay: "80ms" }}>
                 {lease?.leaseId && user?.userId && (
                     <ChatRoom
                         leaseId={lease.leaseId}

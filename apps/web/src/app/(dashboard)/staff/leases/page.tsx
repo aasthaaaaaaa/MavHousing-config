@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { User, Building2, Calendar, DollarSign, MapPin } from "lucide-react";
+import { getLeaseStatusClass } from "@/lib/status-colors";
 
 interface Lease {
   leaseId: number;
@@ -25,18 +26,6 @@ interface Lease {
 }
 
 const STATUSES = ["DRAFT", "PENDING_SIGNATURE", "SIGNED", "ACTIVE", "COMPLETED", "TERMINATED"];
-
-const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  DRAFT: "outline", PENDING_SIGNATURE: "secondary", SIGNED: "default",
-  ACTIVE: "default", COMPLETED: "secondary", TERMINATED: "destructive",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  ACTIVE: "text-green-600 border-green-300 bg-green-50",
-  SIGNED: "text-blue-600 border-blue-300 bg-blue-50",
-  PENDING_SIGNATURE: "text-yellow-600 border-yellow-300 bg-yellow-50",
-  TERMINATED: "text-red-600 border-red-300 bg-red-50",
-};
 
 function fmtDate(d?: string) {
   if (!d) return "—";
@@ -89,16 +78,21 @@ export default function StaffLeasesPage() {
 
   function open(l: Lease) { setSelected(l); setSheetOpen(true); }
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-muted-foreground">Loading leases...</div>;
+  if (loading) return (
+    <div className="flex flex-1 flex-col gap-6 p-6">
+      <div className="h-12 w-64 bg-muted animate-pulse rounded-xl" />
+      <div className="h-96 bg-muted animate-pulse rounded-2xl" />
+    </div>
+  );
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
-      <div>
+      <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both">
         <h1 className="text-2xl font-bold tracking-tight">Lease Management</h1>
-        <p className="text-muted-foreground">{leases.length} lease{leases.length !== 1 ? "s" : ""} on record</p>
+        <p className="text-muted-foreground text-sm mt-0.5">{leases.length} lease{leases.length !== 1 ? "s" : ""} on record</p>
       </div>
 
-      <Card>
+      <Card className="animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl py-0 gap-0" style={{ animationDelay: "80ms" }}>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -119,7 +113,7 @@ export default function StaffLeasesPage() {
               ) : leases.map(lease => (
                 <TableRow
                   key={lease.leaseId}
-                  className="cursor-pointer hover:bg-muted/50"
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => open(lease)}
                 >
                   <TableCell className="pl-6">
@@ -135,7 +129,7 @@ export default function StaffLeasesPage() {
                     {fmtDate(lease.startDate)} – {fmtDate(lease.endDate)}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANTS[lease.status] ?? "default"} className={STATUS_COLORS[lease.status] ?? ""}>
+                    <Badge variant="outline" className={`${getLeaseStatusClass(lease.status)} rounded-full px-2.5`}>
                       {lease.status.replace(/_/g, " ")}
                     </Badge>
                   </TableCell>
@@ -167,7 +161,7 @@ export default function StaffLeasesPage() {
               </SheetHeader>
 
               <div className="px-6 mb-6">
-                <Badge variant={STATUS_VARIANTS[selected.status] ?? "default"} className={`${STATUS_COLORS[selected.status] ?? ""} text-sm px-3 py-1`}>
+                <Badge variant="outline" className={`${getLeaseStatusClass(selected.status)} text-sm px-3 py-1`}>
                   {selected.status.replace(/_/g, " ")}
                 </Badge>
               </div>

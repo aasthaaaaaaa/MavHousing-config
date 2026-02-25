@@ -79,7 +79,7 @@ export default function MaintenancePage() {
 
   if (noLease) {
     return (
-      <div className="p-6 max-w-xl mx-auto text-center mt-12">
+      <div className="p-6 max-w-xl mx-auto text-center mt-12 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
         <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500 mb-4" />
         <h2 className="text-xl font-semibold mb-2">No Active Lease Found</h2>
         <p className="text-muted-foreground mb-4">
@@ -94,7 +94,7 @@ export default function MaintenancePage() {
 
   if (submitted) {
     return (
-      <div className="p-6 max-w-xl mx-auto text-center mt-12">
+      <div className="p-6 max-w-xl mx-auto text-center mt-12 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both">
         <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
         <h2 className="text-xl font-semibold mb-2">Request Submitted!</h2>
         <p className="text-muted-foreground mb-6">
@@ -114,15 +114,15 @@ export default function MaintenancePage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
-      <div>
+      <div className="animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both">
         <div className="flex items-center gap-2 mb-1">
           <Wrench className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold">Submit Maintenance Request</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Submit Maintenance Request</h1>
         </div>
-        <p className="text-muted-foreground">Describe the issue in your unit and we'll get it resolved.</p>
+        <p className="text-muted-foreground text-sm">Describe the issue in your unit and we'll get it resolved.</p>
       </div>
 
-      <Card>
+      <Card className="rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both" style={{ animationDelay: "80ms" }}>
         <CardHeader>
           <CardTitle>Request Details</CardTitle>
           <CardDescription>Fill out the form below to report an issue.</CardDescription>
