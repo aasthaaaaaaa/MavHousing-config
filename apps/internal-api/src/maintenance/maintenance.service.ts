@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 
@@ -192,10 +192,39 @@ export class MaintenanceService {
     return comments;
   }
 
-  /** Common: Delete a comment */
+  /** Common: Delete a comment (Soft delete + remove S3 object) */
   async deleteComment(commentId: string) {
-    return this.prisma.maintenanceComment.delete({
+    const comment = await this.prisma.maintenanceComment.findUnique({
       where: { id: commentId },
+    });
+
+    if (!comment) {
+      throw new BadRequestException('Comment not found');
+    }
+
+    if (comment.attachmentUrl) {
+      let key = comment.attachmentUrl;
+      if (key.startsWith('http')) {
+        key = key.split('/').pop() || key;
+      }
+      try {
+        await this.s3Client.send(
+          new DeleteObjectCommand({
+            Bucket: 'maintenance',
+            Key: key,
+          }),
+        );
+      } catch (error) {
+        console.error('Failed to delete S3 object during comment deletion', error);
+      }
+    }
+
+    return this.prisma.maintenanceComment.update({
+      where: { id: commentId },
+      data: {
+        content: '[DELETED COMMENT]',
+        attachmentUrl: null,
+      },
     });
   }
 }

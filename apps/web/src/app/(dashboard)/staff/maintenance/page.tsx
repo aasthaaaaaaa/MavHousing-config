@@ -6,7 +6,6 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,7 +66,7 @@ export default function StaffMaintenancePage() {
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [filterPriority, setFilterPriority] = useState("ALL");
   const [selected, setSelected] = useState<MaintenanceRequest | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [resolutionPrompt, setResolutionPrompt] = useState<{ requestId: number } | null>(null);
   const [resolutionReason, setResolutionReason] = useState("");
   const [comments, setComments] = useState<MaintenanceComment[]>([]);
@@ -189,7 +188,7 @@ export default function StaffMaintenancePage() {
 
   function open(r: MaintenanceRequest) {
     setSelected(r);
-    setSheetOpen(true);
+    setIsDetailsOpen(true);
     fetchComments(r.requestId);
   }
 
@@ -308,15 +307,15 @@ export default function StaffMaintenancePage() {
         </CardContent>
       </Card>
 
-      {/* Detail Sheet */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+      {/* Detail Dialog */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="sm:max-w-[70vw] w-[90vw] max-h-[90vh] overflow-y-auto sm:p-0 p-0 gap-0">
           {selected && (
-            <>
-              <SheetHeader className="pb-4 px-6">
-                <SheetTitle>Request #{selected.requestId}</SheetTitle>
-                <SheetDescription>{selected.category} · {fmtDate(selected.createdAt)}</SheetDescription>
-              </SheetHeader>
+            <div className="py-6">
+              <DialogHeader className="pb-4 px-6 pt-2">
+                <DialogTitle>Request #{selected.requestId}</DialogTitle>
+                <DialogDescription>{selected.category} · {fmtDate(selected.createdAt)}</DialogDescription>
+              </DialogHeader>
 
               <div className="px-6 mb-6 flex items-center gap-2">
                 <Badge variant={STATUS_VARIANTS[selected.status] ?? "secondary"} className="text-sm px-3 py-1">
@@ -328,72 +327,74 @@ export default function StaffMaintenancePage() {
               </div>
 
               <div className="space-y-6 px-6">
-                {/* Submitter */}
-                <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Submitted By</h3>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" /><span className="font-medium">{selected.createdBy.fName} {selected.createdBy.lName}</span></div>
-                    <div className="flex items-center gap-2"><span className="h-4 w-4" /><span className="text-sm text-muted-foreground">{selected.createdBy.netId}</span></div>
-                    <div className="flex items-center gap-2"><span className="h-4 w-4" /><span className="text-sm text-muted-foreground">{selected.createdBy.email}</span></div>
+                {/* 2x2 Grid for Core Details */}
+                <div className="grid grid-cols-2 gap-y-6 gap-x-6">
+                  {/* Submitter */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Submitted By</h3>
+                    <div className="space-y-1.5 flex flex-col justify-end">
+                      <div className="flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" /><span className="font-medium">{selected.createdBy.fName} {selected.createdBy.lName}</span></div>
+                      <div className="flex items-center gap-2"><span className="h-4 w-4" /><span className="text-sm text-muted-foreground">{selected.createdBy.netId}</span></div>
+                      <div className="flex items-center gap-2"><span className="h-4 w-4" /><span className="text-sm text-muted-foreground">{selected.createdBy.email}</span></div>
+                    </div>
                   </div>
-                </div>
-                <Separator />
 
-                {/* Location */}
-                <div>
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Location</h3>
-                  <div className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                    <span className="text-sm">{getLocation(selected)}</span>
+                  {/* Location */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Location</h3>
+                    <div className="flex items-start gap-2 h-[68px]">
+                      <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                      <span className="text-sm">{getLocation(selected)}</span>
+                    </div>
+                  </div>
+
+                  {/* Assign staff */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Assigned To</h3>
+                    <div className="flex flex-col justify-end h-[68px]">
+                      {selected.assignedStaff ? (
+                        <p className="text-sm font-medium mb-2">{selected.assignedStaff.fName} {selected.assignedStaff.lName}</p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground mb-2">Not yet assigned</p>
+                      )}
+                      <Select
+                        value={selected.assignedStaff ? String(selected.assignedStaff.userId) : "none"}
+                        onValueChange={val => val !== "none" && handleAssignStaff(selected.requestId, parseInt(val))}
+                        disabled={updating === selected.requestId}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Assign staff..." /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Unassigned</SelectItem>
+                          {staffList.map(s => <SelectItem key={s.userId} value={String(s.userId)}>{s.fName} {s.lName}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Update Status</h3>
+                    <div className="flex flex-col justify-end h-[68px]">
+                      <Select
+                        value={selected.status}
+                        onValueChange={val => handleStatusChange(selected.requestId, val)}
+                        disabled={updating === selected.requestId}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {STATUSES.map(s => <SelectItem key={s} value={s}>{s.replace("_", " ")}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
+
                 <Separator />
 
                 {/* Description */}
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Description</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{selected.description}</p>
-                </div>
-                <Separator />
-
-                {/* Assign staff and Status */}
-                <div className="grid grid-cols-2 gap-6">
-                  {/* Assign staff */}
-                  <div>
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Assigned To</h3>
-                    {selected.assignedStaff ? (
-                      <p className="text-sm font-medium mb-2">{selected.assignedStaff.fName} {selected.assignedStaff.lName}</p>
-                    ) : (
-                      <p className="text-sm text-muted-foreground mb-2">Not yet assigned</p>
-                    )}
-                    <Select
-                      value={selected.assignedStaff ? String(selected.assignedStaff.userId) : "none"}
-                      onValueChange={val => val !== "none" && handleAssignStaff(selected.requestId, parseInt(val))}
-                      disabled={updating === selected.requestId}
-                    >
-                      <SelectTrigger><SelectValue placeholder="Assign staff..." /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Unassigned</SelectItem>
-                        {staffList.map(s => <SelectItem key={s.userId} value={String(s.userId)}>{s.fName} {s.lName}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Status */}
-                  <div className="flex flex-col justify-end">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Update Status</h3>
-                    <p className="text-sm border-l-2 mb-2 opacity-0 select-none">Spacer</p>
-                    <Select
-                      value={selected.status}
-                      onValueChange={val => handleStatusChange(selected.requestId, val)}
-                      disabled={updating === selected.requestId}
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {STATUSES.map(s => <SelectItem key={s} value={s}>{s.replace("_", " ")}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
 
                 {selected.resolvedAt && (
@@ -491,10 +492,10 @@ export default function StaffMaintenancePage() {
                   </div>
                 </div>
               </div>
-            </>
+            </div>
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!resolutionPrompt} onOpenChange={(open) => !open && setResolutionPrompt(null)}>
         <DialogContent>
