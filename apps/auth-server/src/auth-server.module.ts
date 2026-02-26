@@ -7,9 +7,11 @@ import { jwtConstants } from './constants';
 import { PrismaModule } from '@common/prisma/prisma.module';
 import { DbModule } from '@libs/db';
 import { LoggerModule, AllExceptionsFilter } from '@libs/common';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     DbModule,
     LoggerModule,
