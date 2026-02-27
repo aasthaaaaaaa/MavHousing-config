@@ -8,10 +8,7 @@ export class LeaseService {
   async getMyLease(userId: number) {
     return this.prisma.lease.findFirst({
       where: {
-        OR: [
-          { userId },
-          { occupants: { some: { userId } } },
-        ],
+        OR: [{ userId }, { occupants: { some: { userId } } }],
       },
       orderBy: { createdAt: 'desc' },
       include: {
@@ -69,7 +66,15 @@ export class LeaseService {
   async getAllLeases() {
     return this.prisma.lease.findMany({
       include: {
-        user: { select: { userId: true, netId: true, fName: true, lName: true, email: true } },
+        user: {
+          select: {
+            userId: true,
+            netId: true,
+            fName: true,
+            lName: true,
+            email: true,
+          },
+        },
         unit: {
           include: {
             property: true,
@@ -82,7 +87,6 @@ export class LeaseService {
     });
   }
 
-
   async updateLeaseStatus(leaseId: number, status: string) {
     return this.prisma.lease.update({
       where: { leaseId },
@@ -94,13 +98,29 @@ export class LeaseService {
     return this.prisma.lease.findMany({
       where: { status: { in: ['SIGNED', 'ACTIVE'] as any } },
       include: {
-        user: { select: { userId: true, netId: true, fName: true, lName: true, email: true } },
+        user: {
+          select: {
+            userId: true,
+            netId: true,
+            fName: true,
+            lName: true,
+            email: true,
+          },
+        },
         unit: { include: { property: true } },
         room: true,
         bed: true,
         occupants: {
           include: {
-            user: { select: { userId: true, netId: true, fName: true, lName: true, email: true } },
+            user: {
+              select: {
+                userId: true,
+                netId: true,
+                fName: true,
+                lName: true,
+                email: true,
+              },
+            },
           },
         },
       },
@@ -116,7 +136,15 @@ export class LeaseService {
         occupantType: occupantType as any,
       },
       include: {
-        user: { select: { userId: true, netId: true, fName: true, lName: true, email: true } },
+        user: {
+          select: {
+            userId: true,
+            netId: true,
+            fName: true,
+            lName: true,
+            email: true,
+          },
+        },
       },
     });
   }
@@ -125,7 +153,11 @@ export class LeaseService {
     return this.prisma.occupant.delete({ where: { occupantId } });
   }
 
-  async reassignUserToLease(userId: number, targetLeaseId: number, asHolder: boolean) {
+  async reassignUserToLease(
+    userId: number,
+    targetLeaseId: number,
+    asHolder: boolean,
+  ) {
     // 1. Fetch Target Lease and Unit Info
     const targetLease = await this.prisma.lease.findUnique({
       where: { leaseId: targetLeaseId },
@@ -197,4 +229,3 @@ export class LeaseService {
     });
   }
 }
-

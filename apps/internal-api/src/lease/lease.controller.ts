@@ -1,4 +1,13 @@
-import { Controller, Get, Req, Patch, Param, Body, Post, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Req,
+  Patch,
+  Param,
+  Body,
+  Post,
+  Delete,
+} from '@nestjs/common';
 import { LeaseService } from './lease.service';
 
 @Controller('lease')
@@ -40,4 +49,3 @@ export class LeaseController {
     );
   }
 }
-

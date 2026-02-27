@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Body, Query, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Query,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AnnouncementsService } from './announcements.service';
 import { ApiTags, ApiConsumes, ApiOperation } from '@nestjs/swagger';
@@ -11,9 +20,11 @@ export class AnnouncementsController {
   @Post()
   @ApiOperation({ summary: 'Create and send a new announcement' })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file', {
-    limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
-  }))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
+    }),
+  )
   async createAnnouncement(
     @Body('heading') heading: string,
     @Body('message') message: string,

@@ -1,6 +1,11 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 
@@ -99,7 +104,10 @@ export class MaintenanceService {
         status: status as any,
         updatedAt: new Date(),
         ...(staffId && { assignedStaffId: staffId }),
-        ...(status === 'RESOLVED' && { resolvedAt: new Date(), resolutionReason }),
+        ...(status === 'RESOLVED' && {
+          resolvedAt: new Date(),
+          resolutionReason,
+        }),
       },
     });
   }
@@ -182,7 +190,9 @@ export class MaintenanceService {
             Key: key,
           });
           // Generate a presigned URL valid for 1 hour (3600 seconds)
-          comment.attachmentUrl = await getSignedUrl(this.s3Client, command, { expiresIn: 3600 });
+          comment.attachmentUrl = await getSignedUrl(this.s3Client, command, {
+            expiresIn: 3600,
+          });
         } catch (error) {
           console.error('Failed to generate presigned URL', error);
         }
@@ -215,7 +225,10 @@ export class MaintenanceService {
           }),
         );
       } catch (error) {
-        console.error('Failed to delete S3 object during comment deletion', error);
+        console.error(
+          'Failed to delete S3 object during comment deletion',
+          error,
+        );
       }
     }
 

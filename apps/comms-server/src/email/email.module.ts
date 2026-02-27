@@ -4,10 +4,8 @@ import { EmailController } from './email.controller';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports : [
-    ConfigModule.forRoot({isGlobal: true})
-  ],
+  imports: [ConfigModule.forRoot({ isGlobal: true })],
   providers: [EmailService],
-  controllers: [EmailController]
+  controllers: [EmailController],
 })
 export class EmailModule {}

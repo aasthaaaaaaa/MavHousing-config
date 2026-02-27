@@ -10,7 +10,7 @@ export const mockUsers = [
   // STUDENTS
   // ============================================
   {
-    utaId: '1001000001',
+    utaId: '1002072203',
     netId: 'axjh03',
     fName: 'Aalok',
     lName: 'Jha',

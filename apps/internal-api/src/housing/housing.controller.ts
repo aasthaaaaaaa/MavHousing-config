@@ -1,13 +1,46 @@
-import { Controller, Get, Post, Body, Req, UseGuards, Patch, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Req,
+  UseGuards,
+  Patch,
+  Param,
+  UseInterceptors,
+  UploadedFile,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { HousingService } from './housing.service';
+import { UploadService } from './upload.service';
+import { UploadIdRequestDto } from './dto/upload-id-request.dto';
 
 @Controller('housing')
 export class HousingController {
-  constructor(private readonly housingService: HousingService) {}
+  constructor(
+    private readonly housingService: HousingService,
+    private readonly uploadService: UploadService,
+  ) {}
+
+  @Get('user-by-utaid/:utaId')
+  async getUserByUtaId(@Param('utaId') utaId: string) {
+    const user = await this.housingService.findUserByUtaId(utaId);
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    return user;
+  }
 
   @Get('properties')
   async getProperties() {
     return this.housingService.getProperties();
+  }
+
+  @Get('properties/availability')
+  async getPropertiesAvailability() {
+    return this.housingService.getPropertiesAvailability();
   }
 
   @Get('properties/:propertyId/available-beds')
@@ -25,12 +58,10 @@ export class HousingController {
     // For MVP, we'll extract userId from the request
     // In production, this should come from authenticated user context
     const userId = body.userId || 1; // Fallback for testing
-    
+
     return this.housingService.createApplication(userId, {
       term: body.term,
       preferredPropertyId: body.preferredPropertyId,
-      classification: body.classification,
-      expectedGraduation: body.expectedGraduation,
       emergencyContactName: body.emergencyContactName,
       emergencyContactPhone: body.emergencyContactPhone,
       emergencyContactRelation: body.emergencyContactRelation,
@@ -41,6 +72,19 @@ export class HousingController {
       dietaryRestrictions: body.dietaryRestrictions,
       specialAccommodations: body.specialAccommodations,
     });
+  }
+
+  @Post('upload-id')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadIdCard(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: UploadIdRequestDto,
+  ) {
+    if (!file) {
+      throw new HttpException('File is required', HttpStatus.BAD_REQUEST);
+    }
+    // Perform OCR and Upload
+    return this.uploadService.processIdCard(file, body.netId);
   }
 
   @Get('my-applications')
@@ -56,8 +100,14 @@ export class HousingController {
   }
 
   @Patch('applications/:id/status')
-  async updateApplicationStatus(@Param('id') id: string, @Body() body: { status: string }) {
-    return this.housingService.updateApplicationStatus(parseInt(id), body.status);
+  async updateApplicationStatus(
+    @Param('id') id: string,
+    @Body() body: { status: string },
+  ) {
+    return this.housingService.updateApplicationStatus(
+      parseInt(id),
+      body.status,
+    );
   }
 
   @Get('students')
@@ -75,5 +125,3 @@ export class HousingController {
     return this.housingService.getOccupancyStats();
   }
 }
-
-

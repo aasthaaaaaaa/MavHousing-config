@@ -25,7 +25,7 @@ interface Application {
   term: string;
   status: string;
   submissionDate: string;
-  user: { userId: number; netId: string; fName: string; lName: string; email: string };
+  user: { userId: number; netId: string; fName: string; lName: string; email: string; profilePicUrl?: string };
   preferredProperty: { propertyId: number; name: string; address: string; propertyType?: string };
 }
 
@@ -170,21 +170,28 @@ export default function StaffApplicationsPage() {
               </div>
 
               <div className="space-y-6 px-6">
-                {/* Student info */}
                 <div>
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Student</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <span className="font-medium">{selected.user.fName} {selected.user.lName}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-sm text-muted-foreground">{selected.user.netId}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-sm text-muted-foreground">{selected.user.email}</span>
+                  <div className="flex items-center gap-4 mb-4">
+                    {selected.user.profilePicUrl ? (
+                      <img src={selected.user.profilePicUrl} alt={`${selected.user.fName}'s profile`} className="w-16 h-16 rounded-full object-cover border" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                        <User className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-lg">{selected.user.fName} {selected.user.lName}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <FileText className="h-3 w-3" />
+                        <span>{selected.user.netId}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <FileText className="h-3 w-3" />
+                        <span>{selected.user.email}</span>
+                      </div>
                     </div>
                   </div>
                 </div>

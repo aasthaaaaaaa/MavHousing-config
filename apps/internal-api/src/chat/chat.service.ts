@@ -33,20 +33,28 @@ export class ChatService {
       const ctx: string[] = [];
 
       if (lease) {
-        ctx.push(`LEASE: Status=${lease.status}, Property=${lease.unit?.property?.name ?? 'N/A'}, Unit=${lease.unit?.unitNumber ?? 'N/A'}${lease.room ? `, Room ${lease.room.roomLetter}` : ''}${lease.bed ? `, Bed ${lease.bed.bedLetter}` : ''}, Period=${new Date(lease.startDate).toLocaleDateString()} to ${new Date(lease.endDate).toLocaleDateString()}, TotalDue=$${lease.totalDue}, DueThisMonth=$${lease.dueThisMonth}`);
+        ctx.push(
+          `LEASE: Status=${lease.status}, Property=${lease.unit?.property?.name ?? 'N/A'}, Unit=${lease.unit?.unitNumber ?? 'N/A'}${lease.room ? `, Room ${lease.room.roomLetter}` : ''}${lease.bed ? `, Bed ${lease.bed.bedLetter}` : ''}, Period=${new Date(lease.startDate).toLocaleDateString()} to ${new Date(lease.endDate).toLocaleDateString()}, TotalDue=$${lease.totalDue}, DueThisMonth=$${lease.dueThisMonth}`,
+        );
       } else {
         ctx.push('LEASE: No active lease found.');
       }
 
       if (maintenance.length > 0) {
-        ctx.push(`OPEN MAINTENANCE (${maintenance.length}): ${maintenance.map(m => `${m.category} - ${m.status} (${m.priority})`).join(', ')}`);
+        ctx.push(
+          `OPEN MAINTENANCE (${maintenance.length}): ${maintenance.map((m) => `${m.category} - ${m.status} (${m.priority})`).join(', ')}`,
+        );
       } else {
         ctx.push('MAINTENANCE: No open maintenance requests.');
       }
 
       if (payments.length > 0) {
-        const total = payments.filter(p => p.isSuccessful).reduce((s, p) => s + parseFloat(p.amountPaid.toString()), 0);
-        ctx.push(`RECENT PAYMENTS: ${payments.length} payment(s), $${total.toFixed(2)} total paid recently.`);
+        const total = payments
+          .filter((p) => p.isSuccessful)
+          .reduce((s, p) => s + parseFloat(p.amountPaid.toString()), 0);
+        ctx.push(
+          `RECENT PAYMENTS: ${payments.length} payment(s), $${total.toFixed(2)} total paid recently.`,
+        );
       } else {
         ctx.push('PAYMENTS: No recent payments found.');
       }
@@ -57,7 +65,10 @@ export class ChatService {
     }
   }
 
-  async chat(userId: number, messages: { role: string; content: string }[]): Promise<string> {
+  async chat(
+    userId: number,
+    messages: { role: string; content: string }[],
+  ): Promise<string> {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey || apiKey === 'your_gemini_api_key_here') {
       throw new Error('GEMINI_API_KEY not configured');
@@ -89,13 +100,13 @@ ${userContext}`;
     // Gemini requires history to start with 'user' role — skip leading assistant messages
     const rawHistory = messages
       .slice(0, -1)
-      .filter(m => m.content && m.content.trim() !== '') // Gemini rejects empty text parts
-      .map(m => ({
+      .filter((m) => m.content && m.content.trim() !== '') // Gemini rejects empty text parts
+      .map((m) => ({
         role: m.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: m.content }],
       }));
     // Drop messages from the start until we hit a 'user' turn
-    const firstUserIdx = rawHistory.findIndex(m => m.role === 'user');
+    const firstUserIdx = rawHistory.findIndex((m) => m.role === 'user');
     const history = firstUserIdx >= 0 ? rawHistory.slice(firstUserIdx) : [];
 
     const chat = model.startChat({ history });

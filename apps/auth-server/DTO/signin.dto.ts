@@ -1,13 +1,12 @@
-import { ApiProperty } from "@nestjs/swagger"
-import { IsString } from "class-validator"
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
 
-export class UserSignIn{
+export class UserSignIn {
+  @ApiProperty()
+  @IsString()
+  readonly netId: string;
 
-    @ApiProperty()
-    @IsString()
-    readonly netId:string
-    
-    @ApiProperty()
-    @IsString()
-    readonly password:string
+  @ApiProperty()
+  @IsString()
+  readonly password: string;
 }

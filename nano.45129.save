@@ -1,0 +1,23 @@
+let's work on some application and lease flow
+
+Application flow has it's own page
+User click on apply for housing(already there)
+Chooses term (already there)
+(NEW)-> Choose Apartment / Residence Hall
+(NEW)-> If chooses Residence Hall, it's by bed
+(NEW)-> If chooses Apartment, ask BY_BED or BY_UNIT or BY_ROOM
+(NEW)-> The user chooses which apartment based on apartment classifications
+(NEW)-> User also sees how manu Unit avaibale / room / bed . absed on which is available and total, so that he gets a idea
+(NEW)-> User now uploads Student ID PIC
+(NEW)-> Use OCR tool or some tool, that extracts "Full Name" "Student ID(10 digits)" and a image that's in the ID (auto crops it)
+(NEW)-> then saves the image of ID in cloudflare R2 Object storeage documents\ and also names it like {netID}_{date}_{studentID}_IDCARD.png (ALL PHOTOS ARE PNG)
+(NEW)-> also save the user image in "userpic" cloud storage
+(NEW)-> also in prisma create a USER PROFILE PIC table's column. it's optional and none by default.. but KEEP IT .. MAKE THAT NEW COLUMN.. we can make it later.. It's updated when user's image is extracted and is put there
+(NEW)-> After doing all this, we prefill some info in the form when we run search for user in our db, like netid, phone, address and emergency contacts, dob, gendder and all .. maybe use auth/find-user endpoint
+(NEW)-> After that, user can submit the application 
+(NEW)-> When user submits application, staff can it in there
+
+remove classification
+remove expected graduation
+
+

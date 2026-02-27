@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { z } from 'zod';
 
 export const userSchema = z.object({
   userId: z.number().optional(),
@@ -16,6 +16,6 @@ export const userSchema = z.object({
   requiresAdaAccess: z.boolean().optional(),
   // Add an ID for dnd-kit if not present in user object, though netId is unique
   id: z.string().optional(),
-})
+});
 
-export type UserData = z.infer<typeof userSchema>
+export type UserData = z.infer<typeof userSchema>;

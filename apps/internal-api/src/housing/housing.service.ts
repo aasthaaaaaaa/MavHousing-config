@@ -5,6 +5,22 @@ import { PrismaService } from '@common/prisma/prisma.service';
 export class HousingService {
   constructor(private prisma: PrismaService) {}
 
+  async findUserByUtaId(utaId: string) {
+    return this.prisma.user.findUnique({
+      where: { utaId },
+      select: {
+        userId: true,
+        utaId: true,
+        fName: true,
+        lName: true,
+        email: true,
+        phone: true,
+        gender: true,
+        requiresAdaAccess: true,
+      },
+    });
+  }
+
   async getProperties() {
     return this.prisma.property.findMany({
       select: {
@@ -17,34 +33,112 @@ export class HousingService {
     });
   }
 
+  async getPropertiesAvailability() {
+    const properties = await this.prisma.property.findMany({
+      include: {
+        units: {
+          include: {
+            leases: {
+              where: {
+                status: {
+                  in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE'] as any,
+                },
+              },
+            },
+            rooms: {
+              include: {
+                leases: {
+                  where: {
+                    status: {
+                      in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE'] as any,
+                    },
+                  },
+                },
+                beds: {
+                  include: {
+                    leases: {
+                      where: {
+                        status: {
+                          in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE'] as any,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return properties.map((p) => {
+      const totalUnits = p.units.length;
+      const availableUnits = p.units.filter(
+        (u) => u.leases.length === 0,
+      ).length;
+
+      let totalRooms = 0;
+      let availableRooms = 0;
+
+      let totalBeds = 0;
+      let availableBeds = 0;
+
+      p.units.forEach((u) => {
+        totalRooms += u.rooms.length;
+        availableRooms += u.rooms.filter((r) => r.leases.length === 0).length;
+        u.rooms.forEach((r) => {
+          totalBeds += r.beds.length;
+          availableBeds += r.beds.filter((b) => b.leases.length === 0).length;
+        });
+      });
+
+      return {
+        propertyId: p.propertyId,
+        name: p.name,
+        address: p.address,
+        propertyType: p.propertyType,
+        leaseType: p.leaseType,
+        availability: {
+          totalUnits,
+          availableUnits,
+          totalRooms,
+          availableRooms,
+          totalBeds,
+          availableBeds,
+        },
+      };
+    });
+  }
+
   async getAvailableBeds(propertyId: number) {
     return this.prisma.bed.findMany({
       where: {
         room: {
           unit: {
             propertyId,
-          }
+          },
         },
         leases: {
           none: {
             status: {
-              in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE']
-            }
-          }
-        }
+              in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE'],
+            },
+          },
+        },
       },
       include: {
         room: {
           include: {
-            unit: true
-          }
-        }
+            unit: true,
+          },
+        },
       },
       orderBy: [
         { room: { unit: { unitNumber: 'asc' } } },
         { room: { roomLetter: 'asc' } },
-        { bedLetter: 'asc' }
-      ]
+        { bedLetter: 'asc' },
+      ],
     });
   }
 
@@ -64,8 +158,6 @@ export class HousingService {
         userId,
         term: applicationData.term,
         preferredPropertyId: applicationData.preferredPropertyId,
-        classification: applicationData.classification,
-        expectedGraduation: applicationData.expectedGraduation,
         emergencyContactName: applicationData.emergencyContactName,
         emergencyContactPhone: applicationData.emergencyContactPhone,
         emergencyContactRelation: applicationData.emergencyContactRelation,
@@ -103,6 +195,7 @@ export class HousingService {
             fName: true,
             lName: true,
             email: true,
+            profilePicUrl: true,
           },
         },
         preferredProperty: {
@@ -129,7 +222,13 @@ export class HousingService {
   async getStudents() {
     return this.prisma.user.findMany({
       where: { role: 'STUDENT' },
-      select: { userId: true, netId: true, fName: true, lName: true, email: true },
+      select: {
+        userId: true,
+        netId: true,
+        fName: true,
+        lName: true,
+        email: true,
+      },
       orderBy: { lName: 'asc' },
     });
   }
@@ -145,7 +244,12 @@ export class HousingService {
                 occupants: {
                   include: {
                     user: {
-                      select: { userId: true, netId: true, fName: true, lName: true },
+                      select: {
+                        userId: true,
+                        netId: true,
+                        fName: true,
+                        lName: true,
+                      },
                     },
                   },
                 },
@@ -159,7 +263,12 @@ export class HousingService {
                     occupants: {
                       include: {
                         user: {
-                          select: { userId: true, netId: true, fName: true, lName: true },
+                          select: {
+                            userId: true,
+                            netId: true,
+                            fName: true,
+                            lName: true,
+                          },
                         },
                       },
                     },
@@ -173,7 +282,12 @@ export class HousingService {
                         occupants: {
                           include: {
                             user: {
-                              select: { userId: true, netId: true, fName: true, lName: true },
+                              select: {
+                                userId: true,
+                                netId: true,
+                                fName: true,
+                                lName: true,
+                              },
                             },
                           },
                         },
@@ -199,79 +313,80 @@ export class HousingService {
             leases: {
               where: {
                 status: {
-                  in: ['SIGNED', 'ACTIVE'] as any
-                }
+                  in: ['SIGNED', 'ACTIVE'] as any,
+                },
               },
               include: {
-                occupants: true
-              }
+                occupants: true,
+              },
             },
             rooms: {
               include: {
                 leases: {
                   where: {
                     status: {
-                      in: ['SIGNED', 'ACTIVE'] as any
-                    }
+                      in: ['SIGNED', 'ACTIVE'] as any,
+                    },
                   },
                   include: {
-                    occupants: true
-                  }
+                    occupants: true,
+                  },
                 },
                 beds: {
                   include: {
                     leases: {
                       where: {
                         status: {
-                          in: ['SIGNED', 'ACTIVE'] as any
-                        }
+                          in: ['SIGNED', 'ACTIVE'] as any,
+                        },
                       },
                       include: {
-                        occupants: true
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+                        occupants: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
-      orderBy: { name: 'asc' }
+      orderBy: { name: 'asc' },
     });
 
     // Aggregate stats per property
-    const stats = properties.map(property => {
+    const stats = properties.map((property) => {
       let totalCapacity = 0;
       let occupiedCount = 0;
 
-      property.units.forEach(unit => {
+      property.units.forEach((unit) => {
         // Add unit max occupancy to total capacity
         totalCapacity += unit.maxOccupancy || 0;
 
         // Count occupants in unit-level leases
-        unit.leases.forEach(lease => {
+        unit.leases.forEach((lease) => {
           occupiedCount += lease.occupants.length;
         });
 
         // Count occupants in room-level leases
-        unit.rooms.forEach(room => {
-          room.leases.forEach(lease => {
+        unit.rooms.forEach((room) => {
+          room.leases.forEach((lease) => {
             occupiedCount += lease.occupants.length;
           });
 
           // Count occupants in bed-level leases
-          room.beds.forEach(bed => {
-            bed.leases.forEach(lease => {
+          room.beds.forEach((bed) => {
+            bed.leases.forEach((lease) => {
               occupiedCount += lease.occupants.length;
             });
           });
         });
       });
 
-      const vacancyRate = totalCapacity > 0 
-        ? ((totalCapacity - occupiedCount) / totalCapacity) * 100 
-        : 0;
+      const vacancyRate =
+        totalCapacity > 0
+          ? ((totalCapacity - occupiedCount) / totalCapacity) * 100
+          : 0;
 
       return {
         propertyId: property.propertyId,
@@ -280,25 +395,28 @@ export class HousingService {
         totalCapacity,
         occupiedBeds: occupiedCount,
         vacantBeds: totalCapacity - occupiedCount,
-        vacancyRate: parseFloat(vacancyRate.toFixed(2))
+        vacancyRate: parseFloat(vacancyRate.toFixed(2)),
       };
     });
 
-    const systemTotalCapacity = stats.reduce((sum, s) => sum + s.totalCapacity, 0);
+    const systemTotalCapacity = stats.reduce(
+      (sum, s) => sum + s.totalCapacity,
+      0,
+    );
     const systemOccupied = stats.reduce((sum, s) => sum + s.occupiedBeds, 0);
-    const systemVacancyRate = systemTotalCapacity > 0
-      ? ((systemTotalCapacity - systemOccupied) / systemTotalCapacity) * 100
-      : 0;
+    const systemVacancyRate =
+      systemTotalCapacity > 0
+        ? ((systemTotalCapacity - systemOccupied) / systemTotalCapacity) * 100
+        : 0;
 
     return {
       overview: {
         totalCapacity: systemTotalCapacity,
         occupiedBeds: systemOccupied,
         vacantBeds: systemTotalCapacity - systemOccupied,
-        vacancyRate: parseFloat(systemVacancyRate.toFixed(2))
+        vacancyRate: parseFloat(systemVacancyRate.toFixed(2)),
       },
-      properties: stats
+      properties: stats,
     };
   }
 }
-

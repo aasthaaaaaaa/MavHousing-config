@@ -21,7 +21,10 @@ export type Message = {
   }[];
 };
 
-export const useChat = (leaseId: number | undefined, userId: number | undefined) => {
+export const useChat = (
+  leaseId: number | undefined,
+  userId: number | undefined,
+) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
@@ -48,7 +51,7 @@ export const useChat = (leaseId: number | undefined, userId: number | undefined)
 
     socket.on('newMessage', (message: Message) => {
       setMessages((prev) => [...prev, message]);
-      
+
       // If we are not the sender, mark as read
       if (message.senderId !== userId) {
         socket.emit('markRead', { messageId: message.id, userId, leaseId });
@@ -61,10 +64,13 @@ export const useChat = (leaseId: number | undefined, userId: number | undefined)
           msg.id === messageId
             ? {
                 ...msg,
-                readReceipts: [...msg.readReceipts.filter(r => r.userId !== readerId), { userId: readerId, user }],
+                readReceipts: [
+                  ...msg.readReceipts.filter((r) => r.userId !== readerId),
+                  { userId: readerId, user },
+                ],
               }
-            : msg
-        )
+            : msg,
+        ),
       );
     });
 
@@ -73,11 +79,18 @@ export const useChat = (leaseId: number | undefined, userId: number | undefined)
     };
   }, [leaseId, userId]);
 
-  const sendMessage = useCallback((content: string) => {
-    if (socketRef.current && leaseId && userId) {
-      socketRef.current.emit('sendMessage', { leaseId, senderId: userId, content });
-    }
-  }, [leaseId, userId]);
+  const sendMessage = useCallback(
+    (content: string) => {
+      if (socketRef.current && leaseId && userId) {
+        socketRef.current.emit('sendMessage', {
+          leaseId,
+          senderId: userId,
+          content,
+        });
+      }
+    },
+    [leaseId, userId],
+  );
 
   return { messages, isConnected, sendMessage };
 };
