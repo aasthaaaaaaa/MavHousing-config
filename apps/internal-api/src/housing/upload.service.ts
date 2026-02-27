@@ -20,6 +20,7 @@ import * as path from 'path';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { IdCardOcrDto } from './dto/id-card-ocr.dto';
+import { ImageProcessorService } from '@libs/common';
 
 // Patch Node.js environment for face-api
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData } as any);
@@ -30,7 +31,10 @@ export class UploadService implements OnModuleInit {
   private s3Client: S3Client;
   private genAI: GoogleGenerativeAI;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private imageProcessor: ImageProcessorService,
+  ) {
     const accountId = this.configService.get<string>('R3_ACCOUNT_ID');
     const accessKeyId = this.configService.get<string>('R3_ACCESS_KEY_ID');
     const secretAccessKey = this.configService.get<string>(
@@ -97,7 +101,14 @@ export class UploadService implements OnModuleInit {
 
   async processIdCard(file: Express.Multer.File, netId: string) {
     try {
-      // 1. Send image to Gemini for OCR and bounding box
+      // 0. Pre-process: Compress the image early in the pipeline
+      // This saves memory and speeds up Gemini/Face-api processing
+      const optimizedBuffer = await this.imageProcessor.compress(
+        file.buffer,
+        80,
+      );
+
+      // 1. Send optimized image to Gemini for OCR and bounding box
       const model = this.genAI.getGenerativeModel({
         model: 'gemini-2.5-flash',
       });
@@ -126,7 +137,7 @@ export class UploadService implements OnModuleInit {
 
       const imagePart = {
         inlineData: {
-          data: file.buffer.toString('base64'),
+          data: optimizedBuffer.toString('base64'),
           mimeType: file.mimetype,
         },
       };
@@ -180,19 +191,19 @@ export class UploadService implements OnModuleInit {
 
       const docFileName = `${userIdentifier}_${dateStr}_${timestamp}_id.${file.mimetype.split('/')[1] || 'jpg'}`;
 
-      // 2. Upload original to "documents" bucket
+      // 2. Upload the already optimized document to "documents" bucket
       const docUrl = await this.uploadFileToR2(
-        file.buffer,
+        optimizedBuffer,
         docFileName,
         'documents',
         file.mimetype,
       );
 
-      // 3. Crop face using face-api
+      // 3. Crop face using face-api using optimized buffer
       let profilePicUrl = '';
       try {
         const img = new Image();
-        img.src = file.buffer;
+        img.src = optimizedBuffer;
 
         // Ensure models are loaded before inference
         if (!faceapi.nets.ssdMobilenetv1.isLoaded) {
@@ -213,7 +224,7 @@ export class UploadService implements OnModuleInit {
 
           // Add some padding to the crop
           const padding = 20;
-          const metadata = await sharp(file.buffer).metadata();
+          const metadata = await sharp(optimizedBuffer).metadata();
           const cropLeft = Math.max(0, Math.floor(x - padding));
           const cropTop = Math.max(0, Math.floor(y - padding));
           const cropWidth = Math.min(
@@ -225,7 +236,7 @@ export class UploadService implements OnModuleInit {
             Math.floor(height + padding * 2),
           );
 
-          const croppedBuffer = await sharp(file.buffer)
+          const croppedBuffer = await sharp(optimizedBuffer)
             .extract({
               left: cropLeft,
               top: cropTop,
@@ -235,8 +246,13 @@ export class UploadService implements OnModuleInit {
             .toBuffer();
 
           const picFileName = `${userIdentifier}_${dateStr}_${timestamp}_profile.jpg`;
-          profilePicUrl = await this.uploadFileToR2(
+          const compressedPic = await this.imageProcessor.compress(
             croppedBuffer,
+            85,
+            400,
+          ); // Smaller for profile
+          profilePicUrl = await this.uploadFileToR2(
+            compressedPic,
             picFileName,
             'userpic',
             'image/jpeg',
@@ -247,7 +263,7 @@ export class UploadService implements OnModuleInit {
             'No face detected by face-api, uploading full image',
           );
           profilePicUrl = await this.uploadFileToR2(
-            file.buffer,
+            optimizedBuffer,
             `${userIdentifier}_${dateStr}_${timestamp}_profile.jpg`,
             'userpic',
             file.mimetype,
