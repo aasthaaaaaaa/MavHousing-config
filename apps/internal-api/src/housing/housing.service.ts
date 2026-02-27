@@ -290,6 +290,18 @@ export class HousingService {
               },
               orderBy: { startDate: 'desc' },
             },
+            occupancies: {
+              include: {
+                lease: {
+                  include: {
+                    unit: true,
+                    room: true,
+                    bed: true,
+                    occupants: true,
+                  },
+                },
+              },
+            },
           },
         },
         preferredProperty: true,

@@ -42,17 +42,30 @@ interface ApplicationDetail {
     gender: string;
     profilePicUrl: string;
     requiresAdaAccess: boolean;
-    leases: Array<{
-      leaseId: number;
-      leaseType: string;
-      startDate: string;
-      endDate: string;
-      status: string;
-      unit?: { unitNumber: string };
-      room?: { roomNumber: string };
-      bed?: { bedCode: string };
-    }>;
-  };
+      leases: Array<{
+        leaseId: number;
+        leaseType: string;
+        startDate: string;
+        endDate: string;
+        status: string;
+        unit?: { unitNumber: string };
+        room?: { roomNumber: string };
+        bed?: { bedCode: string };
+      }>;
+      occupancies: Array<{
+        occupantType: string;
+        lease: {
+          leaseId: number;
+          leaseType: string;
+          startDate: string;
+          endDate: string;
+          status: string;
+          unit?: { unitNumber: string };
+          room?: { roomNumber: string };
+          bed?: { bedCode: string };
+        };
+      }>;
+    };
   preferredProperty: {
     propertyId: number;
     name: string;
@@ -113,7 +126,19 @@ export default function ApplicationDetailPage() {
 
   if (!app) return <div className="p-8 text-center">Application not found.</div>;
 
-  const currentLease = app.user.leases.find(l => l.status === 'SIGNED' || l.status === 'ACTIVE');
+  // Combine leases as primary holder and as occupant to find the current active one
+  const allLeases = [
+    ...(app.user.leases || []).map(l => ({ ...l, positionInLease: 'LEASE_HOLDER' })),
+    ...(app.user.occupancies || []).map(o => ({ ...o.lease, positionInLease: o.occupantType }))
+  ] as Array<any>;
+
+  // Preferred active/signed lease
+  const currentLease = allLeases.find(l => l.status === 'SIGNED' || l.status === 'ACTIVE');
+
+  // Calculate days until lease ends
+  const daysRemaining = currentLease 
+    ? Math.ceil((new Date(currentLease.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+    : null;
 
   return (
     <div className="flex flex-col gap-6 p-8 max-w-7xl mx-auto w-full animate-in fade-in duration-500">
@@ -323,6 +348,9 @@ export default function ApplicationDetailPage() {
                       <div>
                         <p className="text-sm text-muted-foreground uppercase tracking-wider font-bold">Lease ID</p>
                         <p className="text-xl font-mono font-bold tracking-tighter">LEA-{currentLease.leaseId.toString().padStart(6, '0')}</p>
+                        <Badge variant="outline" className="mt-1 text-[10px] h-5 bg-primary/5 text-primary border-primary/20">
+                          {currentLease.positionInLease?.replace('_', ' ')}
+                        </Badge>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -347,9 +375,16 @@ export default function ApplicationDetailPage() {
                         <p className="text-sm text-muted-foreground">Room {currentLease.room?.roomNumber || "N/A"} · Bed {currentLease.bed?.bedCode || "N/A"}</p>
                       </div>
                     </div>
-                    <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none px-4 py-1 rounded-full font-bold">
-                       {currentLease.status}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none px-4 py-1 rounded-full font-bold">
+                        {currentLease.status}
+                      </Badge>
+                      {daysRemaining !== null && (
+                        <p className={`text-xs font-semibold ${daysRemaining < 30 ? 'text-destructive animate-pulse' : 'text-muted-foreground'}`}>
+                          {daysRemaining > 0 ? `${daysRemaining} days remaining` : 'Lease ended'}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               ) : (
