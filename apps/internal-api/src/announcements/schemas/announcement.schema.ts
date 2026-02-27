@@ -21,8 +21,8 @@ export class Announcement extends Document {
   @Prop({ required: true })
   senderId: number;
 
-  @Prop()
-  attachmentName?: string;
+  @Prop({ type: [String] })
+  attachmentNames?: string[];
 }
 
 export const AnnouncementSchema = SchemaFactory.createForClass(Announcement);

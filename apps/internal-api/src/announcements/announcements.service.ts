@@ -28,7 +28,7 @@ export class AnnouncementsService {
     scopeValue: string | undefined,
     senderRole: string,
     senderId: number,
-    file?: Express.Multer.File,
+    files?: Express.Multer.File[],
   ) {
     // 1. Resolve Emails
     const emails = await this.resolveEmails(scope, scopeValue);
@@ -48,7 +48,7 @@ export class AnnouncementsService {
       scopeValue,
       senderRole,
       senderId,
-      attachmentName: file ? file.originalname : undefined,
+      attachmentNames: files ? files.map((f) => f.originalname) : [],
     });
     await newAnnouncement.save();
 
@@ -61,13 +61,11 @@ export class AnnouncementsService {
       <p><small>Sent by MavHousing ${senderRole}</small></p>
     `;
 
-    const attachments = file
-      ? [
-          {
-            filename: file.originalname,
-            content: file.buffer,
-          },
-        ]
+    const attachments = files?.length
+      ? files.map((file) => ({
+          filename: file.originalname,
+          content: file.buffer,
+        }))
       : undefined;
 
     let hasError = false;
