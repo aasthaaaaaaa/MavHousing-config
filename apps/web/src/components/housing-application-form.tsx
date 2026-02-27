@@ -235,6 +235,10 @@ export function HousingApplicationForm() {
     return true;
   });
 
+  const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validatePhone = (phone: string) => /^(\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(phone);
+  const validateUtaId = (id: string) => /^\d{10}$/.test(id);
+
   const canProceed = () => {
     switch (step) {
       case 1: return formData.term !== "";
@@ -242,8 +246,17 @@ export function HousingApplicationForm() {
       case 3: return formData.leaseType !== "";
       case 4: return formData.preferredPropertyId !== "";
       case 5: return formData.docUrl !== "" && formData.fullName !== "" && formData.utaId !== "";
-      case 6: return formData.fullName !== "" && formData.utaId !== "" && formData.email !== "" && formData.phone !== ""; 
-      case 7: return formData.emergencyContactName !== "" && formData.emergencyContactPhone !== "" && formData.emergencyContactRelation !== "";
+      case 6: return (
+        formData.fullName.trim() !== "" && 
+        validateUtaId(formData.utaId) && 
+        validateEmail(formData.email) && 
+        validatePhone(formData.phone)
+      ); 
+      case 7: return (
+        formData.emergencyContactName.trim() !== "" && 
+        validatePhone(formData.emergencyContactPhone) && 
+        formData.emergencyContactRelation.trim() !== ""
+      );
       case 8: return formData.sleepSchedule !== "" && formData.cleanliness !== "" && formData.noiseLevel !== "" && formData.smokingPreference !== "";
       case 9: return true; 
       default: return true;

@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsEmail, IsNotEmpty } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEmail,
+  IsNotEmpty,
+  Length,
+  Matches,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class IdCardOcrDto {
@@ -15,6 +22,8 @@ export class IdCardOcrDto {
   @ApiProperty({ example: '1001234567' })
   @IsString()
   @IsNotEmpty()
+  @Length(10, 10, { message: 'Student ID must be exactly 10 digits' })
+  @Matches(/^\d+$/, { message: 'Student ID must contain only numbers' })
   utaId: string;
 
   @ApiPropertyOptional({ example: 'john.doe@mavs.uta.edu' })
@@ -25,6 +34,9 @@ export class IdCardOcrDto {
   @ApiPropertyOptional({ example: '817-555-1234' })
   @IsString()
   @IsOptional()
+  @Matches(/^(\+?\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/, {
+    message: 'Invalid phone number format',
+  })
   phone?: string;
 }
 

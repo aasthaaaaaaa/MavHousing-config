@@ -16,6 +16,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { HousingService } from './housing.service';
 import { UploadService } from './upload.service';
 import { UploadIdRequestDto } from './dto/upload-id-request.dto';
+import { CreateHousingApplicationDto } from './dto/create-housing-application.dto';
 
 @Controller('housing')
 export class HousingController {
@@ -54,24 +55,15 @@ export class HousingController {
   }
 
   @Post('application')
-  async createApplication(@Body() body: any, @Req() req: any) {
+  async createApplication(
+    @Body() body: CreateHousingApplicationDto,
+    @Req() req: any,
+  ) {
     // For MVP, we'll extract userId from the request
     // In production, this should come from authenticated user context
     const userId = body.userId || 1; // Fallback for testing
 
-    return this.housingService.createApplication(userId, {
-      term: body.term,
-      preferredPropertyId: body.preferredPropertyId,
-      emergencyContactName: body.emergencyContactName,
-      emergencyContactPhone: body.emergencyContactPhone,
-      emergencyContactRelation: body.emergencyContactRelation,
-      sleepSchedule: body.sleepSchedule,
-      cleanliness: body.cleanliness,
-      noiseLevel: body.noiseLevel,
-      smokingPreference: body.smokingPreference,
-      dietaryRestrictions: body.dietaryRestrictions,
-      specialAccommodations: body.specialAccommodations,
-    });
+    return this.housingService.createApplication(userId, body);
   }
 
   @Post('upload-id')

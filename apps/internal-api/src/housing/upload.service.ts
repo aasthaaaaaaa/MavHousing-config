@@ -171,8 +171,14 @@ export class UploadService implements OnModuleInit {
         throw new Error('OCR API failed to return valid data');
       }
 
+      const nameSlug = `${ocrData.fName || ''}${ocrData.lName || ''}`
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+      const userIdentifier = nameSlug || netId.toLowerCase() || 'unknown';
+      const timestamp = Date.now();
       const dateStr = new Date().toISOString().split('T')[0];
-      const docFileName = `${netId}_${dateStr}_id.${file.mimetype.split('/')[1] || 'jpg'}`;
+
+      const docFileName = `${userIdentifier}_${dateStr}_${timestamp}_id.${file.mimetype.split('/')[1] || 'jpg'}`;
 
       // 2. Upload original to "documents" bucket
       const docUrl = await this.uploadFileToR2(
@@ -228,7 +234,7 @@ export class UploadService implements OnModuleInit {
             })
             .toBuffer();
 
-          const picFileName = `${netId}_${dateStr}_profile.jpg`;
+          const picFileName = `${userIdentifier}_${dateStr}_${timestamp}_profile.jpg`;
           profilePicUrl = await this.uploadFileToR2(
             croppedBuffer,
             picFileName,
@@ -242,7 +248,7 @@ export class UploadService implements OnModuleInit {
           );
           profilePicUrl = await this.uploadFileToR2(
             file.buffer,
-            `${netId}_${dateStr}_profile.jpg`,
+            `${userIdentifier}_${dateStr}_${timestamp}_profile.jpg`,
             'userpic',
             file.mimetype,
           );
