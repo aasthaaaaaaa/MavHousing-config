@@ -13,6 +13,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { PrismaService } from '@common/prisma/prisma.service';
 const sharp = require('sharp');
 import * as faceapi from '@vladmandic/face-api';
 import { Canvas, Image, ImageData } from 'canvas';
@@ -34,6 +35,7 @@ export class UploadService implements OnModuleInit {
   constructor(
     private configService: ConfigService,
     private imageProcessor: ImageProcessorService,
+    private prisma: PrismaService,
   ) {
     const accountId = this.configService.get<string>('R3_ACCOUNT_ID');
     const accessKeyId = this.configService.get<string>('R3_ACCESS_KEY_ID');
@@ -186,10 +188,7 @@ export class UploadService implements OnModuleInit {
         .toLowerCase()
         .replace(/[^a-z0-9]/g, '');
       const userIdentifier = nameSlug || netId.toLowerCase() || 'unknown';
-      const timestamp = Date.now();
-      const dateStr = new Date().toISOString().split('T')[0];
-
-      const docFileName = `${userIdentifier}_${dateStr}_${timestamp}_id.${file.mimetype.split('/')[1] || 'jpg'}`;
+      const docFileName = `${userIdentifier}_${ocrData.utaId}_id.${file.mimetype.split('/')[1] || 'jpg'}`;
 
       // 2. Upload the already optimized document to "documents" bucket
       const docUrl = await this.uploadFileToR2(
@@ -245,7 +244,7 @@ export class UploadService implements OnModuleInit {
             })
             .toBuffer();
 
-          const picFileName = `${userIdentifier}_${dateStr}_${timestamp}_profile.jpg`;
+          const picFileName = `${userIdentifier}_${ocrData.utaId}_profile.jpg`;
           const compressedPic = await this.imageProcessor.compress(
             croppedBuffer,
             85,
@@ -264,7 +263,7 @@ export class UploadService implements OnModuleInit {
           );
           profilePicUrl = await this.uploadFileToR2(
             optimizedBuffer,
-            `${userIdentifier}_${dateStr}_${timestamp}_profile.jpg`,
+            `${userIdentifier}_${ocrData.utaId}_profile.jpg`,
             'userpic',
             file.mimetype,
           );
@@ -273,13 +272,23 @@ export class UploadService implements OnModuleInit {
         this.logger.error('Failed to crop face with face-api', e);
         // Fallback to full image
         profilePicUrl = await this.uploadFileToR2(
-          file.buffer,
-          `${netId}_${dateStr}_profile.jpg`,
+          optimizedBuffer,
+          `${userIdentifier}_${ocrData.utaId}_profile.jpg`,
           'userpic',
           file.mimetype,
         );
       }
 
+      // Save the key to the user profile
+      const picKey = profilePicUrl.split('?')[0].split('/').pop();
+      try {
+        await this.prisma.user.update({
+          where: { netId },
+          data: { profilePicUrl: picKey },
+        });
+      } catch (e) {
+        this.logger.error('Failed to update user profile pic key', e);
+      }
       return {
         fName: ocrData.fName,
         lName: ocrData.lName,

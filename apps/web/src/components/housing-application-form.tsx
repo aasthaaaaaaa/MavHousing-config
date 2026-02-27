@@ -212,7 +212,7 @@ export function HousingApplicationForm() {
           smokingPreference: formData.smokingPreference,
           dietaryRestrictions: formData.dietaryRestrictions,
           specialAccommodations: formData.specialAccommodations,
-          // Instruct backend or another route to update ProfilePicUrl if needed.
+          idCardUrl: formData.docUrl,
         }),
       });
 

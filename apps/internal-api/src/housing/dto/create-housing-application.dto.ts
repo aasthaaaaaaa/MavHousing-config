@@ -73,6 +73,11 @@ export class CreateHousingApplicationDto {
   @IsOptional()
   specialAccommodations?: string;
 
+  @ApiPropertyOptional({ example: 'https://example.com/id.jpg' })
+  @IsString()
+  @IsOptional()
+  idCardUrl?: string;
+
   @ApiPropertyOptional({ example: 1 })
   @IsInt()
   @IsOptional()

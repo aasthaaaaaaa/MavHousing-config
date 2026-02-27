@@ -1,9 +1,46 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
+import { ConfigService } from '@nestjs/config';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 @Injectable()
 export class HousingService {
-  constructor(private prisma: PrismaService) {}
+  private s3Client: S3Client;
+
+  constructor(
+    private prisma: PrismaService,
+    private configService: ConfigService,
+  ) {
+    const accountId = this.configService.get<string>('R3_ACCOUNT_ID');
+    const accessKeyId = this.configService.get<string>('R3_ACCESS_KEY_ID');
+    const secretAccessKey = this.configService.get<string>(
+      'R3_SECRET_ACCESS_KEY',
+    );
+
+    this.s3Client = new S3Client({
+      region: 'auto',
+      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: accessKeyId as string,
+        secretAccessKey: secretAccessKey as string,
+      },
+      forcePathStyle: true,
+    });
+  }
+
+  private async getSignedUrl(key: string, bucket: string): Promise<string> {
+    if (!key || key.startsWith('http')) return key;
+    try {
+      const command = new GetObjectCommand({
+        Bucket: bucket,
+        Key: key,
+      });
+      return await getSignedUrl(this.s3Client, command, { expiresIn: 3600 });
+    } catch (e) {
+      return '';
+    }
+  }
 
   async findUserByUtaId(utaId: string) {
     return this.prisma.user.findUnique({
@@ -167,6 +204,7 @@ export class HousingService {
         smokingPreference: applicationData.smokingPreference,
         dietaryRestrictions: applicationData.dietaryRestrictions,
         specialAccommodations: applicationData.specialAccommodations,
+        idCardUrl: applicationData.idCardUrl,
         status: 'SUBMITTED',
         submissionDate: new Date(),
       },
@@ -185,12 +223,35 @@ export class HousingService {
     });
   }
 
+  private async transformApplication(app: any) {
+    if (!app) return null;
+
+    if (app.user) {
+      // Reconstruct or use stored key
+      const nameKey = `${app.user.fName || ''}${app.user.lName || ''}`
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+      const userIdentifier = nameKey || app.user.netId || 'unknown';
+
+      const defaultPicKey = `${userIdentifier}_${app.user.utaId}_profile.jpg`;
+      const picKey = app.user.profilePicUrl || defaultPicKey;
+      app.user.profilePicUrl = await this.getSignedUrl(picKey, 'userpic');
+
+      const defaultDocKey = `${userIdentifier}_${app.user.utaId}_id.jpg`;
+      const docKey = app.idCardUrl || defaultDocKey;
+      app.idCardUrl = await this.getSignedUrl(docKey, 'documents');
+    }
+
+    return app;
+  }
+
   async getAllApplications() {
-    return this.prisma.application.findMany({
+    const apps = await this.prisma.application.findMany({
       include: {
         user: {
           select: {
             userId: true,
+            utaId: true,
             netId: true,
             fName: true,
             lName: true,
@@ -210,6 +271,32 @@ export class HousingService {
         submissionDate: 'desc',
       },
     });
+
+    return Promise.all(apps.map((app) => this.transformApplication(app)));
+  }
+
+  async getApplicationById(appId: number) {
+    const app = await this.prisma.application.findUnique({
+      where: { appId },
+      include: {
+        user: {
+          include: {
+            leases: {
+              include: {
+                unit: true,
+                room: true,
+                bed: true,
+                occupants: true,
+              },
+              orderBy: { startDate: 'desc' },
+            },
+          },
+        },
+        preferredProperty: true,
+      },
+    });
+
+    return this.transformApplication(app);
   }
 
   async updateApplicationStatus(appId: number, status: string) {

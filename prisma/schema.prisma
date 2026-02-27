@@ -25,6 +25,7 @@ model User {
   studentStatus       StudentStatus?
   staffPosition       StaffPosition?
   profilePicUrl       String?
+  profileUrl          String?
   requiresAdaAccess   Boolean              @default(false)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
@@ -108,6 +109,7 @@ model Application {
   sleepSchedule            String?           @db.VarChar(50)
   smokingPreference        String?           @db.VarChar(50)
   specialAccommodations    String?
+  idCardUrl                String?
   preferredProperty        Property?         @relation("PreferredProperty", fields: [preferredPropertyId], references: [propertyId])
   user                     User              @relation(fields: [userId], references: [userId], onDelete: Cascade)
 

@@ -91,6 +91,17 @@ export class HousingController {
     return this.housingService.getAllApplications();
   }
 
+  @Get('applications/:id')
+  async getApplicationById(@Param('id') id: string) {
+    const application = await this.housingService.getApplicationById(
+      parseInt(id),
+    );
+    if (!application) {
+      throw new HttpException('Application not found', HttpStatus.NOT_FOUND);
+    }
+    return application;
+  }
+
   @Patch('applications/:id/status')
   async updateApplicationStatus(
     @Param('id') id: string,

@@ -16,6 +16,7 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 import { User, MapPin, Calendar, FileText, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { CreateLeaseDialog } from "@/components/create-lease-dialog";
 import { getApplicationStatusClass } from "@/lib/status-colors";
@@ -35,6 +36,7 @@ function fmtDate(d?: string) {
 }
 
 export default function StaffApplicationsPage() {
+  const router = useRouter();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Application | null>(null);
@@ -65,15 +67,13 @@ export default function StaffApplicationsPage() {
       });
       toast({ title: "Status updated" });
       setApplications(prev => prev.map(a => a.appId === appId ? { ...a, status: newStatus } : a));
-      if (selected?.appId === appId) setSelected(prev => prev ? { ...prev, status: newStatus } : null);
     } catch {
       toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
     }
   }
 
   function openDetail(app: Application) {
-    setSelected(app);
-    setSheetOpen(true);
+    router.push(`/staff/applications/${app.appId}`);
   }
 
   if (loading) return (
@@ -148,120 +148,13 @@ export default function StaffApplicationsPage() {
           </Table>
         </CardContent>
       </Card>
-
-      {/* Detail Sheet */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-          {selected && (
-            <>
-              <SheetHeader className="pb-4 px-6">
-                <SheetTitle>Application #{selected.appId}</SheetTitle>
-                <SheetDescription>{selected.term.replace("_", " ")} · {fmtDate(selected.submissionDate)}</SheetDescription>
-              </SheetHeader>
-
-              {/* Status badge */}
-              <div className="mb-6 px-6">
-                <Badge
-                  variant="outline"
-                  className={`${getApplicationStatusClass(selected.status)} text-sm px-3 py-1`}
-                >
-                  {selected.status.replace("_", " ")}
-                </Badge>
-              </div>
-
-              <div className="space-y-6 px-6">
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Student</h3>
-                  <div className="flex items-center gap-4 mb-4">
-                    {selected.user.profilePicUrl ? (
-                      <img src={selected.user.profilePicUrl} alt={`${selected.user.fName}'s profile`} className="w-16 h-16 rounded-full object-cover border" />
-                    ) : (
-                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                        <User className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-lg">{selected.user.fName} {selected.user.lName}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <FileText className="h-3 w-3" />
-                        <span>{selected.user.netId}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <FileText className="h-3 w-3" />
-                        <span>{selected.user.email}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Property */}
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Preferred Property</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-medium">{selected.preferredProperty?.name || "No preference"}</p>
-                        <p className="text-sm text-muted-foreground">{selected.preferredProperty?.address}</p>
-                        {selected.preferredProperty?.propertyType && (
-                          <p className="text-xs text-muted-foreground mt-0.5">{selected.preferredProperty.propertyType.replace("_", " ")}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Timeline */}
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Timeline</h3>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm">Submitted {fmtDate(selected.submissionDate)}</span>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Status update */}
-                <div>
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Update Status</h3>
-                  <div className="flex items-center gap-2">
-                    <Select value={selected.status} onValueChange={val => updateStatus(selected.appId, val)}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="SUBMITTED">Submitted</SelectItem>
-                        <SelectItem value="UNDER_REVIEW">Under Review</SelectItem>
-                        <SelectItem value="APPROVED">Approved</SelectItem>
-                        <SelectItem value="REJECTED">Rejected</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {selected.status === 'APPROVED' && (
-                      <Button onClick={() => setLeaseDialogOpen(true)}>Create Lease Offer</Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
       
       <CreateLeaseDialog 
         open={leaseDialogOpen} 
         onOpenChange={setLeaseDialogOpen} 
         application={selected}
         onLeaseCreated={() => {
-            // Can add logic to refresh or notify
             toast({ title: "Lease Sent", description: "The lease has been dispatched to the student." });
-            setSheetOpen(false);
         }}
       />
     </div>
