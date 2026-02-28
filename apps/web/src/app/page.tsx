@@ -132,85 +132,13 @@ export default function LandingPage() {
       </nav>
 
       {/* ── Hero ── */}
-      <section data-nav-theme="dark" className="relative flex min-h-screen flex-col overflow-hidden">
-        {/* Layered background */}
-        <div className="absolute inset-0 bg-[#061729]">
-          {/* Angled gradient overlay */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `
-                linear-gradient(135deg, #0a2240 0%, #061729 40%, #0d1b2e 70%, #0a2240 100%)
-              `,
-            }}
-          />
-
-          {/* Warm glow — top right */}
-          <div
-            className="absolute -right-20 -top-20 h-[700px] w-[700px] rounded-full"
-            style={{
-              background: 'radial-gradient(circle, rgba(199,91,18,0.35) 0%, rgba(199,91,18,0.08) 40%, transparent 70%)',
-              filter: 'blur(80px)',
-            }}
-          />
-
-          {/* Gold glow — left center */}
-          <div
-            className="absolute -left-32 top-1/3 h-[500px] w-[500px] rounded-full"
-            style={{
-              background: 'radial-gradient(circle, rgba(240,165,55,0.2) 0%, transparent 65%)',
-              filter: 'blur(90px)',
-            }}
-          />
-
-          {/* Cool accent glow — bottom right */}
-          <div
-            className="absolute -bottom-20 right-1/4 h-[400px] w-[600px] rounded-full"
-            style={{
-              background: 'radial-gradient(ellipse, rgba(77,171,247,0.1) 0%, transparent 60%)',
-              filter: 'blur(70px)',
-            }}
-          />
-
-          {/* Diagonal line texture */}
-          <div
-            className="absolute inset-0 opacity-[0.03]"
-            style={{
-              backgroundImage: `repeating-linear-gradient(
-                -45deg,
-                transparent,
-                transparent 40px,
-                rgba(255,255,255,0.5) 40px,
-                rgba(255,255,255,0.5) 41px
-              )`,
-            }}
-          />
-
-          {/* Subtle noise grain for depth */}
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0)`,
-              backgroundSize: '24px 24px',
-            }}
-          />
-
-          {/* Decorative geometric ring — top right */}
-          <div className="absolute -right-24 -top-24 h-[500px] w-[500px] rounded-full border border-white/[0.04]" />
-          <div className="absolute -right-16 -top-16 h-[400px] w-[400px] rounded-full border border-white/[0.03]" />
-
-          {/* Decorative geometric ring — bottom left */}
-          <div className="absolute -bottom-32 -left-32 h-[350px] w-[350px] rounded-full border border-[#c75b12]/[0.08]" />
-          <div className="absolute -bottom-20 -left-20 h-[250px] w-[250px] rounded-full border border-[#f0a537]/[0.06]" />
-
-          {/* Glowing orb accent — mid right */}
-          <div className="absolute right-[10%] top-[40%] h-2 w-2 rounded-full bg-[#f0a537] shadow-[0_0_20px_6px_rgba(240,165,55,0.3)]" />
-          <div className="absolute left-[15%] top-[60%] h-1.5 w-1.5 rounded-full bg-[#c75b12]/60 shadow-[0_0_15px_4px_rgba(199,91,18,0.2)]" />
-          <div className="absolute left-[40%] top-[20%] h-1 w-1 rounded-full bg-white/30 shadow-[0_0_12px_3px_rgba(255,255,255,0.1)]" />
-
-          {/* Bottom fade to next section */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0a2240] to-transparent" />
-        </div>
+      <section data-nav-theme="dark" className="relative flex min-h-screen flex-col overflow-hidden bg-[#0a2240]">
+        {/* Subtle pattern */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)'
+        }} />
 
         {/* Centered hero content */}
         <div className="relative flex flex-1 flex-col items-center justify-center text-center">
@@ -283,7 +211,6 @@ export default function LandingPage() {
                 className="group inline-flex h-[52px] items-center gap-2.5 rounded-xl border border-white/15 bg-white/[0.05] px-9 text-[15px] font-bold text-white/90 backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/[0.08] hover:-translate-y-0.5"
               >
                 Explore Options
-                <ArrowRight className="h-4 w-4 text-white/40 transition-all group-hover:translate-x-1 group-hover:text-white/70" />
               </Link>
             </div>
           </div>
