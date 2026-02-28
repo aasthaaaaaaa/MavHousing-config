@@ -48,8 +48,8 @@ export class MaintenanceService {
     }
     try {
       const command = new GetObjectCommand({
-        Bucket: 'documents', // Reusing documents bucket as established in upload.service
-        Key: `maintenance/${key}`,
+        Bucket: 'maintenance',
+        Key: key,
       });
       return await getSignedUrl(this.s3Client, command, { expiresIn: 3600 * 24 });
     } catch {

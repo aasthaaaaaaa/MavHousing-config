@@ -334,8 +334,8 @@ export class UploadService implements OnModuleInit {
         
         const url = await this.uploadFileToR2(
           bufferToUpload,
-          `maintenance/${fileName}`,
-          'documents',  // Reusing documents bucket for simplicity
+          fileName,
+          'maintenance',
           file.mimetype
         );
         
