@@ -643,12 +643,9 @@ export default function LandingPage() {
             {/* Brand */}
             <div>
               <div className="mb-4 flex items-center gap-2.5">
-                <Image src="/Main MavHousing Logo.svg" alt="MavHousing" width={32} height={32} className="rounded-lg brightness-200" />
+                <Image src="/Mavhousing Logo.svg" alt="MavHousing" width={32} height={32} className="rounded-lg" />
                 <div>
                   <span className="text-lg font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>MavHousing</span>
-                  <p className="text-[10px] font-medium uppercase tracking-widest text-[#f0a537]">
-                    UTA Housing & Residence Life
-                  </p>
                 </div>
               </div>
               <p className="max-w-sm text-sm leading-relaxed text-white/50">
@@ -701,17 +698,7 @@ export default function LandingPage() {
               <p className="text-xs text-white/30">
                 © {new Date().getFullYear()} MavHousing · University of Texas at Arlington · All rights reserved.
               </p>
-              <div className="flex gap-4">
-                {["Facebook", "Instagram", "Twitter"].map(social => (
-                  <a
-                    key={social}
-                    href="#"
-                    className="text-xs text-white/30 transition-colors hover:text-[#f0a537]"
-                  >
-                    {social}
-                  </a>
-                ))}
-              </div>
+
             </div>
           </div>
         </div>
