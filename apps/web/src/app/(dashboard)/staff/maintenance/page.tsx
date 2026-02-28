@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {MapPin, User, Calendar, Paperclip, Send, ExternalLink, Trash2 } from "lucide-react";
+import { MapPin, User, Calendar, Paperclip, Send, ExternalLink, Trash2, Eye, Film, Download } from "lucide-react";
 import { getMaintenanceStatusClass, getPriorityClass } from "@/lib/status-colors";
 
 interface MaintenanceRequest {
@@ -21,6 +21,8 @@ interface MaintenanceRequest {
   createdAt: string;
   resolvedAt?: string;
   resolutionReason?: string;
+  location?: string;
+  attachments?: string[];
   createdBy: { netId: string; fName: string; lName: string; email: string };
   assignedStaff?: { userId: number; fName: string; lName: string };
   lease?: { unit?: { unitNumber: string; property: { name: string; address: string } }; room?: { roomLetter: string } };
@@ -62,6 +64,9 @@ export default function StaffMaintenancePage() {
   const [newComment, setNewComment] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
   const [postingComment, setPostingComment] = useState(false);
+
+  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
+  const [viewerType, setViewerType] = useState<"image" | "video" | null>(null);
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -179,6 +184,49 @@ export default function StaffMaintenancePage() {
     setSelected(r);
     setIsDetailsOpen(true);
     fetchComments(r.requestId);
+  }
+
+  function openViewer(url: string) {
+    if (url.match(/\.(mp4|webm|ogg)/i)) {
+      setViewerType("video");
+    } else {
+      setViewerType("image");
+    }
+    setViewerUrl(url);
+  }
+
+  function renderAttachment(url: string, label?: string) {
+    const isVideo = !!url.match(/\.(mp4|webm|ogg)/i);
+    const isImage = !!url.match(/\.(jpeg|jpg|gif|png|webp)/i);
+
+    return (
+      <div key={url} className="flex items-center gap-3 p-2 border rounded-md bg-muted/20">
+        <div className="h-10 w-10 flex-shrink-0 bg-muted flex items-center justify-center rounded overflow-hidden">
+          {isImage ? (
+            <img src={url} alt="thumbnail" className="h-full w-full object-cover" />
+          ) : isVideo ? (
+            <Film className="h-5 w-5 text-muted-foreground" />
+          ) : (
+            <Paperclip className="h-5 w-5 text-muted-foreground" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium truncate">{label || 'Attachment'}</p>
+        </div>
+        <div className="flex flex-col gap-1 shrink-0">
+          {(isImage || isVideo) && (
+            <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => openViewer(url)}>
+              <Eye className="h-3 w-3 mr-1" /> View
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" asChild className="h-6 text-[10px] px-2">
+            <a href={url} target="_blank" rel="noopener noreferrer" download>
+              <Download className="h-3 w-3 mr-1" /> Save
+            </a>
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   const sortedRequests = [...requests].sort((a, b) => {
@@ -334,7 +382,12 @@ export default function StaffMaintenancePage() {
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Location</h3>
                     <div className="flex items-start gap-2 h-[68px]">
                       <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                      <span className="text-sm">{getLocation(selected)}</span>
+                      <span className="text-sm">
+                        {getLocation(selected)}
+                        {selected.location && (
+                          <><br /><span className="text-muted-foreground">Specific: {selected.location}</span></>
+                        )}
+                      </span>
                     </div>
                   </div>
 
@@ -386,6 +439,19 @@ export default function StaffMaintenancePage() {
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Description</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{selected.description}</p>
                 </div>
+
+                {/* Attachments */}
+                {selected.attachments && selected.attachments.length > 0 && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Media & Attachments</h3>
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {selected.attachments.map((url, idx) => renderAttachment(url, `Attachment ${idx + 1}`))}
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {selected.resolvedAt && (
                   <>
@@ -504,6 +570,19 @@ export default function StaffMaintenancePage() {
               Save & Resolve
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Media Viewer Dialog */}
+      <Dialog open={!!viewerUrl} onOpenChange={(open) => !open && setViewerUrl(null)}>
+        <DialogContent className="max-w-4xl p-1 bg-black/95 border-none">
+          <div className="relative flex items-center justify-center min-h-[50vh]">
+            {viewerType === "image" ? (
+              <img src={viewerUrl!} alt="Viewer" className="max-h-[85vh] max-w-full object-contain rounded" />
+            ) : viewerType === "video" ? (
+              <video src={viewerUrl!} controls autoPlay className="max-h-[85vh] max-w-full rounded" />
+            ) : null}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

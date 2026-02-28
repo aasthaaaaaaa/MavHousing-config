@@ -10,10 +10,11 @@ import {
   Param,
   UseInterceptors,
   UploadedFile,
+  UploadedFiles,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { HousingService } from './housing.service';
 import { UploadService } from './upload.service';
 import { UploadIdRequestDto } from './dto/upload-id-request.dto';
@@ -78,6 +79,24 @@ export class HousingController {
     }
     // Perform OCR and Upload
     return this.uploadService.processIdCard(file, body.netId);
+  }
+
+  @Post('maintenance/upload')
+  @UseInterceptors(FilesInterceptor('files', 5))
+  async uploadMaintenanceAttachments(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Req() req: any,
+  ) {
+    const userId = parseInt(req.query.userId || req.body.userId) || 1;
+    
+    // Convert to array if single file
+    const filesArray = Array.isArray(files) ? files : [files].filter(Boolean);
+    
+    if (!filesArray.length) {
+      return [];
+    }
+
+    return this.uploadService.uploadMaintenanceFiles(filesArray, userId);
   }
 
   @Get('my-applications')

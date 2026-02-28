@@ -33,11 +33,35 @@ export class MaintenanceService {
     });
   }
 
+  /** Helper to generate a pre-signed URL ensuring reliable key parsing */
+  private async generateSignedUrl(urlOrKey: string): Promise<string> {
+    if (!urlOrKey) return '';
+    let key = urlOrKey;
+    if (key.startsWith('http')) {
+      try {
+        const urlObj = new URL(key);
+        // Extracts whatever is after the last slash in the pathname
+        key = urlObj.pathname.split('/').pop() || key;
+      } catch {
+        key = key.split('/').pop() || key; // fallback
+      }
+    }
+    try {
+      const command = new GetObjectCommand({
+        Bucket: 'documents', // Reusing documents bucket as established in upload.service
+        Key: `maintenance/${key}`,
+      });
+      return await getSignedUrl(this.s3Client, command, { expiresIn: 3600 * 24 });
+    } catch {
+      return urlOrKey; // Return original if failure
+    }
+  }
+
   /** Student: submit a new maintenance request */
   async createRequest(
     userId: number,
     leaseId: number,
-    data: { category: string; priority: string; description: string },
+    data: { category: string; priority: string; description: string; location?: string; attachments?: string[] },
   ) {
     return this.prisma.maintenanceRequest.create({
       data: {
@@ -46,6 +70,8 @@ export class MaintenanceService {
         category: data.category as any,
         priority: data.priority as any,
         description: data.description,
+        location: data.location || null,
+        attachments: data.attachments || [],
         status: 'OPEN',
         updatedAt: new Date(),
       },
@@ -54,7 +80,7 @@ export class MaintenanceService {
 
   /** Student: view their own requests */
   async getMyRequests(userId: number) {
-    return this.prisma.maintenanceRequest.findMany({
+    const requests = await this.prisma.maintenanceRequest.findMany({
       where: { createdByUserId: userId },
       include: {
         assignedStaff: {
@@ -69,11 +95,21 @@ export class MaintenanceService {
       },
       orderBy: { createdAt: 'desc' },
     });
+    
+    for (const req of requests) {
+      if (req.attachments && req.attachments.length > 0) {
+        req.attachments = await Promise.all(
+          req.attachments.map(url => this.generateSignedUrl(url))
+        );
+      }
+    }
+    
+    return requests;
   }
 
   /** Staff: view all requests */
   async getAllRequests() {
-    return this.prisma.maintenanceRequest.findMany({
+    const requests = await this.prisma.maintenanceRequest.findMany({
       include: {
         createdBy: {
           select: { netId: true, fName: true, lName: true, email: true },
@@ -90,6 +126,16 @@ export class MaintenanceService {
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    for (const req of requests) {
+      if (req.attachments && req.attachments.length > 0) {
+        req.attachments = await Promise.all(
+          req.attachments.map(url => this.generateSignedUrl(url))
+        );
+      }
+    }
+    
+    return requests;
   }
 
   async updateRequestStatus(
@@ -179,23 +225,7 @@ export class MaintenanceService {
 
     for (const comment of comments) {
       if (comment.attachmentUrl) {
-        let key = comment.attachmentUrl;
-        if (key.startsWith('http')) {
-          key = key.split('/').pop() || key;
-        }
-
-        try {
-          const command = new GetObjectCommand({
-            Bucket: 'maintenance',
-            Key: key,
-          });
-          // Generate a presigned URL valid for 1 hour (3600 seconds)
-          comment.attachmentUrl = await getSignedUrl(this.s3Client, command, {
-            expiresIn: 3600,
-          });
-        } catch (error) {
-          console.error('Failed to generate presigned URL', error);
-        }
+        comment.attachmentUrl = await this.generateSignedUrl(comment.attachmentUrl);
       }
     }
 

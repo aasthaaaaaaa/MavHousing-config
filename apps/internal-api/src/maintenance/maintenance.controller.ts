@@ -28,11 +28,13 @@ export class MaintenanceController {
   /** Student: submit a new request */
   @Post('request')
   async createRequest(@Body() body: any) {
-    const { userId, leaseId, category, priority, description } = body;
+    const { userId, leaseId, category, priority, description, location, attachments } = body;
     return this.maintenanceService.createRequest(userId, leaseId, {
       category,
       priority,
       description,
+      location,
+      attachments,
     });
   }
 
