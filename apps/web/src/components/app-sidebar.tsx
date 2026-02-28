@@ -104,7 +104,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <div className="flex items-center justify-between px-2 w-full">
               <SidebarMenuButton size="lg" asChild className="flex-1">
                 <a href="#">
-                  <img src="/mavhousing.PNG" alt="MavHousing" className="size-8 rounded-lg" />
+                  <img src="/Main MavHousing Logo.svg" alt="MavHousing" className="size-8 rounded-lg dark:hidden" />
+                  <img src="/Mavhousing Logo.svg" alt="MavHousing" className="hidden size-8 rounded-lg dark:block" />
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">MavHousing</span>
                     <span className="truncate text-xs">{role.charAt(0).toUpperCase() + role.slice(1)} Portal</span>

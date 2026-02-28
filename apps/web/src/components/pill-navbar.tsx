@@ -144,9 +144,14 @@ export function PillNavbar({ role }: PillNavbarProps) {
       <div className="flex items-center gap-3 shrink-0">
         <Link href={homeUrl} className="flex items-center gap-2.5 group">
           <img
-            src="/mavhousing.PNG"
+            src="/Main MavHousing Logo.svg"
             alt="MavHousing"
-            className="h-9 w-9 rounded-xl shadow-sm ring-1 ring-black/5 dark:ring-white/10 transition-transform group-hover:scale-105"
+            className="h-9 w-9 rounded-xl shadow-sm ring-1 ring-black/5 dark:hidden transition-transform group-hover:scale-105"
+          />
+          <img
+            src="/Mavhousing Logo.svg"
+            alt="MavHousing"
+            className="hidden h-9 w-9 rounded-xl shadow-sm ring-1 ring-white/10 dark:block transition-transform group-hover:scale-105"
           />
           <div className="hidden sm:flex flex-col leading-tight">
             <span className="font-semibold text-sm tracking-tight">MavHousing</span>
