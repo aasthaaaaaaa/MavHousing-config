@@ -53,11 +53,7 @@ export default function StudentChatPage() {
     }
 
     return (
-        <div className="p-6 h-[calc(100vh-4rem)] flex flex-col">
-            <div className="mb-6 animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both">
-                <h1 className="text-2xl font-bold tracking-tight">Lease Chat</h1>
-                <p className="text-muted-foreground text-sm mt-0.5">Chat with other members on your lease</p>
-            </div>
+        <div className="p-6 h-[calc(100vh-4rem)] flex flex-col pt-10">
             <div className="flex-1 flex items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both" style={{ animationDelay: "80ms" }}>
                 {lease?.leaseId && user?.userId && (
                     <ChatRoom

@@ -1,10 +1,31 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@common/prisma/prisma.service';
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '@common/prisma/prisma.module';
+import { PrismaService as RealPrismaService } from '@common/prisma/prisma.service';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { ChatDocument, ChatDocumentDocument } from './chat-document.schema';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class ChatService {
-  constructor(private prisma: PrismaService) {}
+  private s3Client: S3Client;
+
+  constructor(
+    private prisma: RealPrismaService,
+    @InjectModel(ChatDocument.name) private chatDocModel: Model<ChatDocumentDocument>,
+  ) {
+    this.s3Client = new S3Client({
+      region: 'auto',
+      endpoint: process.env.R3_API,
+      credentials: {
+        accessKeyId: process.env.R3_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.R3_SECRET_ACCESS_KEY || '',
+      },
+    });
+  }
 
   async buildUserContext(userId: number): Promise<string> {
     try {
@@ -226,5 +247,66 @@ ${userContext}`;
         },
       },
     });
+  }
+
+  /** Chat: Upload chat attachment and save to Mongo */
+  async uploadChatFile(leaseId: number, senderId: number, file: Express.Multer.File) {
+    if (file.size > 10 * 1024 * 1024) {
+      throw new BadRequestException('File size must be under 10MB');
+    }
+
+    const fileExt = file.originalname.split('.').pop();
+    const fileName = `${randomUUID()}.${fileExt}`;
+    const bucketName = 'chatfiles';
+
+    try {
+      await this.s3Client.send(
+        new PutObjectCommand({
+          Bucket: bucketName,
+          Key: fileName,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+        }),
+      );
+
+      // Create Mongoose record
+      const newDoc = new this.chatDocModel({
+        leaseId,
+        senderId,
+        url: fileName,
+        fileName: file.originalname,
+        fileType: file.mimetype,
+      });
+      await newDoc.save();
+
+      return newDoc;
+    } catch (error) {
+      console.error('S3 Upload Error for Chat:', error);
+      throw new BadRequestException('Failed to upload chat file');
+    }
+  }
+
+  /** Chat: Get all documents for a lease */
+  async getChatDocuments(leaseId: number) {
+    const docs = await this.chatDocModel.find({ leaseId }).sort({ createdAt: -1 });
+    
+    // Generate pre-signed URLs
+    const docsWithUrls = await Promise.all(
+      docs.map(async (doc) => {
+        const obj = doc.toObject();
+        try {
+          const command = new GetObjectCommand({
+            Bucket: 'chatfiles',
+            Key: obj.url,
+          });
+          obj.url = await getSignedUrl(this.s3Client, command, { expiresIn: 3600 * 24 * 7 });
+        } catch (e) {
+          // fallback
+        }
+        return obj;
+      })
+    );
+
+    return docsWithUrls;
   }
 }
