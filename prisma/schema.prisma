@@ -179,11 +179,13 @@ model MaintenanceRequest {
   assignedStaffId Int?
   category        MaintenanceCategory
   description     String
+  location        String?
   status          MaintenanceStatus   @default(OPEN)
   priority        MaintenancePriority @default(MEDIUM)
   createdAt       DateTime            @default(now())
   resolvedAt      DateTime?
   resolutionReason String?
+  attachments     String[]            @default([])
   updatedAt       DateTime            @updatedAt
   assignedStaff   User?               @relation("MaintenanceAssignedTo", fields: [assignedStaffId], references: [userId])
   createdBy       User                @relation("MaintenanceCreatedBy", fields: [createdByUserId], references: [userId], onDelete: Cascade)
