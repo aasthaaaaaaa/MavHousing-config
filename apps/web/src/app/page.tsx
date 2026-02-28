@@ -13,7 +13,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
-            <Image src="/mavhousing.PNG" alt="MavHousing" width={32} height={32} className="rounded-lg" />
+            <Image src="/Main MavHousing Logo.svg" alt="MavHousing" width={32} height={32} className="rounded-lg" />
             <span className="text-lg font-bold tracking-tight">MavHousing</span>
           </div>
           <div className="hidden gap-8 sm:flex">
@@ -249,7 +249,7 @@ export default function LandingPage() {
       <footer className="border-t border-gray-100 bg-white py-10">
         <div className="mx-auto max-w-6xl px-6 text-center">
           <div className="mb-4 flex items-center justify-center gap-2">
-            <Image src="/mavhousing.PNG" alt="MavHousing" width={28} height={28} className="rounded-lg" />
+            <Image src="/Main MavHousing Logo.svg" alt="MavHousing" width={28} height={28} className="rounded-lg" />
             <span className="font-bold">MavHousing</span>
           </div>
           <p className="text-sm text-gray-500">

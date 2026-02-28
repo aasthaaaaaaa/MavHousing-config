@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Mav Housing",
   description: "Mav Housing",
   icons: {
-    icon: "/mavhousing.PNG",
+    icon: "/Mavhousing Logo.svg",
   },
 };
 

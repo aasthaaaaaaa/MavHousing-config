@@ -68,7 +68,8 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="items-center">
-          <img src="/mavhousing.PNG" alt="MavHousing" className="h-16 w-16 mb-2" />
+          <img src="/Main MavHousing Logo.svg" alt="MavHousing" className="h-16 w-16 mb-2 dark:hidden" />
+          <img src="/Mavhousing Logo.svg" alt="MavHousing" className="hidden h-16 w-16 mb-2 dark:block" />
           <CardTitle className="text-xl">Sign in to MavHousing</CardTitle>
           <CardDescription>
             Enter your NetID and password below to login
