@@ -8,8 +8,10 @@ A NestJS monorepo housing platform for UTA's MavHousing — managing student app
 ## Tech Stack
 
 - **Backend Framework:** [NestJS](https://nestjs.com/) (TypeScript)
-- **Frontend:** [Next.js](https://nextjs.org/) _(planned)_
-- **Database:** [PostgreSQL](https://www.postgresql.org/) + [Prisma ORM](https://www.prisma.io/)
+- **Frontend:** [Next.js](https://nextjs.org/) (React, TailwindCSS, Radix UI)
+- **Database:** [PostgreSQL](https://www.postgresql.org/) + [Prisma ORM](https://www.prisma.io/) & [MongoDB Atlas](https://www.mongodb.com/) (Mongoose)
+- **Cloud Storage:** [Cloudflare R2](https://www.cloudflare.com/developer-platform/r2/) (S3-compatible bucket storage for media/documents)
+- **AI & ML:** [Google Gemini 2.5](https://deepmind.google/technologies/gemini/) (OCR) & `face-api.js` (Image processing)
 - **Email:** [Resend](https://resend.com/)
 - **SMS:** [Twilio](https://www.twilio.com/)
 - **API Docs:** [Swagger](https://swagger.io/) (via `@nestjs/swagger`)
@@ -177,7 +179,16 @@ The Prisma schema (`prisma/schema.prisma`) defines the following models:
 - **Lease** — Lease agreements supporting unit, room, or bed-level assignment
 - **Occupant** — Tracks lease holders, occupants, and roommates
 - **Payment** — Payment records tied to leases
-- **MaintenanceRequest** — Maintenance tickets with category, priority, and status
+- **MaintenanceRequest** — Maintenance tickets with category, priority, specific location, media attachments schema, and interactive comments.
+- **ChatDocument** *(MongoDB)* — Real-time lease-chat attachment tracking, dynamically indexing user media uploads natively mapped to `.mp4`, `.png`, and `.pdf` objects in Cloudflare R2 bucket.
+
+## Key Features Implemented
+
+* **Smart ID Verification:** AI-driven OCR extraction natively scanning student IDs utilizing **Google Gemini** for intelligent parsing and `face-api.js` local model weights to map and crop geometric face bounds specifically directly into cloud infrastructure.
+* **Lease Application Workflows:** Supports granular "By Unit" or "By Room/Bed" booking assignments securely tracked directly alongside occupant configurations.
+* **Immersive Maintenance Desk:** Staff and students can converse back-and-forth dynamically inside native React contexts over maintenance comments. Integrated explicit location routing natively tracked inside Postgres databases.
+* **Lease Member Real-time Chat:** Real-time Socket.io split-pane dashboard strictly tracking Mongoose Document attachments mapping to pre-signed Cloudflare R2 cloud buckets up to 10MB cleanly over dynamic dialog grids.
+* **Native Media Viewers:** Radix UI interactive `<Dialog>` media hubs actively unpacking and rendering `<video>` auto-play containers and native `<img>` schemas dynamically securely straight from the browser DOM.
 
 ### Useful Prisma Commands
 

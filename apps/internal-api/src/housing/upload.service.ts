@@ -308,4 +308,43 @@ export class UploadService implements OnModuleInit {
       );
     }
   }
+
+  async uploadMaintenanceFiles(files: Express.Multer.File[], userId: number) {
+    if (!files || files.length === 0) return [];
+    
+    const uploadedUrls: string[] = [];
+    
+    for (const file of files) {
+      if (file.size > 10 * 1024 * 1024) {
+         this.logger.warn(`File ${file.originalname} skipped: exceeds 10MB limit`);
+         continue;
+      }
+      
+      const isImage = file.mimetype.startsWith('image/');
+      const fileExt = file.originalname.split('.').pop() || (isImage ? 'jpg' : 'mp4');
+      const fileName = `maintenance-${userId}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      
+      try {
+        let bufferToUpload = file.buffer;
+        
+        // Only trigger sharp compression if it is an image
+        if (isImage) {
+           bufferToUpload = await this.imageProcessor.compress(file.buffer, 85, 1920);
+        }
+        
+        const url = await this.uploadFileToR2(
+          bufferToUpload,
+          fileName,
+          'maintenance',
+          file.mimetype
+        );
+        
+        uploadedUrls.push(url);
+      } catch (error) {
+        this.logger.error(`Failed to handle maintenance file ${file.originalname}: ${error.message}`);
+      }
+    }
+    
+    return uploadedUrls;
+  }
 }
