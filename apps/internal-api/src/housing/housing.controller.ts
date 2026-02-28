@@ -6,6 +6,7 @@ import {
   Req,
   UseGuards,
   Patch,
+  Delete,
   Param,
   UseInterceptors,
   UploadedFile,
@@ -116,6 +117,55 @@ export class HousingController {
   @Get('students')
   async getStudents() {
     return this.housingService.getStudents();
+  }
+
+  @Delete('applications/:id')
+  async deleteApplication(@Param('id') id: string, @Req() req: any) {
+    const userId = parseInt(req.query.userId);
+    if (!userId) {
+      throw new HttpException('User ID is required', HttpStatus.BAD_REQUEST);
+    }
+    return this.housingService.deleteApplication(parseInt(id), userId);
+  }
+
+  @Post('leases/:leaseId/occupants')
+  async addOccupant(
+    @Param('leaseId') leaseId: string,
+    @Body() body: { utaId: string },
+    @Req() req: any,
+  ) {
+    const requesterUserId = parseInt(req.query.userId);
+    if (!requesterUserId) {
+      throw new HttpException(
+        'Requester User ID is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return this.housingService.addOccupant(
+      parseInt(leaseId),
+      body.utaId,
+      requesterUserId,
+    );
+  }
+
+  @Delete('leases/:leaseId/occupants/:userId')
+  async removeOccupant(
+    @Param('leaseId') leaseId: string,
+    @Param('userId') targetUserId: string,
+    @Req() req: any,
+  ) {
+    const requesterUserId = parseInt(req.query.userId);
+    if (!requesterUserId) {
+      throw new HttpException(
+        'Requester User ID is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return this.housingService.removeOccupant(
+      parseInt(leaseId),
+      parseInt(targetUserId),
+      requesterUserId,
+    );
   }
 
   @Get('hierarchy')

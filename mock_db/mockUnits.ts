@@ -66,6 +66,20 @@ export const mockUnits = [
     requiresAdaAccess: true,
     maxOccupancy: 4,
   },
+  {
+    propertyId: 2,
+    unitNumber: '301',
+    floorLevel: 3,
+    requiresAdaAccess: false,
+    maxOccupancy: 4,
+  },
+  {
+    propertyId: 2,
+    unitNumber: '302',
+    floorLevel: 3,
+    requiresAdaAccess: false,
+    maxOccupancy: 4,
+  },
 
   // ============================================
   // HEIGHTS ON PECAN - EAST BUILDING (BY_ROOM)

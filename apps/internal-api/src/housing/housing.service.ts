@@ -311,11 +311,325 @@ export class HousingService {
     return this.transformApplication(app);
   }
 
+  private getTermDates(term: string): { startDate: Date; endDate: Date } {
+    // Basic parser for "FALL_2026", "SPRING_2027", etc.
+    const [season, yearStr] = term.split('_');
+    const year = parseInt(yearStr) || new Date().getFullYear();
+
+    if (season === 'FALL') {
+      return {
+        startDate: new Date(`${year}-08-15T00:00:00Z`),
+        endDate: new Date(`${year}-12-15T00:00:00Z`),
+      };
+    }
+    if (season === 'SPRING') {
+      return {
+        startDate: new Date(`${year}-01-10T00:00:00Z`),
+        endDate: new Date(`${year}-05-15T00:00:00Z`),
+      };
+    }
+    if (season === 'SUMMER') {
+      return {
+        startDate: new Date(`${year}-06-01T00:00:00Z`),
+        endDate: new Date(`${year}-08-01T00:00:00Z`),
+      };
+    }
+
+    // Default fallback
+    const now = new Date();
+    const nextYear = new Date();
+    nextYear.setFullYear(now.getFullYear() + 1);
+    return { startDate: now, endDate: nextYear };
+  }
+
   async updateApplicationStatus(appId: number, status: string) {
+    const application = await this.prisma.application.findUnique({
+      where: { appId },
+      include: {
+        preferredProperty: true,
+      },
+    });
+
+    if (!application) {
+      throw new NotFoundException(`Application with ID ${appId} not found`);
+    }
+
+    // If staff is approving, we need to enforce lease rules and auto-create a lease
+    if (status === 'APPROVED' && application.status !== 'APPROVED') {
+      
+      // Check if this is an occupant invite application
+      if (application.specialAccommodations?.startsWith('INVITE_LEASE:')) {
+        const leaseIdStr = application.specialAccommodations.split(':')[1];
+        const targetLeaseId = parseInt(leaseIdStr, 10);
+        
+        const targetLease = await this.prisma.lease.findUnique({
+          where: { leaseId: targetLeaseId },
+           include: { occupants: true, unit: true }
+        });
+
+        if (!targetLease) {
+          throw new HttpException('Target lease for invitation not found', HttpStatus.NOT_FOUND);
+        }
+
+        if (targetLease.occupants.some(o => o.userId === application.userId)) {
+           // Already an occupant, just mark app as approved
+        } else {
+           if (targetLease.occupants.length >= (targetLease.unit?.maxOccupancy || 1)) {
+              throw new HttpException('Target unit is at maximum capacity', HttpStatus.BAD_REQUEST);
+           }
+           
+           await this.prisma.occupant.create({
+             data: {
+               userId: application.userId,
+               leaseId: targetLeaseId,
+               occupantType: 'ROOMMATE',
+               moveInDate: new Date(),
+             }
+           });
+        }
+        
+        return this.prisma.application.update({
+          where: { appId },
+          data: { status: status as any },
+        });
+      }
+
+      // 1. Check if the user is already on an active lease that is not complete
+      const existingActiveLease = await this.prisma.lease.findFirst({
+        where: {
+          userId: application.userId,
+          status: {
+            in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE'] as any,
+          },
+        },
+      });
+
+      if (existingActiveLease && existingActiveLease.endDate > new Date()) {
+        throw new BadRequestException(
+          'User is already in an active lease that is not complete.',
+        );
+      }
+
+      // 2. Identify the term dates
+      const { startDate, endDate } = this.getTermDates(application.term);
+
+      // Default to property leaseType if available, else fallback to BY_BED
+      const leaseType = application.preferredProperty?.leaseType || 'BY_BED';
+
+      // 3. Auto-create a LEASE and Occupant record
+      await this.prisma.lease.create({
+        data: {
+          userId: application.userId,
+          leaseType: leaseType as any,
+          startDate,
+          endDate,
+          totalDue: 0,
+          dueThisMonth: 0,
+          status: 'ACTIVE',
+          occupants: {
+            create: {
+              userId: application.userId,
+              occupantType: 'LEASE_HOLDER',
+              moveInDate: startDate,
+            },
+          },
+        },
+      });
+    }
+
     return this.prisma.application.update({
       where: { appId },
       data: { status: status as any },
     });
+  }
+
+  async deleteApplication(appId: number, userId: number) {
+    const application = await this.prisma.application.findUnique({
+      where: { appId },
+    });
+
+    if (!application) {
+      throw new HttpException('Application not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (application.userId !== userId) {
+      throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    }
+
+    // Prevent deletion of approved applications
+    if (application.status === 'APPROVED') {
+      throw new HttpException(
+        'Cannot delete an approved application. Please contact staff.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Prevent deletion if there is an active lease for this term
+    const activeLease = await this.prisma.lease.findFirst({
+      where: {
+        userId,
+        status: { in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE'] as any },
+      },
+    });
+
+    if (activeLease && activeLease.endDate > new Date()) {
+       // A strict term check could be added here, but usually, 
+       // any active lease prevents withdrawing applications at this stage.
+       throw new HttpException(
+         'You have an active lease. Cannot remove application.',
+         HttpStatus.BAD_REQUEST,
+       );
+    }
+
+    await this.prisma.application.delete({
+      where: { appId },
+    });
+
+    return { message: 'Application deleted successfully' };
+  }
+
+  async addOccupant(
+    leaseId: number,
+    targetUtaId: string,
+    requesterUserId: number,
+  ) {
+    const lease = await this.prisma.lease.findUnique({
+      where: { leaseId },
+      include: { occupants: true, unit: true },
+    });
+
+    if (!lease) {
+      throw new HttpException('Lease not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (lease.leaseType !== 'BY_UNIT') {
+      throw new HttpException(
+        'Occupants can only be managed on BY_UNIT leases',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const isLeaseHolder = lease.occupants.some(
+      (o) =>
+        o.userId === requesterUserId && o.occupantType === 'LEASE_HOLDER',
+    );
+
+    if (!isLeaseHolder && lease.userId !== requesterUserId) {
+      throw new HttpException(
+        'Only the lease holder can add occupants',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const targetUser = await this.findUserByUtaId(targetUtaId);
+    if (!targetUser) {
+      throw new HttpException(
+        'Target user not found by UTA ID',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (lease.occupants.some((o) => o.userId === targetUser.userId)) {
+      throw new HttpException(
+        'User is already an occupant on this lease',
+        HttpStatus.CONFLICT,
+      );
+    }
+
+    const currentOccupantsCount = lease.occupants.length;
+    const maxOccupancy = lease.unit?.maxOccupancy || 1;
+
+    if (currentOccupantsCount >= maxOccupancy) {
+      throw new HttpException(
+        `Cannot add occupant: unit is at max capacity (${maxOccupancy})`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Pseudo-Invite application
+    // (As requested, we inject a special note for the new occupant to see in their app tab)
+    const newApp = await this.prisma.application.create({
+      data: {
+        userId: targetUser.userId,
+        term: 'INVITE', // Or derive the term from lease.startDate
+        status: 'SUBMITTED', // They will accept or deny it
+        specialAccommodations: `INVITE_LEASE:${leaseId}`,
+        submissionDate: new Date(),
+      },
+    });
+
+    // Send email notification to the occupant
+    console.log(`\n================================`);
+    console.log(`[EMAIL DISPATCH] To: ${targetUser.email}`);
+    console.log(`[EMAIL DISPATCH] Subject: You've been invited to join a lease!`);
+    console.log(`[EMAIL DISPATCH] Body: Dear ${targetUser.fName}, you have been invited to join a lease as an occupant. Please log in to your housing portal and check your "My Applications" tab to Accept or Deny this request.`);
+    console.log(`================================\n`);
+
+    return { message: 'Occupant invitation sent successfully' };
+  }
+
+  async removeOccupant(
+    leaseId: number,
+    targetUserId: number,
+    requesterUserId: number,
+  ) {
+    const lease = await this.prisma.lease.findUnique({
+      where: { leaseId },
+      include: { occupants: true },
+    });
+
+    if (!lease) {
+      throw new HttpException('Lease not found', HttpStatus.NOT_FOUND);
+    }
+
+    const requesterIsLeaseHolder = lease.occupants.some(
+      (o) =>
+        o.userId === requesterUserId && o.occupantType === 'LEASE_HOLDER',
+    );
+
+    // Only the lease holder can remove others. The target can also remove themselves (deny/leave).
+    if (!requesterIsLeaseHolder && requesterUserId !== targetUserId) {
+      throw new HttpException(
+        'Forbidden to remove this occupant',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const targetOccupancy = lease.occupants.find(
+      (o) => o.userId === targetUserId,
+    );
+
+    if (!targetOccupancy) {
+      // If no occupancy is found, see if we just need to delete the pseudo invite application
+      const inviteApp = await this.prisma.application.findFirst({
+         where: {
+            userId: targetUserId,
+            specialAccommodations: `INVITE_LEASE:${leaseId}`,
+         }
+      });
+      if (inviteApp) {
+         await this.prisma.application.delete({ where: { appId: inviteApp.appId }});
+         return { message: 'Occupant invitation withdrawn/denied' };
+      }
+
+      throw new HttpException(
+        'User is not an occupant on this lease',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (targetOccupancy.occupantType === 'LEASE_HOLDER' && lease.occupants.length > 1) {
+      throw new HttpException(
+        'Cannot remove the primary lease holder while other occupants exist',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.prisma.occupant.delete({
+      where: { occupantId: targetOccupancy.occupantId },
+    });
+
+    return { message: 'Occupant removed successfully' };
   }
 
   async getStudents() {

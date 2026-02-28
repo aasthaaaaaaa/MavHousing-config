@@ -95,7 +95,7 @@ export function HousingApplicationForm() {
           }));
         }
       }
-    } catch(e) {
+    } catch (e) {
       console.error("Failed to fetch user data for prefill");
     }
   }
@@ -128,7 +128,7 @@ export function HousingApplicationForm() {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
     setFormData(prev => ({ ...prev, idFile: file }));
-    
+
     setUploadingId(true);
     const data = new FormData();
     data.append('file', file);
@@ -142,7 +142,7 @@ export function HousingApplicationForm() {
 
       if (res.ok) {
         const result = await res.json();
-        
+
         if (result.studentId) {
           try {
             const userRes = await fetch(`http://localhost:3009/housing/user-by-utaid/${result.studentId}`);
@@ -247,18 +247,18 @@ export function HousingApplicationForm() {
       case 4: return formData.preferredPropertyId !== "";
       case 5: return formData.docUrl !== "" && formData.fullName !== "" && formData.utaId !== "";
       case 6: return (
-        formData.fullName.trim() !== "" && 
-        validateUtaId(formData.utaId) && 
-        validateEmail(formData.email) && 
+        formData.fullName.trim() !== "" &&
+        validateUtaId(formData.utaId) &&
+        validateEmail(formData.email) &&
         validatePhone(formData.phone)
-      ); 
+      );
       case 7: return (
-        formData.emergencyContactName.trim() !== "" && 
-        validatePhone(formData.emergencyContactPhone) && 
+        formData.emergencyContactName.trim() !== "" &&
+        validatePhone(formData.emergencyContactPhone) &&
         formData.emergencyContactRelation.trim() !== ""
       );
       case 8: return formData.sleepSchedule !== "" && formData.cleanliness !== "" && formData.noiseLevel !== "" && formData.smokingPreference !== "";
-      case 9: return true; 
+      case 9: return true;
       default: return true;
     }
   };
@@ -280,20 +280,11 @@ export function HousingApplicationForm() {
   }
 
   const handleNext = () => {
-    if (step === 2 && formData.propertyType === "RESIDENCE_HALL") {
-      setFormData(prev => ({ ...prev, leaseType: "BY_BED" }));
-      setStep(4);
-    } else {
-      setStep(step + 1);
-    }
+    setStep(step + 1);
   };
 
   const handleBack = () => {
-    if (step === 4 && formData.propertyType === "RESIDENCE_HALL") {
-      setStep(2);
-    } else {
-      setStep(step - 1);
-    }
+    setStep(step - 1);
   };
 
   return (
@@ -392,7 +383,7 @@ export function HousingApplicationForm() {
             <div className="space-y-4">
               <Label>Upload your Student ID</Label>
               <p className="text-sm text-muted-foreground mb-4">We will extract your name, ID, and profile picture automatically.</p>
-              
+
               <div className="border-2 border-dashed rounded-xl p-8 text-center flex flex-col items-center justify-center space-y-4">
                 <UploadCloud className="w-12 h-12 text-muted-foreground" />
                 <div>
@@ -427,19 +418,19 @@ export function HousingApplicationForm() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Full Name</Label>
-                  <Input value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} />
+                  <Input value={formData.fullName} onChange={e => setFormData({ ...formData, fullName: e.target.value })} />
                 </div>
                 <div className="space-y-2">
                   <Label>Student ID (10 digit)</Label>
-                  <Input value={formData.utaId} onChange={e => setFormData({...formData, utaId: e.target.value})} maxLength={10} />
+                  <Input value={formData.utaId} onChange={e => setFormData({ ...formData, utaId: e.target.value })} maxLength={10} />
                 </div>
                 <div className="space-y-2">
                   <Label>Email</Label>
-                  <Input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                  <Input value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                 </div>
                 <div className="space-y-2">
                   <Label>Phone Number</Label>
-                  <Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+                  <Input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
                 </div>
               </div>
             </div>
@@ -449,15 +440,15 @@ export function HousingApplicationForm() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Emergency Contact Full Name</Label>
-                <Input placeholder="Jane Doe" value={formData.emergencyContactName} onChange={e => setFormData({...formData, emergencyContactName: e.target.value})} />
+                <Input placeholder="Jane Doe" value={formData.emergencyContactName} onChange={e => setFormData({ ...formData, emergencyContactName: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label>Phone Number</Label>
-                <Input placeholder="(555) 123-4567" value={formData.emergencyContactPhone} onChange={e => setFormData({...formData, emergencyContactPhone: e.target.value})} />
+                <Input placeholder="(555) 123-4567" value={formData.emergencyContactPhone} onChange={e => setFormData({ ...formData, emergencyContactPhone: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label>Relationship</Label>
-                <Input placeholder="Mother, Father, Sibling..." value={formData.emergencyContactRelation} onChange={e => setFormData({...formData, emergencyContactRelation: e.target.value})} />
+                <Input placeholder="Mother, Father, Sibling..." value={formData.emergencyContactRelation} onChange={e => setFormData({ ...formData, emergencyContactRelation: e.target.value })} />
               </div>
             </div>
           )}
@@ -465,7 +456,7 @@ export function HousingApplicationForm() {
           {step === 8 && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground mb-4">This helps us match you with compatible roommates.</p>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Sleep Schedule</Label>
@@ -521,22 +512,22 @@ export function HousingApplicationForm() {
           {step === 9 && (
             <div className="space-y-4">
               <div className="flex items-center space-x-2 border p-4 rounded-lg">
-                <input 
-                  type="checkbox" 
-                  id="ada-access" 
-                  checked={formData.isAdaRequired} 
-                  onChange={e => setFormData({...formData, isAdaRequired: e.target.checked})}
+                <input
+                  type="checkbox"
+                  id="ada-access"
+                  checked={formData.isAdaRequired}
+                  onChange={e => setFormData({ ...formData, isAdaRequired: e.target.checked })}
                   className="w-5 h-5"
                 />
                 <Label htmlFor="ada-access" className="font-semibold cursor-pointer">I require ADA Accessible Housing</Label>
               </div>
               <div className="space-y-2">
                 <Label>Dietary Restrictions / Kitchen Needs (Optional)</Label>
-                <Textarea placeholder="e.g. Vegetarian, Halal..." value={formData.dietaryRestrictions} onChange={e => setFormData({...formData, dietaryRestrictions: e.target.value})} />
+                <Textarea placeholder="e.g. Vegetarian, Halal..." value={formData.dietaryRestrictions} onChange={e => setFormData({ ...formData, dietaryRestrictions: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label>Special Accommodations (Optional)</Label>
-                <Textarea placeholder="Describe any physical or medical accommodations needed..." value={formData.specialAccommodations} onChange={e => setFormData({...formData, specialAccommodations: e.target.value})} />
+                <Textarea placeholder="Describe any physical or medical accommodations needed..." value={formData.specialAccommodations} onChange={e => setFormData({ ...formData, specialAccommodations: e.target.value })} />
               </div>
             </div>
           )}
@@ -550,7 +541,7 @@ export function HousingApplicationForm() {
                   <p className="text-sm"><span className="text-muted-foreground">Lease Type:</span> {formData.leaseType.replace('_', ' ')}</p>
                   <p className="text-sm"><span className="text-muted-foreground">Property:</span> {properties.find((p) => p.propertyId.toString() === formData.preferredPropertyId)?.name}</p>
                 </div>
-                
+
                 <div className="border-t pt-3 flex items-center space-x-4">
                   {formData.profilePicUrl && <img src={formData.profilePicUrl} alt="Profile" className="w-12 h-12 rounded-full object-cover" />}
                   <div>
