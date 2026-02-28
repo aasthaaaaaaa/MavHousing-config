@@ -9,7 +9,9 @@ export class PaymentService {
   async getMyPayments(userId: number) {
     return this.prisma.payment.findMany({
       where: {
-        lease: { userId },
+        lease: {
+          OR: [{ userId }, { occupants: { some: { userId } } }],
+        },
       },
       include: {
         lease: {
@@ -25,7 +27,9 @@ export class PaymentService {
   /** Get payment summary for a user (lease balance info) */
   async getPaymentSummary(userId: number) {
     const lease = await this.prisma.lease.findFirst({
-      where: { userId },
+      where: {
+        OR: [{ userId }, { occupants: { some: { userId } } }],
+      },
       orderBy: { createdAt: 'desc' },
       include: {
         unit: { include: { property: true } },
@@ -56,13 +60,12 @@ export class PaymentService {
   }
 
   /** Simulate making a payment */
-  async makePayment(
-    userId: number,
-    data: { amount: number; method: string },
-  ) {
+  async makePayment(userId: number, data: { amount: number; method: string }) {
     // Find the active lease
     const lease = await this.prisma.lease.findFirst({
-      where: { userId },
+      where: {
+        OR: [{ userId }, { occupants: { some: { userId } } }],
+      },
       orderBy: { createdAt: 'desc' },
     });
 

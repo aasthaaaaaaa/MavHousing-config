@@ -9,10 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Wrench, MapPin, User, Calendar, AlertTriangle, Paperclip, Send, Download, ExternalLink, Trash2 } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Wrench, MapPin, User, Calendar, AlertTriangle } from "lucide-react";
+import {MapPin, User, Calendar, Paperclip, Send, ExternalLink, Trash2 } from "lucide-react";
 import { getMaintenanceStatusClass, getPriorityClass } from "@/lib/status-colors";
 
 interface MaintenanceRequest {

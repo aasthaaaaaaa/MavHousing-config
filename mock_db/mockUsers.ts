@@ -10,9 +10,9 @@ export const mockUsers = [
   // STUDENTS
   // ============================================
   {
-    utaId: '1001000001',
+    utaId: '1002072203',
     netId: 'axjh03',
-    fName: 'Aalok',
+    fName: 'Alok',
     lName: 'Jha',
     email: 'axj2203@uta.edu',
     phone: 8175550101,
@@ -220,5 +220,5 @@ export const mockUsers = [
     role: UserRole.STUDENT,
     studentStatus: StudentStatus.RESIDENT,
     requiresAdaAccess: false,
-  }
+  },
 ];

@@ -1,13 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { FileText, Calendar, MapPin, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { FileText, Calendar, MapPin, CheckCircle2, Clock, XCircle, Trash2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getApplicationStatusClass } from "@/lib/status-colors";
+import { toast } from "sonner";
+import { formatTerm } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Application {
   appId: number;
@@ -19,6 +32,7 @@ interface Application {
     address: string;
     propertyType: string;
   };
+  specialAccommodations?: string;
 }
 
 function getStatusBadge(status: string) {
@@ -52,6 +66,45 @@ export default function MyApplicationsPage() {
       setApplications([]);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleRemove(appId: number) {
+    try {
+      const res = await fetch(`http://localhost:3009/housing/applications/${appId}?userId=${user!.userId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setApplications(prev => prev.filter(app => app.appId !== appId));
+        toast.success("Application removed successfully.");
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        toast.error(errData.message || "Failed to remove the application. Please try again later.");
+      }
+    } catch (error) {
+      console.error("Failed to remove application:", error);
+      toast.error("An error occurred while trying to remove the application.");
+    }
+  }
+
+  async function handleAcceptInvite(appId: number) {
+    try {
+      // Approving the invite application triggers the lease creation/occupant logic implicitly
+      const res = await fetch(`http://localhost:3009/housing/applications/${appId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "APPROVED" }),
+      });
+      if (res.ok) {
+        toast.success("Invitation accepted! You are now an occupant on the lease.");
+        fetchApplications();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.message || "Failed to accept invitation.");
+      }
+    } catch {
+      toast.error("An error occurred accepting the invitation.");
     }
   }
 
@@ -103,8 +156,15 @@ export default function MyApplicationsPage() {
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-base">{app.term.replace("_", " ")}</CardTitle>
-                    <CardDescription>Application #{app.appId}</CardDescription>
+                    <CardTitle className="text-base">
+                      {app.specialAccommodations?.startsWith("INVITE_LEASE:") ? "Lease Invitation" : formatTerm(app.term)}
+                    </CardTitle>
+                    <CardDescription>
+                      {app.specialAccommodations?.startsWith("INVITE_LEASE:")
+                        ? "You have been invited to join a lease"
+                        : `Application #${app.appId}`
+                      }
+                    </CardDescription>
                   </div>
                   {getStatusBadge(app.status)}
                 </div>
@@ -152,6 +212,79 @@ export default function MyApplicationsPage() {
                   </div>
                 )}
               </CardContent>
+              <CardFooter className="flex justify-end pt-0 pb-5 gap-2">
+
+                {app.specialAccommodations?.startsWith("INVITE_LEASE:") && app.status !== "APPROVED" ? (
+                  <>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground transition-colors">
+                          Decline
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to decline this lease invitation? This will permanently remove the application.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleRemove(app.appId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            Decline
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm">
+                          Accept Invite
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Accept Lease Invitation</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to accept this invitation? You will be officially added as an occupant to this lease.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleAcceptInvite(app.appId)}>
+                            Accept and Join
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </>
+                ) : (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground transition-colors gap-2">
+                        <Trash2 className="w-4 h-4" />
+                        Remove Application
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently remove your housing application for {formatTerm(app.term)}.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleRemove(app.appId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                          Remove
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </CardFooter>
             </Card>
           ))}
         </div>

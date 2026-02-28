@@ -41,7 +41,7 @@ export class RolesGuard implements CanActivate {
     // support both single-role and multi-role user payloads
     const allowed = Array.isArray(userRoleOrRoles)
       ? requiredRoles.some((r) => userRoleOrRoles.includes(r))
-      : requiredRoles.includes(userRoleOrRoles as Role);
+      : requiredRoles.includes(userRoleOrRoles);
 
     if (!allowed) {
       throw new ForbiddenException('Insufficient role');

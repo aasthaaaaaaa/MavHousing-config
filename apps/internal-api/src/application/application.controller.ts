@@ -123,7 +123,6 @@ export class ApplicationController {
             {
               utaId: '1007654321',
               gender: 'FEMALE',
-              classification: 'Freshman',
             },
           ],
         },

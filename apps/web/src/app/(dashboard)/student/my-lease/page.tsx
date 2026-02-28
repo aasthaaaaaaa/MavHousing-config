@@ -5,10 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Building2, Calendar, CreditCard, BedDouble, DoorOpen, Key, Users } from "lucide-react";
+import { Building2, Calendar, CreditCard, BedDouble, DoorOpen, Key, Users, UserPlus, Trash2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getLeaseStatusClass, getOccupantTypeClass } from "@/lib/status-colors";
+import { toast } from "sonner";
 
 interface Lease {
   leaseId: number;
@@ -22,6 +24,7 @@ interface Lease {
   unit?: {
     unitNumber: string;
     floorLevel?: number;
+    maxOccupancy?: number;
     property: {
       name: string;
       address: string;
@@ -57,6 +60,8 @@ export default function MyLeasePage() {
   const [lease, setLease] = useState<Lease | null>(null);
   const [loading, setLoading] = useState(true);
   const [signing, setSigning] = useState(false);
+  const [inviteUtaId, setInviteUtaId] = useState("");
+  const [inviting, setInviting] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -89,6 +94,58 @@ export default function MyLeasePage() {
       // Could add toast here
     } finally {
       setSigning(false);
+    }
+  }
+
+  async function handleAddOccupant(e: React.FormEvent) {
+    e.preventDefault();
+    if (!inviteUtaId.trim()) return;
+
+    setInviting(true);
+    try {
+      const res = await fetch(`http://localhost:3009/housing/leases/${lease!.leaseId}/occupants?userId=${user!.userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ utaId: inviteUtaId }),
+      });
+
+      if (res.ok) {
+        toast.success("Occupant invitation sent successfully!");
+        setInviteUtaId("");
+        // We do not immediately show them in the lease table until they accept the application
+        // so no local state update of occupants is strictly necessary, 
+        // however, we could optionally refetch the lease.
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.message || "Failed to invite occupant");
+      }
+    } catch (error) {
+      toast.error("An error occurred while inviting occupant");
+    } finally {
+      setInviting(false);
+    }
+  }
+
+  async function handleRemoveOccupant(targetUserId: number) {
+    if (!confirm("Are you sure you want to remove this occupant?")) return;
+
+    try {
+      const res = await fetch(`http://localhost:3009/housing/leases/${lease!.leaseId}/occupants/${targetUserId}?userId=${user!.userId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        toast.success("Occupant removed successfully.");
+        setLease({
+          ...lease!,
+          occupants: lease!.occupants!.filter(o => o.user.userId !== targetUserId)
+        });
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.message || "Failed to remove occupant");
+      }
+    } catch (error) {
+      toast.error("An error occurred while removing occupant");
     }
   }
 
@@ -252,9 +309,30 @@ export default function MyLeasePage() {
               <Users className="h-5 w-5 text-primary" />
               <CardTitle>People on My Lease</CardTitle>
             </div>
-            <CardDescription>{lease.occupants.length} occupant{lease.occupants.length !== 1 ? 's' : ''}</CardDescription>
+            <CardDescription>{lease.occupants.length} occupant{lease.occupants.length !== 1 ? 's' : ''}. Max capacity: {lease.unit?.maxOccupancy || 1}.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
+
+            {/* Show Add Occupant form if BY_UNIT and the current user is LEASE_HOLDER */}
+            {lease.leaseType === 'BY_UNIT' &&
+              lease.occupants.some(o => o.user.userId === user?.userId && o.occupantType === 'LEASE_HOLDER') && (
+                <form onSubmit={handleAddOccupant} className="flex gap-3 items-end bg-muted/30 p-4 rounded-xl border">
+                  <div className="flex-1 space-y-2">
+                    <label className="text-sm font-medium">Invite a Roommate</label>
+                    <Input
+                      placeholder="Enter 10-digit UTA ID"
+                      value={inviteUtaId}
+                      onChange={e => setInviteUtaId(e.target.value)}
+                      maxLength={10}
+                    />
+                  </div>
+                  <Button type="submit" disabled={inviting || !inviteUtaId.trim() || lease.occupants.length >= (lease.unit?.maxOccupancy || 1)}>
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    {inviting ? "Inviting..." : "Add Occupant"}
+                  </Button>
+                </form>
+              )}
+
             <Table>
               <TableHeader>
                 <TableRow>
@@ -263,6 +341,9 @@ export default function MyLeasePage() {
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Move-in Date</TableHead>
+                  {lease.leaseType === 'BY_UNIT' && lease.occupants.some(o => o.user.userId === user?.userId && o.occupantType === 'LEASE_HOLDER') && (
+                    <TableHead className="text-right">Action</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -277,6 +358,15 @@ export default function MyLeasePage() {
                       </Badge>
                     </TableCell>
                     <TableCell>{occ.moveInDate ? formatDate(occ.moveInDate) : '—'}</TableCell>
+                    {lease.leaseType === 'BY_UNIT' && lease.occupants?.some(o => o.user.userId === user?.userId && o.occupantType === 'LEASE_HOLDER') && (
+                      <TableCell className="text-right">
+                        {occ.user.userId !== user?.userId && (
+                          <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={() => handleRemoveOccupant(occ.user.userId)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>

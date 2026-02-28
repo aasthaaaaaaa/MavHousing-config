@@ -24,6 +24,8 @@ model User {
   role                UserRole             @default(STUDENT)
   studentStatus       StudentStatus?
   staffPosition       StaffPosition?
+  profilePicUrl       String?
+  profileUrl          String?
   requiresAdaAccess   Boolean              @default(false)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
@@ -98,17 +100,16 @@ model Application {
   submissionDate           DateTime?
   createdAt                DateTime          @default(now())
   updatedAt                DateTime          @updatedAt
-  classification           String?           @db.VarChar(50)
   cleanliness              String?           @db.VarChar(50)
   dietaryRestrictions      String?
   emergencyContactName     String?           @db.VarChar(100)
   emergencyContactPhone    String?           @db.VarChar(20)
   emergencyContactRelation String?           @db.VarChar(50)
-  expectedGraduation       String?           @db.VarChar(20)
   noiseLevel               String?           @db.VarChar(50)
   sleepSchedule            String?           @db.VarChar(50)
   smokingPreference        String?           @db.VarChar(50)
   specialAccommodations    String?
+  idCardUrl                String?
   preferredProperty        Property?         @relation("PreferredProperty", fields: [preferredPropertyId], references: [propertyId])
   user                     User              @relation(fields: [userId], references: [userId], onDelete: Cascade)
 

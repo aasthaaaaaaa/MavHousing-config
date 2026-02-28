@@ -47,11 +47,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const room = await this.chatService.getOrCreateRoom(data.leaseId);
     client.join(`lease_${data.leaseId}`);
-    
+
     // Send chat history
     const history = await this.chatService.getChatHistory(data.leaseId);
     client.emit('chatHistory', history);
-    
+
     console.log(`User ${data.userId} joined lease chat: ${data.leaseId}`);
   }
 
@@ -69,8 +69,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // Broadcast to the lease room
     this.server.to(`lease_${data.leaseId}`).emit('newMessage', message);
-    
-    console.log(`Message sent in lease ${data.leaseId} by user ${data.senderId}`);
+
+    console.log(
+      `Message sent in lease ${data.leaseId} by user ${data.senderId}`,
+    );
   }
 
   @SubscribeMessage('markRead')
@@ -78,8 +80,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { messageId: string; userId: number; leaseId: number },
   ) {
-    const receipt = await this.chatService.markAsRead(data.messageId, data.userId);
-    
+    const receipt = await this.chatService.markAsRead(
+      data.messageId,
+      data.userId,
+    );
+
     // Notify others in the room about the read receipt
     this.server.to(`lease_${data.leaseId}`).emit('readReceipt', {
       messageId: data.messageId,

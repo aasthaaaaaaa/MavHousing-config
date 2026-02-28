@@ -7,7 +7,11 @@ export class ChatController {
 
   @Post('message')
   async sendMessage(
-    @Body() body: { userId: number; messages: { role: string; content: string }[] },
+    @Body()
+    body: {
+      userId: number;
+      messages: { role: string; content: string }[];
+    },
   ) {
     const reply = await this.chatService.chat(body.userId, body.messages);
     return { reply };

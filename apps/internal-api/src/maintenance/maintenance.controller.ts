@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Delete, Body, Req, Patch, Param, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Req,
+  Patch,
+  Param,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MaintenanceService } from './maintenance.service';
 
@@ -41,7 +53,8 @@ export class MaintenanceController {
   @Patch('requests/:id/status')
   async updateRequestStatus(
     @Param('id') id: string,
-    @Body() body: { status: string; staffId?: number; resolutionReason?: string },
+    @Body()
+    body: { status: string; staffId?: number; resolutionReason?: string },
   ) {
     return this.maintenanceService.updateRequestStatus(
       parseInt(id),

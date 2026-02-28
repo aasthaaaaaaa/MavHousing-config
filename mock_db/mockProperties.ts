@@ -2,13 +2,13 @@ import { LeaseType, PropertyType } from '../generated/prisma';
 
 export const mockProperties = [
   // ============================================
-  // MEADOW RUN (BY_UNIT - RESIDENCE HALL)
+  // MEADOW RUN (BY_UNIT - APARTMENT)
   // Units only — no rooms/beds tracked
   // ============================================
   {
     name: 'Meadow Run - North Tower',
     address: '701 W Mitchell St, Arlington, TX 76010',
-    propertyType: PropertyType.RESIDENCE_HALL,
+    propertyType: PropertyType.APARTMENT,
     leaseType: LeaseType.BY_UNIT,
     phone: 8172722000,
     totalCapacity: 200,
@@ -16,7 +16,7 @@ export const mockProperties = [
   {
     name: 'Meadow Run - South Tower',
     address: '705 W Mitchell St, Arlington, TX 76010',
-    propertyType: PropertyType.RESIDENCE_HALL,
+    propertyType: PropertyType.APARTMENT,
     leaseType: LeaseType.BY_UNIT,
     phone: 8172722001,
     totalCapacity: 180,
@@ -65,12 +65,12 @@ export const mockProperties = [
   },
 
   // ============================================
-  // CARDINAL COMMONS (BY_BED - RESIDENCE HALL)
+  // ARLINGTON HALL (BY_BED - RESIDENCE HALL)
   // Units → rooms → individual beds
   // ============================================
   {
-    name: 'Cardinal Commons',
-    address: '500 S Oak St, Arlington, TX 76010',
+    name: 'Arlington Hall',
+    address: '600 S West St, Arlington, TX 76010',
     propertyType: PropertyType.RESIDENCE_HALL,
     leaseType: LeaseType.BY_BED,
     phone: 8172725000,

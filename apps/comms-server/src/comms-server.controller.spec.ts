@@ -11,7 +11,9 @@ describe('CommsServerController', () => {
       providers: [CommsServerService],
     }).compile();
 
-    commsServerController = app.get<CommsServerController>(CommsServerController);
+    commsServerController = app.get<CommsServerController>(
+      CommsServerController,
+    );
   });
 
   describe('root', () => {

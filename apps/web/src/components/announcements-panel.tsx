@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, Paperclip, Send } from "lucide-react";
+import { Loader2, Paperclip, Send, XCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { Badge } from "@/components/ui/badge";
 
 export function AnnouncementsPanel({ roleScope }: { roleScope: "ADMIN" | "STAFF" }) {
     const { user } = useAuth();
@@ -24,7 +25,7 @@ export function AnnouncementsPanel({ roleScope }: { roleScope: "ADMIN" | "STAFF"
     const [message, setMessage] = useState("");
     const [scope, setScope] = useState("ALL");
     const [scopeValue, setScopeValue] = useState("");
-    const [file, setFile] = useState<File | null>(null);
+    const [files, setFiles] = useState<File[]>([]);
 
     useEffect(() => {
         fetchAnnouncements();
@@ -56,8 +57,13 @@ export function AnnouncementsPanel({ roleScope }: { roleScope: "ADMIN" | "STAFF"
             return;
         }
 
-        if (file && file.size > 20 * 1024 * 1024) {
-            toast.error("File size must be strictly less than 20MB.");
+        if (files.some(f => f.size > 10 * 1024 * 1024)) {
+            toast.error("Each file size must be strictly less than 10MB.");
+            return;
+        }
+
+        if (files.length > 5) {
+            toast.error("Maximum 5 attachments allowed.");
             return;
         }
 
@@ -69,9 +75,9 @@ export function AnnouncementsPanel({ roleScope }: { roleScope: "ADMIN" | "STAFF"
         formData.append("scopeValue", scopeValue);
         formData.append("senderRole", roleScope);
         formData.append("senderId", user?.userId?.toString() || "0");
-        if (file) {
-            formData.append("file", file);
-        }
+        files.forEach((f) => {
+            formData.append("files", f);
+        });
 
         try {
             const res = await authApi.post("/announcements", formData, {
@@ -82,7 +88,7 @@ export function AnnouncementsPanel({ roleScope }: { roleScope: "ADMIN" | "STAFF"
             setMessage("");
             setScope("ALL");
             setScopeValue("");
-            setFile(null);
+            setFiles([]);
 
             // Update local state without waiting for a re-fetch
             setAnnouncements((prev) => [res.data, ...prev]);
@@ -158,29 +164,54 @@ export function AnnouncementsPanel({ roleScope }: { roleScope: "ADMIN" | "STAFF"
                                 </div>
                             )}
 
-                            <div className="space-y-2 col-span-1 md:col-span-2">
-                                <Label htmlFor="attachment">File Attachment (Optional, max 20MB)</Label>
-                                <div className="flex items-center gap-4">
-                                    <Label
-                                        htmlFor="attachment"
-                                        className="flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer hover:bg-muted"
-                                    >
-                                        <Paperclip className="w-4 h-4" />
-                                        {file ? file.name : "Choose File"}
-                                    </Label>
-                                    <input
-                                        id="attachment"
-                                        type="file"
-                                        className="hidden"
-                                        onChange={(e) => setFile(e.target.files?.[0] || null)}
-                                    />
-                                    {file && (
-                                        <Button type="button" variant="ghost" size="sm" onClick={() => setFile(null)}>
-                                            Clear
-                                        </Button>
+                            <div className="space-y-4 col-span-1 md:col-span-2">
+                                <Label className="text-xs font-bold text-muted-foreground">Attachments (Max 5, &lt; 10MB each)</Label>
+                                <div className="flex flex-col gap-3 p-4 bg-muted/20 rounded-xl border border-dashed">
+                                    <div className="flex flex-wrap gap-2">
+                                        {files.map((f, idx) => (
+                                            <Badge key={idx} variant="secondary" className="pl-2 pr-1 py-1 rounded-lg flex items-center gap-2">
+                                                <Paperclip className="w-3 h-3" />
+                                                <span className="text-[10px] max-w-[150px] truncate">{f.name}</span>
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => setFiles(prev => prev.filter((_, i) => i !== idx))}
+                                                    className="p-1 hover:bg-destructive/10 hover:text-destructive rounded-md"
+                                                >
+                                                    <XCircle className="h-3 w-3" />
+                                                </button>
+                                            </Badge>
+                                        ))}
+                                        {files.length === 0 && (
+                                            <p className="text-[10px] text-muted-foreground italic">No files selected</p>
+                                        )}
+                                    </div>
+                                    
+                                    {files.length < 5 && (
+                                        <div className="flex items-center gap-4">
+                                            <Label
+                                                htmlFor="attachment"
+                                                className="flex items-center gap-2 px-4 py-2 border rounded-md cursor-pointer hover:bg-muted text-xs"
+                                            >
+                                                <Paperclip className="w-4 h-4" />
+                                                Add File
+                                            </Label>
+                                            <input
+                                                id="attachment"
+                                                type="file"
+                                                multiple
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    const newFiles = Array.from(e.target.files || []);
+                                                    if (files.length + newFiles.length > 5) {
+                                                        toast.error("Maximum 5 files allowed");
+                                                        return;
+                                                    }
+                                                    setFiles(prev => [...prev, ...newFiles]);
+                                                }}
+                                            />
+                                        </div>
                                     )}
                                 </div>
-                                <p className="text-xs text-muted-foreground">Supported limits: &lt; 20MB</p>
                             </div>
                         </div>
                     </CardContent>
@@ -225,11 +256,15 @@ export function AnnouncementsPanel({ roleScope }: { roleScope: "ADMIN" | "STAFF"
                                                 {ann.scope} {ann.scopeValue ? `(${ann.scopeValue})` : ""}
                                             </TableCell>
                                             <TableCell>
-                                                {ann.attachmentName ? (
-                                                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                                        <Paperclip className="w-3 h-3" />
-                                                        {ann.attachmentName}
-                                                    </span>
+                                                {ann.attachmentNames && ann.attachmentNames.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {ann.attachmentNames.map((name: string, i: number) => (
+                                                            <div key={i} className="flex items-center gap-1 text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
+                                                                <Paperclip className="w-2.5 h-2.5" />
+                                                                {name}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 ) : (
                                                     <span className="text-muted-foreground">-</span>
                                                 )}

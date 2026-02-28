@@ -28,16 +28,19 @@ export class AnnouncementsService {
     scopeValue: string | undefined,
     senderRole: string,
     senderId: number,
-    file?: Express.Multer.File,
+    files?: Express.Multer.File[],
   ) {
     // 1. Resolve Emails
     const emails = await this.resolveEmails(scope, scopeValue);
     if (emails.length === 0) {
-      throw new BadRequestException('No recipients resolved for the given scope.');
+      throw new BadRequestException(
+        'No recipients resolved for the given scope.',
+      );
     }
 
     // 2. Save to Mongo
-    const ModelToUse = senderRole === 'ADMIN' ? this.adminModel : this.staffModel;
+    const ModelToUse =
+      senderRole === 'ADMIN' ? this.adminModel : this.staffModel;
     const newAnnouncement = new ModelToUse({
       heading,
       message,
@@ -45,7 +48,7 @@ export class AnnouncementsService {
       scopeValue,
       senderRole,
       senderId,
-      attachmentName: file ? file.originalname : undefined,
+      attachmentNames: files ? files.map((f) => f.originalname) : [],
     });
     await newAnnouncement.save();
 
@@ -58,18 +61,22 @@ export class AnnouncementsService {
       <p><small>Sent by MavHousing ${senderRole}</small></p>
     `;
 
-    const attachments = file ? [{
-      filename: file.originalname,
-      content: file.buffer,
-    }] : undefined;
+    const attachments = files?.length
+      ? files.map((file) => ({
+          filename: file.originalname,
+          content: file.buffer,
+        }))
+      : undefined;
 
     let hasError = false;
     try {
       // In Resend Sandbox mode, we can only send to the verified email address.
       // To simulate the broadcast without failing the API, we intercept and send to axjh03@gmail.com once
       // with a note of the original resolved recipients.
-      
-      const debugHtml = html + `
+
+      const debugHtml =
+        html +
+        `
       <br/><hr/>
       <p style="color:red; font-size:12px;">
         <strong>System Notice:</strong> This is a sandboxed Resend broadcast. 
@@ -84,21 +91,22 @@ export class AnnouncementsService {
         html: debugHtml,
         attachments,
       });
-        
+
       if (error) {
         console.error('Resend API returned an error:', error);
         hasError = true;
       } else {
         console.log('Resend send success, data:', data);
       }
-      
     } catch (error) {
       console.error('Failed to send announcement emails exception', error);
       hasError = true;
     }
 
     if (hasError) {
-      throw new BadRequestException('Failed to deliver announcements through Resend. Check server logs.');
+      throw new BadRequestException(
+        'Failed to deliver announcements through Resend. Check server logs.',
+      );
     }
 
     return newAnnouncement;
@@ -111,13 +119,16 @@ export class AnnouncementsService {
 
   private chunkArray(arr: string[], size: number): string[][] {
     const results: string[][] = [];
-    for(let i = 0; i < arr.length; i += size) {
+    for (let i = 0; i < arr.length; i += size) {
       results.push(arr.slice(i, i + size));
     }
     return results;
   }
 
-  private async resolveEmails(scope: string, scopeValue?: string): Promise<string[]> {
+  private async resolveEmails(
+    scope: string,
+    scopeValue?: string,
+  ): Promise<string[]> {
     let users: { email: string }[] = [];
 
     switch (scope) {
@@ -125,44 +136,56 @@ export class AnnouncementsService {
         users = await this.prisma.user.findMany({ select: { email: true } });
         break;
       case 'ALL_STUDENTS':
-        users = await this.prisma.user.findMany({ where: { role: 'STUDENT' as any }, select: { email: true } });
+        users = await this.prisma.user.findMany({
+          where: { role: 'STUDENT' as any },
+          select: { email: true },
+        });
         break;
       case 'ALL_STAFF':
-        users = await this.prisma.user.findMany({ where: { role: { in: ['STAFF', 'ADMIN'] as any[] } }, select: { email: true } });
+        users = await this.prisma.user.findMany({
+          where: { role: { in: ['STAFF', 'ADMIN'] as any[] } },
+          select: { email: true },
+        });
         break;
       case 'PROPERTY':
         if (!scopeValue) throw new BadRequestException('Property ID required');
-        users = await this.getOccupantsFilter({ unit: { propertyId: parseInt(scopeValue, 10) } });
+        users = await this.getOccupantsFilter({
+          unit: { propertyId: parseInt(scopeValue, 10) },
+        });
         break;
       case 'UNIT':
         if (!scopeValue) throw new BadRequestException('Unit ID required');
-        users = await this.getOccupantsFilter({ unitId: parseInt(scopeValue, 10) });
+        users = await this.getOccupantsFilter({
+          unitId: parseInt(scopeValue, 10),
+        });
         break;
       case 'ROOM':
         if (!scopeValue) throw new BadRequestException('Room ID required');
-        users = await this.getOccupantsFilter({ roomId: parseInt(scopeValue, 10) });
+        users = await this.getOccupantsFilter({
+          roomId: parseInt(scopeValue, 10),
+        });
         break;
       case 'BED':
         if (!scopeValue) throw new BadRequestException('Bed ID required');
-        users = await this.getOccupantsFilter({ bedId: parseInt(scopeValue, 10) });
+        users = await this.getOccupantsFilter({
+          bedId: parseInt(scopeValue, 10),
+        });
         break;
       case 'INDIVIDUAL':
-        if (!scopeValue) throw new BadRequestException('Email or NetID required');
+        if (!scopeValue)
+          throw new BadRequestException('Email or NetID required');
         users = await this.prisma.user.findMany({
           where: {
-            OR: [
-              { email: scopeValue },
-              { netId: scopeValue }
-            ]
+            OR: [{ email: scopeValue }, { netId: scopeValue }],
           },
-          select: { email: true }
+          select: { email: true },
         });
         break;
       default:
         throw new BadRequestException('Invalid scope');
     }
 
-    const emails = users.map(u => u.email).filter(e => !!e);
+    const emails = users.map((u) => u.email).filter((e) => !!e);
     return [...new Set(emails)];
   }
 
@@ -178,10 +201,10 @@ export class AnnouncementsService {
       include: {
         occupants: {
           include: {
-            user: { select: { email: true } }
-          }
-        }
-      }
+            user: { select: { email: true } },
+          },
+        },
+      },
     });
 
     const users: { email: string }[] = [];

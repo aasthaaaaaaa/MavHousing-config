@@ -9,8 +9,16 @@ import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: 'AnnouncementAdmin', schema: AnnouncementSchema, collection: 'announcements-admin' },
-      { name: 'AnnouncementStaff', schema: AnnouncementSchema, collection: 'announcements-staff' },
+      {
+        name: 'AnnouncementAdmin',
+        schema: AnnouncementSchema,
+        collection: 'announcements-admin',
+      },
+      {
+        name: 'AnnouncementStaff',
+        schema: AnnouncementSchema,
+        collection: 'announcements-staff',
+      },
     ]),
     PrismaModule,
     ConfigModule,
