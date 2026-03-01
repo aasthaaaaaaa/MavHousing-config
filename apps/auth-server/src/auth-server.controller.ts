@@ -174,4 +174,50 @@ export class AuthServerController {
   adminOrStaff() {
     return { message: 'Allowed for admin or staff' };
   }
+
+  // ── Forgot Password ──
+
+  @Get('forgot-password/search')
+  @ApiOperation({
+    summary: 'Search user and return masked info for forgot password',
+  })
+  @ApiQuery({ name: 'netId', required: true, type: String })
+  forgotPasswordSearch(@Query('netId') netId: string) {
+    return this.authServerService.searchByNetId(netId);
+  }
+
+  @Post('forgot-password/send-code')
+  @ApiOperation({
+    summary: 'Send 6-digit verification code via email or phone',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        netId: { type: 'string' },
+        method: { type: 'string', enum: ['email', 'phone'] },
+      },
+      required: ['netId', 'method'],
+    },
+  })
+  sendCode(@Body() body: { netId: string; method: 'email' | 'phone' }) {
+    return this.authServerService.sendVerificationCode(body.netId, body.method);
+  }
+
+  @Post('forgot-password/reset')
+  @ApiOperation({ summary: 'Verify code and reset password' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        netId: { type: 'string' },
+        code: { type: 'string' },
+        newPassword: { type: 'string' },
+      },
+      required: ['netId', 'code', 'newPassword'],
+    },
+  })
+  resetPassword(@Body() body: any) {
+    return this.authServerService.verifyAndResetPassword(body);
+  }
 }

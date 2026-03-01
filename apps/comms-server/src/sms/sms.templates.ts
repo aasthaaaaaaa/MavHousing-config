@@ -62,4 +62,8 @@ export const SMS_TEMPLATES: Record<string, SmsGenerator> = {
   // ── Lease ──
   leaseAvailable: (ctx) =>
     `Mav Housing: Your housing lease is ready. Please review & sign in the portal: ${ctx.portalUrl || portal}`,
+
+  // ── Auth ──
+  forgotPassword: (ctx) =>
+    `Mav Housing: Your verification code is ${ctx.context}. It expires in 5 minutes.`,
 };

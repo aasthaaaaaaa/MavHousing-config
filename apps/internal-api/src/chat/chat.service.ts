@@ -1,5 +1,4 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '@common/prisma/prisma.module';
 import { PrismaService as RealPrismaService } from '@common/prisma/prisma.service';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { InjectModel } from '@nestjs/mongoose';

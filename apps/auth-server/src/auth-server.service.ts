@@ -2,7 +2,9 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { UserSignup } from '../DTO/userSignUp.dto';
 import { UpdateUserDto } from '../DTO/updateUser.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -15,7 +17,13 @@ export class AuthServerService {
   constructor(
     private jwtService: JwtService,
     private prisma: PrismaService,
+    private config: ConfigService,
   ) {}
+
+  private verificationCodes = new Map<
+    string,
+    { code: string; expiresAt: number; firstName: string }
+  >();
 
   // CREATE
   async createUser(user: UserSignup): Promise<boolean> {
@@ -216,5 +224,112 @@ export class AuthServerService {
   async checkRBACStaff() {
     console.log('Staff Role guard passed');
     return { message: 'Staff Role guard passed' };
+  }
+
+  // FORGOT PASSWORD
+  async searchByNetId(netId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { netId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with NetID ${netId} not found`);
+    }
+
+    const maskEmail = (email: string) => {
+      const [local, domain] = email.split('@');
+      if (local.length <= 3) return `${local[0]}***@${domain}`;
+      return `${local.slice(0, 3)}***@${domain}`;
+    };
+
+    const maskPhone = (phone: string | null) => {
+      if (!phone) return null;
+      if (phone.length <= 4) return `******${phone.slice(-1)}`;
+      return `${phone.slice(0, 2)}******${phone.slice(-2)}`;
+    };
+
+    return {
+      netId: user.netId,
+      firstName: user.fName,
+      maskedEmail: maskEmail(user.email),
+      maskedPhone: maskPhone(user.phone?.toString() || null),
+      hasPhone: !!user.phone,
+    };
+  }
+
+  async sendVerificationCode(netId: string, method: 'email' | 'phone') {
+    const user = await this.prisma.user.findUnique({
+      where: { netId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with NetID ${netId} not found`);
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+    this.verificationCodes.set(netId, {
+      code,
+      expiresAt,
+      firstName: user.fName,
+    });
+
+    const currentPort = this.config.get('port') || 3009;
+    const commsUrl =
+      this.config.get('COMMS_SERVER_URL') || `http://localhost:${currentPort}`;
+
+    if (method === 'email') {
+      try {
+        await fetch(`${commsUrl}/email/send/forgotPassword`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: user.email,
+            firstName: user.fName,
+            context: code,
+          }),
+        });
+      } catch (e) {
+        console.error('Failed to call comms-server for email:', e);
+        throw new Error('Failed to send verification email');
+      }
+    } else {
+      if (!user.phone) throw new BadRequestException('No phone number on file');
+      try {
+        await fetch(`${commsUrl}/sms/send/forgotPassword`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: `+1${user.phone.toString()}`, // Assuming US numbers
+            firstName: user.fName,
+            context: code,
+          }),
+        });
+      } catch (e) {
+        console.error('Failed to call comms-server for SMS:', e);
+        throw new Error('Failed to send verification SMS');
+      }
+    }
+
+    return { success: true, message: `Code sent via ${method}` };
+  }
+
+  async verifyAndResetPassword(resetData: any) {
+    const { netId, code, newPassword } = resetData;
+    const stored = this.verificationCodes.get(netId);
+
+    if (!stored || stored.code !== code || Date.now() > stored.expiresAt) {
+      throw new UnauthorizedException('Invalid or expired verification code');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({
+      where: { netId },
+      data: { passwordHash: hashedPassword },
+    });
+
+    this.verificationCodes.delete(netId);
+    return { success: true, message: 'Password reset successfully' };
   }
 }

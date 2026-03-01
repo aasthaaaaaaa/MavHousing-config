@@ -14,7 +14,7 @@ export const mockUsers = [
     netId: 'axjh03',
     fName: 'Alok',
     lName: 'Jha',
-    email: 'axj2203@uta.edu',
+    email: 'axjh03@gmail.com',
     phone: 8175550101,
     passwordHash: 'P@ssw0rd123', // plain password for now
     dob: new Date('2003-05-15'),

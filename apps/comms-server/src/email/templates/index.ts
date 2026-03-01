@@ -32,6 +32,9 @@ import {
 // Lease templates
 import { leaseAvailable } from './lease.templates';
 
+// Auth templates
+import { forgotPassword } from './auth.templates';
+
 export type TemplateGenerator = (ctx: TemplateContext) => {
   subject: string;
   html: string;
@@ -60,6 +63,9 @@ export const EMAIL_TEMPLATES: Record<string, TemplateGenerator> = {
 
   // ── Lease ──
   leaseAvailable,
+
+  // ── Auth ──
+  forgotPassword,
 };
 
 export type { TemplateContext };
