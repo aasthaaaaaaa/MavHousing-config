@@ -351,7 +351,7 @@ export class HousingService {
     });
 
     if (!application) {
-      throw new NotFoundException(`Application with ID ${appId} not found`);
+      throw new Error(`Application with ID ${appId} not found`);
     }
 
     // If staff is approving, we need to enforce lease rules and auto-create a lease
@@ -405,7 +405,7 @@ export class HousingService {
       });
 
       if (existingActiveLease && existingActiveLease.endDate > new Date()) {
-        throw new BadRequestException(
+        throw new Error(
           'User is already in an active lease that is not complete.',
         );
       }
