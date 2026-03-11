@@ -226,10 +226,10 @@ export function PillNavbar({ role }: PillNavbarProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-3 p-1 pr-1.5 border border-transparent bg-transparent cursor-pointer rounded-full transition-all duration-200 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 group">
-              <div className="hidden md:flex flex-col items-end text-sm leading-tight ml-2">
+              <span className="hidden md:flex flex-col items-end text-sm leading-tight ml-2">
                 <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{user?.fName ? `${user.fName} ${user.lName}` : (user?.username || "User")}</span>
                 <span className="text-[11px] text-muted-foreground">{roleLabel}</span>
-              </div>
+              </span>
               <Avatar className="h-9 w-9 rounded-full ring-2 ring-primary/20 transition-all group-hover:ring-primary/50 shadow-sm">
                 <AvatarImage src="" alt={user?.username || "User"} />
                 <AvatarFallback className="rounded-full text-xs font-semibold bg-primary/10 text-primary">
