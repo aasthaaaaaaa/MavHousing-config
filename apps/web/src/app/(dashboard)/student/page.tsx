@@ -27,10 +27,10 @@ interface LeaseData {
 }
 
 interface PaymentSummary {
-  balance: number;
-  dueThisMonth: number;
-  totalPaid: number;
-  totalDue: number;
+  monthlyRent: number;
+  paidThisMonth: boolean;
+  amountDueThisMonth: number;
+  paymentsMade: number;
 }
 
 interface MaintenanceRequest {
@@ -87,7 +87,7 @@ export default function StudentDashboard() {
 
   const openRequests = requests.filter(r => r.status === "OPEN" || r.status === "IN_PROGRESS");
   const pendingApps = applications.filter(a => a.status === "PENDING");
-  const balancePct = payments ? Math.min(100, (payments.totalPaid / payments.totalDue) * 100) : 0;
+
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
@@ -114,12 +114,15 @@ export default function StudentDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <p className={`text-3xl font-bold tracking-tight ${payments && payments.balance > 0 ? "text-destructive" : "text-green-500"}`}>
-              {payments ? formatMoney(payments.dueThisMonth) : "—"}
+            <p className={`text-3xl font-bold tracking-tight ${payments && payments.amountDueThisMonth > 0 ? "text-destructive" : "text-green-500"}`}>
+              {payments ? formatMoney(payments.amountDueThisMonth) : "—"}
             </p>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <TrendingUp className="h-3 w-3" />
-              {payments ? `${formatMoney(payments.totalPaid)} paid of ${formatMoney(payments.totalDue)}` : "No lease"}
+              {payments?.paidThisMonth ? (
+                <><CheckCircle2 className="h-3 w-3 text-green-500" /> Paid this month</>
+              ) : (
+                <><TrendingUp className="h-3 w-3" /> {payments ? `${formatMoney(payments.monthlyRent)}/mo rent` : "No lease"}</>
+              )}
             </p>
           </CardContent>
         </Card>
@@ -220,38 +223,26 @@ export default function StudentDashboard() {
           <CardContent className="space-y-4">
             {payments ? (
               <>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Progress</span>
-                    <span className="font-semibold tabular-nums">{balancePct.toFixed(0)}%</span>
-                  </div>
-                  <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-green-500 rounded-full transition-all duration-700 ease-out"
-                      style={{ width: `${balancePct}%` }}
-                    />
-                  </div>
-                </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Paid</span>
-                    <span className="font-medium text-green-600">{formatMoney(payments.totalPaid)}</span>
+                    <span className="text-muted-foreground">Monthly Rent</span>
+                    <span className="font-semibold">{formatMoney(payments.monthlyRent)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Remaining</span>
-                    <span className={`font-semibold ${payments.balance > 0 ? "text-destructive" : "text-green-600"}`}>
-                      {formatMoney(payments.balance)}
+                    <span className="text-muted-foreground">This Month</span>
+                    <span className={`font-semibold ${payments.paidThisMonth ? "text-green-600" : "text-destructive"}`}>
+                      {payments.paidThisMonth ? "Paid ✓" : formatMoney(payments.amountDueThisMonth) + " due"}
                     </span>
                   </div>
                   <Separator />
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Due This Month</span>
-                    <span className="font-bold">{formatMoney(payments.dueThisMonth)}</span>
+                    <span className="text-muted-foreground">Payments Made</span>
+                    <span className="font-medium">{payments.paymentsMade}</span>
                   </div>
                 </div>
-                <Button variant={payments.balance > 0 ? "default" : "outline"} size="sm" className="w-full rounded-xl" asChild>
+                <Button variant={!payments.paidThisMonth ? "default" : "outline"} size="sm" className="w-full rounded-xl" asChild>
                   <Link href="/student/payments">
-                    {payments.balance > 0 ? "Make a Payment" : "View History"} <ChevronRight className="h-3 w-3 ml-1" />
+                    {!payments.paidThisMonth ? "Pay Rent" : "View History"} <ChevronRight className="h-3 w-3 ml-1" />
                   </Link>
                 </Button>
               </>
