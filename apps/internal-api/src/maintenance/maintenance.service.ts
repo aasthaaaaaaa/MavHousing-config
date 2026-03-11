@@ -108,8 +108,19 @@ export class MaintenanceService {
   }
 
   /** Staff: view all requests */
-  async getAllRequests() {
+  async getAllRequests(propertyId?: number) {
+    const whereClause: any = {};
+    
+    if (propertyId) {
+      whereClause.lease = {
+        unit: {
+          propertyId: propertyId,
+        },
+      };
+    }
+
     const requests = await this.prisma.maintenanceRequest.findMany({
+      where: whereClause,
       include: {
         createdBy: {
           select: { netId: true, fName: true, lName: true, email: true },

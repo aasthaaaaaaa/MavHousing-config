@@ -82,6 +82,7 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }: Edit
     role: "student", gender: "",
     studentStatus: "" as string | null,
     staffPosition: "" as string | null,
+    assignedPropertyId: null as number | null,
     requiresAdaAccess: false,
     newPassword: "",
   })
@@ -100,6 +101,9 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }: Edit
   const [lockReason, setLockReason] = useState("")
   const [locking, setLocking] = useState(false)
 
+  // ── Properties State ──
+  const [properties, setProperties] = useState<{ propertyId: number; name: string }[]>([])
+
   // ── Initialize form data when dialog opens ──
   useEffect(() => {
     if (open && user) {
@@ -112,6 +116,7 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }: Edit
         gender: user.gender || "",
         studentStatus: user.studentStatus || null,
         staffPosition: user.staffPosition || null,
+        assignedPropertyId: user.assignedPropertyId || null,
         requiresAdaAccess: user.requiresAdaAccess ?? false,
         newPassword: "",
       })
@@ -119,6 +124,13 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }: Edit
       setTargetLeaseId("")
       setAsLeaseHolder(false)
       fetchLease(user.userId)
+      
+      if (properties.length === 0) {
+        fetch("http://localhost:3009/housing/properties")
+          .then(r => r.json())
+          .then(data => setProperties(Array.isArray(data) ? data : []))
+          .catch(() => {})
+      }
     }
     if (!open) {
       setLease(null)
@@ -361,14 +373,28 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }: Edit
                       <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="NOT_APPLICABLE">Not Applicable</SelectItem>
-                        <SelectItem value="RESIDENT_A">Resident Assistant</SelectItem>
-                        <SelectItem value="DESK_A">Desk Assistant</SelectItem>
                         <SelectItem value="MANAGEMENT">Management</SelectItem>
-                        <SelectItem value="SECURITY">Security</SelectItem>
+                        <SelectItem value="RESIDENT_A">Resident Assistant</SelectItem>
                         <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+                  {formData.role === "staff" && formData.staffPosition === "RESIDENT_A" && (
+                    <div className="animate-in fade-in slide-in-from-top-1">
+                      <Label className="text-xs">Assigned Property <span className="text-red-500">*</span></Label>
+                      <Select
+                        value={formData.assignedPropertyId ? String(formData.assignedPropertyId) : ""}
+                        onValueChange={v => setFormData({ ...formData, assignedPropertyId: parseInt(v) })}
+                      >
+                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select property" /></SelectTrigger>
+                        <SelectContent>
+                          {properties.map(p => (
+                            <SelectItem key={p.propertyId} value={String(p.propertyId)}>{p.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   <div>
                     <Label className="text-xs">ADA Access</Label>
                     <Select value={formData.requiresAdaAccess ? "yes" : "no"} onValueChange={v => setFormData({ ...formData, requiresAdaAccess: v === "yes" })}>

@@ -36,6 +36,7 @@ export function CreateUserDialog({
   onUserCreated,
 }: CreateUserDialogProps) {
   const [submitting, setSubmitting] = useState(false);
+  const [properties, setProperties] = useState<{ propertyId: number; name: string }[]>([]);
 
   const [formData, setFormData] = useState({
     fName: "",
@@ -50,7 +51,18 @@ export function CreateUserDialog({
     studentStatus: "",
     staffPosition: "",
     requiresAdaAccess: false,
+    assignedPropertyId: null as number | null,
   });
+
+  // Fetch properties
+  useMemo(() => {
+    if (open && properties.length === 0) {
+      fetch("http://localhost:3009/housing/properties")
+        .then(r => r.json())
+        .then(data => setProperties(Array.isArray(data) ? data : []))
+        .catch(() => {});
+    }
+  }, [open]);
 
   const resetForm = () => {
     setFormData({
@@ -66,6 +78,7 @@ export function CreateUserDialog({
       studentStatus: "",
       staffPosition: "",
       requiresAdaAccess: false,
+      assignedPropertyId: null,
     });
   };
 
@@ -131,6 +144,9 @@ export function CreateUserDialog({
       }
       if (formData.role === "staff" && formData.staffPosition) {
         payload.staffPosition = formData.staffPosition;
+        if (formData.staffPosition === "RESIDENT_A" && formData.assignedPropertyId) {
+          payload.assignedPropertyId = formData.assignedPropertyId;
+        }
       }
 
       await authApi.post("/auth/create-new", payload);
@@ -350,8 +366,29 @@ export function CreateUserDialog({
                 <SelectContent>
                   <SelectItem value="MANAGEMENT">Management</SelectItem>
                   <SelectItem value="RESIDENT_A">Resident Assistant</SelectItem>
-                  <SelectItem value="DESK_A">Desk Assistant</SelectItem>
-                  <SelectItem value="SECURITY">Security</SelectItem>
+                  <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Conditional: Assigned Property for Resident Assistant */}
+          {formData.role === "staff" && formData.staffPosition === "RESIDENT_A" && (
+            <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
+              <Label>Assigned Property <span className="text-red-500">*</span></Label>
+              <Select
+                value={formData.assignedPropertyId ? String(formData.assignedPropertyId) : ""}
+                onValueChange={(v) => setFormData({ ...formData, assignedPropertyId: parseInt(v) })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select property" />
+                </SelectTrigger>
+                <SelectContent>
+                  {properties.map(p => (
+                    <SelectItem key={p.propertyId} value={String(p.propertyId)}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

@@ -107,8 +107,9 @@ export class HousingController {
   }
 
   @Get('applications')
-  async getAllApplications() {
-    return this.housingService.getAllApplications();
+  async getAllApplications(@Req() req: any) {
+    const propertyId = req.query.propertyId ? parseInt(req.query.propertyId) : undefined;
+    return this.housingService.getAllApplications(propertyId);
   }
 
   @Get('applications/:id')

@@ -248,8 +248,11 @@ export class HousingService {
     return app;
   }
 
-  async getAllApplications() {
+  async getAllApplications(propertyId?: number) {
+    const whereClause: any = propertyId ? { preferredPropertyId: propertyId } : {};
+
     const apps = await this.prisma.application.findMany({
+      where: whereClause,
       include: {
         user: {
           select: {

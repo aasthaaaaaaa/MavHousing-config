@@ -17,6 +17,7 @@ export const userSchema = z.object({
   requiresAdaAccess: z.boolean().optional(),
   isLocked: z.boolean().optional(),
   lockReason: z.string().optional().nullable(),
+  assignedPropertyId: z.number().optional().nullable(),
   // Add an ID for dnd-kit if not present in user object, though netId is unique
   id: z.string().optional(),
 });

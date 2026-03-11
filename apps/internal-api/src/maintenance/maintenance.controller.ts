@@ -47,8 +47,9 @@ export class MaintenanceController {
 
   /** Staff: view all requests */
   @Get('requests')
-  async getAllRequests() {
-    return this.maintenanceService.getAllRequests();
+  async getAllRequests(@Req() req: any) {
+    const propertyId = req.query.propertyId ? parseInt(req.query.propertyId) : undefined;
+    return this.maintenanceService.getAllRequests(propertyId);
   }
 
   /** Staff: update request status */

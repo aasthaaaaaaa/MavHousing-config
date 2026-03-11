@@ -38,7 +38,20 @@ async function main() {
     }
     console.log('   ✅ Database cleared\n');
 
-    // 1. Create Users
+    // 1. Create Properties
+    console.log('🏢 Creating properties...');
+    const properties: any[] = [];
+    for (const prop of mockProperties) {
+      const created = await prisma.property.create({ data: prop });
+      properties.push(created);
+    }
+    console.log(`   ✅ Created ${properties.length} properties`);
+    properties.forEach((prop) =>
+      console.log(`      - ${prop.name} (${prop.leaseType})`),
+    );
+    console.log();
+
+    // 2. Create Users
     console.log('👥 Creating users...');
     const users: any[] = [];
     for (const user of mockUsers) {
@@ -52,19 +65,6 @@ async function main() {
       users.push(created);
     }
     console.log(`   ✅ Created ${users.length} users\n`);
-
-    // 2. Create Properties
-    console.log('🏢 Creating properties...');
-    const properties: any[] = [];
-    for (const prop of mockProperties) {
-      const created = await prisma.property.create({ data: prop });
-      properties.push(created);
-    }
-    console.log(`   ✅ Created ${properties.length} properties`);
-    properties.forEach((prop) =>
-      console.log(`      - ${prop.name} (${prop.leaseType})`),
-    );
-    console.log();
 
     // 3. Create Units
     console.log('🏠 Creating units...');

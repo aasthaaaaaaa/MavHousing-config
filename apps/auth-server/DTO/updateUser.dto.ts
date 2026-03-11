@@ -15,4 +15,5 @@ export class UpdateUserDto {
   @ApiProperty() @IsOptional() @IsBoolean() readonly isLocked?: boolean;
   @ApiProperty() @IsOptional() @IsString() readonly lockReason?: string;
   @ApiProperty() @IsOptional() @IsString() readonly newPassword?: string;
+  @ApiProperty() @IsOptional() readonly assignedPropertyId?: number;
 }

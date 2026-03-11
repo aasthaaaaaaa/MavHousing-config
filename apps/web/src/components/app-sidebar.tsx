@@ -21,7 +21,8 @@ import {
   LogOut,
   House,
   MessageSquare,
-  Megaphone
+  Megaphone,
+  BarChart3
 } from "lucide-react"
 
 import {
@@ -73,14 +74,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       { title: "Payments", url: "/student/payments", icon: CreditCard },
       { title: "Lease Chat", url: "/student/chat", icon: MessageSquare },
     ],
-    staff: [
-      { title: "Dashboard", url: "/staff", icon: Home },
-      { title: "Applications", url: "/staff/applications", icon: FileText },
-      { title: "Leases", url: "/staff/leases", icon: FileText },
-      { title: "Maintenance", url: "/staff/maintenance", icon: Wrench },
-      { title: "Payments", url: "/staff/payments", icon: CreditCard },
-      { title: "Announcements", url: "/staff/announcements", icon: Megaphone },
-    ],
     admin: [
       { title: "Dashboard", url: "/admin", icon: Home },
       { title: "User Management", url: "/admin/users", icon: Users },
@@ -88,12 +81,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       { title: "Occupancy Dashboard", url: "/admin/occupancy", icon: PieChart },
       { title: "Announcements", url: "/admin/announcements", icon: Megaphone },
     ]
-
-
   };
 
-  const role = user?.role as keyof typeof navItems || 'student';
-  const items = navItems[role] || navItems.student;
+  // Staff nav filtered by position
+  const allStaffItems = [
+    { title: "Dashboard", url: "/staff", icon: Home },
+    { title: "Maint. Dashboard", url: "/staff/maintenance/dashboard", icon: BarChart3 },
+    { title: "Applications", url: "/staff/applications", icon: FileText },
+    { title: "Leases", url: "/staff/leases", icon: FileText },
+    { title: "Maintenance", url: "/staff/maintenance", icon: Wrench },
+    { title: "Payments", url: "/staff/payments", icon: CreditCard },
+    { title: "Announcements", url: "/staff/announcements", icon: Megaphone },
+  ];
+
+  const staffNavByPosition: Record<string, string[]> = {
+    MANAGEMENT: ["Dashboard", "Applications", "Leases", "Maintenance", "Payments", "Announcements"],
+    RESIDENT_A: ["Dashboard", "Maintenance", "Announcements"],
+    MAINTENANCE: ["Maint. Dashboard", "Maintenance"],
+  };
+
+  const role = (user?.role || 'student') as string;
+  const staffPosition = user?.staffPosition;
+  const items = role === 'staff'
+    ? allStaffItems.filter(item => {
+        const allowed = staffNavByPosition[staffPosition || "MANAGEMENT"] || staffNavByPosition.MANAGEMENT;
+        return allowed.includes(item.title);
+      })
+    : (navItems[role as keyof typeof navItems] || navItems.student);
 
   return (
     <Sidebar collapsible="icon" {...props}>

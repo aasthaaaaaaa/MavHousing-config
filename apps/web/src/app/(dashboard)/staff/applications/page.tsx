@@ -21,6 +21,7 @@ import { User, MapPin, Calendar, FileText, Clock, CheckCircle2, XCircle, Search,
 import { CreateLeaseDialog } from "@/components/create-lease-dialog";
 import { getApplicationStatusClass } from "@/lib/status-colors";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/context/AuthContext";
 
 interface Application {
   appId: number;
@@ -38,6 +39,7 @@ function fmtDate(d?: string) {
 
 export default function StaffApplicationsPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -60,7 +62,8 @@ export default function StaffApplicationsPage() {
 
   async function fetchApplications() {
     try {
-      const res = await fetch("http://localhost:3009/housing/applications");
+      const propertyQuery = user?.staffPosition === "RESIDENT_A" && user.assignedPropertyId ? `?propertyId=${user.assignedPropertyId}` : "";
+      const res = await fetch(`http://localhost:3009/housing/applications${propertyQuery}`);
       const data = await res.json();
       const sorted = (Array.isArray(data) ? data : []).sort((a, b) => 
         new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime()

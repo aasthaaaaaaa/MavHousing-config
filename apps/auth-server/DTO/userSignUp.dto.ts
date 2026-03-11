@@ -72,4 +72,8 @@ export class UserSignup {
   @IsBoolean()
   @IsOptional()
   readonly requiresAdaAccess: boolean;
+
+  @ApiProperty()
+  @IsOptional()
+  readonly assignedPropertyId?: number;
 }

@@ -135,9 +135,10 @@ export default function StaffDashboard() {
 
   async function fetchStats() {
     try {
+      const propertyQuery = user?.staffPosition === "RESIDENT_A" && user.assignedPropertyId ? `?propertyId=${user.assignedPropertyId}` : "";
       const [apps, maint, payments, leases, paymentStats] = await Promise.all([
         fetch("http://localhost:3009/housing/applications").then(r => r.json()).catch(() => []),
-        fetch("http://localhost:3009/maintenance/requests").then(r => r.json()).catch(() => []),
+        fetch(`http://localhost:3009/maintenance/requests${propertyQuery}`).then(r => r.json()).catch(() => []),
         fetch("http://localhost:3009/payment/all").then(r => r.json()).catch(() => []),
         fetch("http://localhost:3009/lease/leases").then(r => r.json()).catch(() => []),
         fetch("http://localhost:3009/payment/stats").then(r => r.json()).catch(() => ({ totalPayments: 0, successfulPayments: 0, failedPayments: 0, collectionRate: 0 })),

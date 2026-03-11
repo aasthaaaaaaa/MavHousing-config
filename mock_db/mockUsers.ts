@@ -448,6 +448,7 @@ export const mockUsers = [
     role: UserRole.STAFF,
     studentStatus: null,
     staffPosition: StaffPosition.RESIDENT_A,
+    assignedPropertyId: 1,
     requiresAdaAccess: false,
   },
   {
@@ -463,6 +464,7 @@ export const mockUsers = [
     role: UserRole.STAFF,
     studentStatus: null,
     staffPosition: StaffPosition.RESIDENT_A,
+    assignedPropertyId: 2,
     requiresAdaAccess: false,
   },
   {
@@ -492,7 +494,7 @@ export const mockUsers = [
     gender: Gender.MALE,
     role: UserRole.STAFF,
     studentStatus: null,
-    staffPosition: StaffPosition.DESK_A,
+    staffPosition: StaffPosition.MAINTENANCE,
     requiresAdaAccess: false,
   },
   {
@@ -507,7 +509,8 @@ export const mockUsers = [
     gender: Gender.FEMALE,
     role: UserRole.STAFF,
     studentStatus: null,
-    staffPosition: StaffPosition.SECURITY,
+    staffPosition: StaffPosition.RESIDENT_A,
+    assignedPropertyId: 1,
     requiresAdaAccess: false,
   },
   {
@@ -538,6 +541,7 @@ export const mockUsers = [
     role: UserRole.STAFF,
     studentStatus: null,
     staffPosition: StaffPosition.RESIDENT_A,
+    assignedPropertyId: 2,
     requiresAdaAccess: false,
   },
 

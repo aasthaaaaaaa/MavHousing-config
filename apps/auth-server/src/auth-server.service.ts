@@ -65,6 +65,7 @@ export class AuthServerService {
         studentStatus: user.studentStatus || null,
         staffPosition: user.staffPosition || null,
         requiresAdaAccess: user.requiresAdaAccess ?? false,
+        assignedPropertyId: user.assignedPropertyId || null,
       },
     });
 
@@ -128,6 +129,7 @@ export class AuthServerService {
       updateData.requiresAdaAccess = data.requiresAdaAccess;
     if (data.isLocked !== undefined) updateData.isLocked = data.isLocked;
     if (data.lockReason !== undefined) updateData.lockReason = data.lockReason;
+    if (data.assignedPropertyId !== undefined) updateData.assignedPropertyId = data.assignedPropertyId;
     if (data.newPassword) {
       updateData.passwordHash = await bcrypt.hash(data.newPassword, 10);
     }
@@ -211,6 +213,8 @@ export class AuthServerService {
         userId: user.userId,
         fName: user.fName,
         lName: user.lName,
+        staffPosition: user.staffPosition || null,
+        assignedPropertyId: user.assignedPropertyId || null,
         jti: randomUUID(),
       };
       return {

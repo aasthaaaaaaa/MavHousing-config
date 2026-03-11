@@ -13,6 +13,8 @@ export interface User {
   userId?: number;
   fName?: string;
   lName?: string;
+  staffPosition?: string | null;
+  assignedPropertyId?: number | null;
 }
 
 interface AuthContextType {

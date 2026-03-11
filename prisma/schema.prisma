@@ -39,6 +39,8 @@ model User {
   maintenanceCreated  MaintenanceRequest[] @relation("MaintenanceCreatedBy")
   maintenanceComments MaintenanceComment[]
   occupancies         Occupant[]           @relation("Occupants")
+  assignedPropertyId  Int?
+  assignedProperty    Property?            @relation("StaffAssignedProperty", fields: [assignedPropertyId], references: [propertyId])
 
   @@map("users")
 }
@@ -54,6 +56,7 @@ model Property {
   createdAt     DateTime      @default(now())
   applicants    Application[] @relation("PreferredProperty")
   units         Unit[]
+  assignedStaff User[]        @relation("StaffAssignedProperty")
 
   @@map("properties")
 }
@@ -268,8 +271,7 @@ enum StudentStatus {
 enum StaffPosition {
   MANAGEMENT
   RESIDENT_A
-  DESK_A
-  SECURITY
+  MAINTENANCE
 }
 
 enum ApplicationStatus {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -50,6 +51,7 @@ function getLocation(r: MaintenanceRequest) {
 }
 
 export default function StaffMaintenancePage() {
+  const { user } = useAuth();
   const [requests, setRequests] = useState<MaintenanceRequest[]>([]);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,8 +73,9 @@ export default function StaffMaintenancePage() {
   useEffect(() => { fetchAll(); }, []);
 
   async function fetchAll() {
+    const propertyQuery = user?.staffPosition === "RESIDENT_A" && user.assignedPropertyId ? `?propertyId=${user.assignedPropertyId}` : "";
     const [reqRes, staffRes] = await Promise.all([
-      fetch("http://localhost:3009/maintenance/requests").then(r => r.json()).catch(() => []),
+      fetch(`http://localhost:3009/maintenance/requests${propertyQuery}`).then(r => r.json()).catch(() => []),
       fetch("http://localhost:3009/maintenance/staff").then(r => r.json()).catch(() => []),
     ]);
     setRequests(Array.isArray(reqRes) ? reqRes : []);

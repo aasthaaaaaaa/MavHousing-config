@@ -14,6 +14,7 @@ import {
   Wrench,
   CreditCard,
   MessageSquare,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
@@ -47,14 +48,6 @@ const navItemsByRole: Record<string, NavItem[]> = {
     { title: "Occupancy", url: "/admin/occupancy", icon: PieChart },
     { title: "Announcements", url: "/admin/announcements", icon: Megaphone },
   ],
-  staff: [
-    { title: "Dashboard", url: "/staff", icon: Home },
-    { title: "Applications", url: "/staff/applications", icon: FileText },
-    { title: "Leases", url: "/staff/leases", icon: FileText },
-    { title: "Maintenance", url: "/staff/maintenance", icon: Wrench },
-    { title: "Payments", url: "/staff/payments", icon: CreditCard },
-    { title: "Announcements", url: "/staff/announcements", icon: Megaphone },
-  ],
   student: [
     { title: "Dashboard", url: "/student", icon: Home },
     { title: "My Applications", url: "/student/my-applications", icon: FileText },
@@ -63,6 +56,28 @@ const navItemsByRole: Record<string, NavItem[]> = {
     { title: "Payments", url: "/student/payments", icon: CreditCard },
     { title: "Chat", url: "/student/chat", icon: MessageSquare },
   ],
+}
+
+// Staff nav items gated by StaffPosition
+const allStaffNavItems: NavItem[] = [
+  { title: "Dashboard", url: "/staff", icon: Home },
+  { title: "Maint. Dashboard", url: "/staff/maintenance/dashboard", icon: BarChart3 },
+  { title: "Applications", url: "/staff/applications", icon: FileText },
+  { title: "Leases", url: "/staff/leases", icon: FileText },
+  { title: "Maintenance", url: "/staff/maintenance", icon: Wrench },
+  { title: "Payments", url: "/staff/payments", icon: CreditCard },
+  { title: "Announcements", url: "/staff/announcements", icon: Megaphone },
+]
+
+const staffNavByPosition: Record<string, string[]> = {
+  MANAGEMENT: ["Dashboard", "Applications", "Leases", "Maintenance", "Payments", "Announcements"],
+  RESIDENT_A: ["Dashboard", "Maintenance", "Announcements"],
+  MAINTENANCE: ["Maint. Dashboard", "Maintenance"],
+}
+
+function getStaffNavItems(position?: string | null): NavItem[] {
+  const allowed = staffNavByPosition[position || "MANAGEMENT"] || staffNavByPosition.MANAGEMENT
+  return allStaffNavItems.filter(item => allowed.includes(item.title))
 }
 
 const roleLabelMap: Record<string, string> = {
@@ -83,7 +98,9 @@ export function PillNavbar({ role }: PillNavbarProps) {
   const [indicatorStyle, setIndicatorStyle] = React.useState<React.CSSProperties>({})
   const [mounted, setMounted] = React.useState(false)
 
-  const items = navItemsByRole[role] || navItemsByRole.admin
+  const items = role === "staff"
+    ? getStaffNavItems(user?.staffPosition)
+    : (navItemsByRole[role] || navItemsByRole.admin)
   const roleLabel = roleLabelMap[role] || "Portal"
   const homeUrl = `/${role}`
 
