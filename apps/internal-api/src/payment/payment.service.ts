@@ -24,7 +24,7 @@ export class PaymentService {
     });
   }
 
-  /** Get payment summary for a user (lease balance info) */
+  /** Get payment summary for a user — monthly-rent focused */
   async getPaymentSummary(userId: number) {
     const lease = await this.prisma.lease.findFirst({
       where: {
@@ -38,24 +38,35 @@ export class PaymentService {
 
     if (!lease) return null;
 
-    const payments = await this.prisma.payment.findMany({
-      where: { leaseId: lease.leaseId, isSuccessful: true },
+    const monthlyRent = Number(lease.dueThisMonth);
+
+    // Check if a successful payment exists for the current calendar month
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    const thisMonthPayment = await this.prisma.payment.findFirst({
+      where: {
+        leaseId: lease.leaseId,
+        isSuccessful: true,
+        transactionDate: { gte: startOfMonth, lt: startOfNextMonth },
+      },
     });
 
-    const totalPaid = payments.reduce(
-      (sum, p) => sum + Number(p.amountPaid),
-      0,
-    );
-    const totalDue = Number(lease.totalDue);
-    const balance = totalDue - totalPaid;
+    const paidThisMonth = !!thisMonthPayment;
+
+    // Count all successful payments
+    const allPayments = await this.prisma.payment.findMany({
+      where: { leaseId: lease.leaseId },
+    });
+    const successCount = allPayments.filter((p) => p.isSuccessful).length;
 
     return {
       lease,
-      totalDue,
-      totalPaid,
-      balance,
-      dueThisMonth: Number(lease.dueThisMonth),
-      paymentCount: payments.length,
+      monthlyRent,
+      paidThisMonth,
+      amountDueThisMonth: paidThisMonth ? 0 : monthlyRent,
+      paymentsMade: successCount,
     };
   }
 
@@ -88,6 +99,17 @@ export class PaymentService {
         },
       },
     });
+  }
+
+  /** Staff/Admin: get payment compliance stats */
+  async getPaymentStats() {
+    const allPayments = await this.prisma.payment.findMany();
+    const total = allPayments.length;
+    const successful = allPayments.filter((p) => p.isSuccessful).length;
+    const failed = total - successful;
+    const collectionRate = total > 0 ? Math.round((successful / total) * 100) : 0;
+
+    return { totalPayments: total, successfulPayments: successful, failedPayments: failed, collectionRate };
   }
 
   /** Staff: view all payments  */

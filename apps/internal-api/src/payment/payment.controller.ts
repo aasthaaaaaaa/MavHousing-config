@@ -26,6 +26,12 @@ export class PaymentController {
     return this.paymentService.makePayment(userId, { amount, method });
   }
 
+  /** Staff/Admin: get payment compliance stats */
+  @Get('stats')
+  async getPaymentStats() {
+    return this.paymentService.getPaymentStats();
+  }
+
   /** Staff: view all payments */
   @Get('all')
   async getAllPayments() {

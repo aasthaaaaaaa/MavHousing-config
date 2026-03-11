@@ -1,8 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
+
 import { ConfigService } from '@nestjs/config';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { EmailService } from '../../../comms-server/src/email/email.service';
 
 @Injectable()
 export class HousingService {
@@ -11,6 +13,7 @@ export class HousingService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
+    private emailService: EmailService,
   ) {
     const accountId = this.configService.get<string>('R3_ACCOUNT_ID');
     const accessKeyId = this.configService.get<string>('R3_ACCESS_KEY_ID');
@@ -342,11 +345,17 @@ export class HousingService {
     return { startDate: now, endDate: nextYear };
   }
 
-  async updateApplicationStatus(appId: number, status: string) {
+  async updateApplicationStatus(
+    appId: number,
+    status: string,
+    reason?: string,
+    requestInfo?: string,
+  ) {
     const application = await this.prisma.application.findUnique({
       where: { appId },
       include: {
         preferredProperty: true,
+        user: true,
       },
     });
 
@@ -356,7 +365,7 @@ export class HousingService {
 
     // If staff is approving, we need to enforce lease rules and auto-create a lease
     if (status === 'APPROVED' && application.status !== 'APPROVED') {
-      
+      // ... (existing approval logic remains same)
       // Check if this is an occupant invite application
       if (application.specialAccommodations?.startsWith('INVITE_LEASE:')) {
         const leaseIdStr = application.specialAccommodations.split(':')[1];
@@ -435,6 +444,26 @@ export class HousingService {
           },
         },
       });
+    }
+
+    // Handle Rejected flow
+    if (status === 'REJECTED') {
+      await this.emailService.sendTemplateEmail(
+        'rejected',
+        application.user.email,
+        application.user.fName,
+        reason || 'Your application has been reviewed and unfortunately was not approved at this time.',
+      );
+    }
+
+    // Handle Info Request (Under Review)
+    if (status === 'UNDER_REVIEW' && requestInfo) {
+      await this.emailService.sendTemplateEmail(
+        'missingDocuments',
+        application.user.email,
+        application.user.fName,
+        `We require additional information to proceed with your application: ${requestInfo}`,
+      );
     }
 
     return this.prisma.application.update({

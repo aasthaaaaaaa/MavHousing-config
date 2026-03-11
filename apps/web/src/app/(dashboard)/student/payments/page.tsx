@@ -12,14 +12,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DollarSign, CheckCircle2, Receipt, Loader2, AlertCircle } from "lucide-react";
+import { DollarSign, CheckCircle2, Receipt, Loader2, AlertCircle, CalendarCheck, Hash } from "lucide-react";
 import { getPaymentStatusClass } from "@/lib/status-colors";
 
 interface PaymentSummary {
-  totalDue: number;
-  totalPaid: number;
-  balance: number;
-  dueThisMonth: number;
+  monthlyRent: number;
+  paidThisMonth: boolean;
+  amountDueThisMonth: number;
+  paymentsMade: number;
   lease: {
     startDate: string;
     endDate: string;
@@ -59,8 +59,8 @@ function fmtDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function fmtShortMonth(d: string) {
-  return new Date(d).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+function currentMonthLabel() {
+  return new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
 export default function PaymentsPage() {
@@ -102,7 +102,7 @@ export default function PaymentsPage() {
 
       setSummary(sumData);
       setPayments(Array.isArray(payData) ? payData : []);
-      if (sumData?.dueThisMonth) setAmount(String(sumData.dueThisMonth));
+      if (sumData?.monthlyRent) setAmount(String(sumData.monthlyRent));
     } finally {
       setLoading(false);
     }
@@ -150,9 +150,6 @@ export default function PaymentsPage() {
     }
   }
 
-  const balancePct = summary ? Math.min(100, (summary.totalPaid / summary.totalDue) * 100) : 0;
-  const totalHistory = payments.reduce((s, p) => s + parseFloat(p.amountPaid), 0);
-
   if (loading) {
     return (
       <div className="flex flex-1 flex-col gap-6 p-6">
@@ -162,7 +159,6 @@ export default function PaymentsPage() {
             <div key={i} className="h-28 bg-muted animate-pulse rounded-2xl" style={{ animationDelay: `${i * 70}ms` }} />
           ))}
         </div>
-        <div className="h-20 bg-muted animate-pulse rounded-2xl" />
         <div className="h-64 bg-muted animate-pulse rounded-2xl" />
       </div>
     );
@@ -183,23 +179,24 @@ export default function PaymentsPage() {
       <div className="flex items-start justify-between animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Payments</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">Manage your rent payments and view payment history</p>
+          <p className="text-muted-foreground text-sm mt-0.5">Manage your monthly rent payments</p>
         </div>
-        <Button onClick={() => setDialogOpen(true)} variant="outline">
-          <Receipt className="h-4 w-4 mr-2" /> Make a Payment
-        </Button>
+        {!summary.paidThisMonth && (
+          <Button onClick={() => setDialogOpen(true)} variant="outline">
+            <Receipt className="h-4 w-4 mr-2" /> Pay Rent
+          </Button>
+        )}
       </div>
 
       {/* 3 stat cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+        {/* Monthly Rent */}
         <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5" style={{ animationDelay: "80ms" }}>
           <CardContent className="pt-5 pb-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Current Balance Due</p>
-                <p className={`text-3xl font-bold ${summary.balance > 0 ? "text-destructive" : "text-green-500"}`}>
-                  {fmt(summary.balance)}
-                </p>
+                <p className="text-sm text-muted-foreground mb-1">Monthly Rent</p>
+                <p className="text-3xl font-bold">{fmt(summary.monthlyRent)}</p>
                 {summary.lease?.unit && (
                   <p className="text-xs text-muted-foreground mt-2">
                     {summary.lease.unit.property.name} · Unit {summary.lease.unit.unitNumber}
@@ -211,62 +208,49 @@ export default function PaymentsPage() {
           </CardContent>
         </Card>
 
+        {/* This Month's Status */}
         <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5" style={{ animationDelay: "150ms" }}>
           <CardContent className="pt-5 pb-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Total Paid (YTD)</p>
-                <p className="text-3xl font-bold">{fmt(summary.totalPaid)}</p>
-                <p className="text-xs text-muted-foreground mt-2">{payments.length} payment{payments.length !== 1 ? "s" : ""} recorded</p>
+                <p className="text-sm text-muted-foreground mb-1">{currentMonthLabel()}</p>
+                {summary.paidThisMonth ? (
+                  <>
+                    <p className="text-3xl font-bold text-green-500">{fmt(0)}</p>
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                      <p className="text-xs text-green-600 dark:text-green-400 font-medium">Paid</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-3xl font-bold text-destructive">{fmt(summary.amountDueThisMonth)}</p>
+                    <p className="text-xs text-destructive mt-2 font-medium">Payment due</p>
+                  </>
+                )}
               </div>
-              <CheckCircle2 className="h-8 w-8 text-green-500/40" />
+              <CalendarCheck className={`h-8 w-8 ${summary.paidThisMonth ? "text-green-500/40" : "text-destructive/40"}`} />
             </div>
           </CardContent>
         </Card>
 
+        {/* Payments Made */}
         <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5" style={{ animationDelay: "220ms" }}>
           <CardContent className="pt-5 pb-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Annual Total</p>
-                <p className="text-3xl font-bold">{fmt(summary.totalDue)}</p>
-                <p className="text-xs text-muted-foreground mt-2">Full lease value</p>
+                <p className="text-sm text-muted-foreground mb-1">Payments Made</p>
+                <p className="text-3xl font-bold">{summary.paymentsMade}</p>
+                <p className="text-xs text-muted-foreground mt-2">Successful payments on record</p>
               </div>
-              <Receipt className="h-8 w-8 text-muted-foreground/40" />
+              <Hash className="h-8 w-8 text-muted-foreground/40" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Progress card */}
-      <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl" style={{ animationDelay: "290ms" }}>
-        <CardContent className="pt-5 pb-5">
-          <div className="flex items-start justify-between mb-1">
-            <div>
-              <p className="font-semibold">Annual Payment Progress</p>
-              <p className="text-sm text-muted-foreground">
-                You&apos;ve paid {fmt(summary.totalPaid)} of {fmt(summary.totalDue)} for the lease term
-              </p>
-            </div>
-            <span className="text-sm font-semibold text-primary">{balancePct.toFixed(1)}%</span>
-          </div>
-          <div className="mt-4 h-2 w-full bg-secondary rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all"
-              style={{ width: `${balancePct}%` }}
-            />
-          </div>
-          {summary.lease && (
-            <div className="flex justify-between text-xs text-muted-foreground mt-2">
-              <span>{fmtShortMonth(summary.lease.startDate)}</span>
-              <span>{fmtShortMonth(summary.lease.endDate)}</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Payment History */}
-      <Card className="animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl" style={{ animationDelay: "360ms" }}>
+      <Card className="animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl" style={{ animationDelay: "290ms" }}>
         <CardHeader className="pb-3">
           <CardTitle>Payment History</CardTitle>
           <CardDescription>View all your past transactions and receipts</CardDescription>
@@ -319,7 +303,6 @@ export default function PaymentsPage() {
           {payments.length > 0 && (
             <div className="flex items-center justify-between px-4 py-3 border-t text-sm text-muted-foreground">
               <span>Showing {payments.length} transaction{payments.length !== 1 ? "s" : ""}</span>
-              <span>Total: <span className="font-semibold text-foreground">{fmt(totalHistory)}</span></span>
             </div>
           )}
         </CardContent>
@@ -329,11 +312,11 @@ export default function PaymentsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Make a Payment</DialogTitle>
+            <DialogTitle>Pay Monthly Rent</DialogTitle>
             <DialogDescription>Payments are simulated — no real charges are made.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handlePay} className="space-y-5 pt-2">
-            {/* Amount */}
+            {/* Amount — pre-filled with monthly rent */}
             <div className="space-y-2">
               <Label htmlFor="amount">Amount ($)</Label>
               <Input
@@ -346,6 +329,7 @@ export default function PaymentsPage() {
                 placeholder="0.00"
                 className="text-base h-11"
               />
+              <p className="text-xs text-muted-foreground">Monthly rent: {fmt(summary.monthlyRent)}</p>
             </div>
 
             {/* Payment method — card grid */}

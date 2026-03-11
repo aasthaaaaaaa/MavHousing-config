@@ -28,12 +28,15 @@ interface Stats {
   openMaintenance: number;
   totalMaintenance: number;
   activeLeases: number;
-  totalRevenue: number;
+  successfulPayments: number;
+  failedPayments: number;
+  totalPayments: number;
+  collectionRate: number;
   revenueByMonth: { month: string; revenue: number }[];
   maintenanceByStatus: { status: string; count: number }[];
   recentApplications: { appId: number; status: string; submissionDate: string; user: { fName: string; lName: string; netId: string } }[];
   recentMaintenance: { requestId: number; category: string; priority: string; status: string; createdAt: string; createdBy: { fName: string; lName: string } }[];
-  recentPayments: { fName: string; lName: string; netId: string; amountPaid: string; transactionDate: string; method: string }[];
+  recentPayments: { fName: string; lName: string; netId: string; amountPaid: string; transactionDate: string; method: string; isSuccessful: boolean }[];
 }
 
 const REVENUE_COLOR = "#22c55e";
@@ -110,14 +113,14 @@ const STAT_CARDS = [
     accentFn: () => "",
   },
   {
-    key: "revenue",
-    label: "Total Revenue",
+    key: "compliance",
+    label: "Payment Compliance",
     icon: TrendingUp,
     iconBg: "bg-emerald-500/10 dark:bg-emerald-500/20",
     iconColor: "text-emerald-500",
-    valueFn: (s: Stats) => fmt(s.totalRevenue),
-    subFn: () => "all time collected",
-    accentFn: () => "text-emerald-600 dark:text-emerald-400",
+    valueFn: (s: Stats) => `${s.collectionRate}%`,
+    subFn: (s: Stats) => `${s.failedPayments} missed payment${s.failedPayments !== 1 ? "s" : ""}`,
+    accentFn: (s: Stats) => s.collectionRate >= 90 ? "text-emerald-600 dark:text-emerald-400" : "text-orange-600 dark:text-orange-400",
   },
 ];
 
@@ -132,11 +135,12 @@ export default function StaffDashboard() {
 
   async function fetchStats() {
     try {
-      const [apps, maint, payments, leases] = await Promise.all([
+      const [apps, maint, payments, leases, paymentStats] = await Promise.all([
         fetch("http://localhost:3009/housing/applications").then(r => r.json()).catch(() => []),
         fetch("http://localhost:3009/maintenance/requests").then(r => r.json()).catch(() => []),
         fetch("http://localhost:3009/payment/all").then(r => r.json()).catch(() => []),
         fetch("http://localhost:3009/lease/leases").then(r => r.json()).catch(() => []),
+        fetch("http://localhost:3009/payment/stats").then(r => r.json()).catch(() => ({ totalPayments: 0, successfulPayments: 0, failedPayments: 0, collectionRate: 0 })),
       ]);
       const a = Array.isArray(apps) ? apps : [];
       const m = Array.isArray(maint) ? maint : [];
@@ -149,7 +153,10 @@ export default function StaffDashboard() {
         openMaintenance: m.filter((x: any) => x.status === "OPEN").length,
         totalMaintenance: m.length,
         activeLeases: l.filter((x: any) => ["ACTIVE", "SIGNED"].includes(x.status)).length,
-        totalRevenue: p.filter((x: any) => x.isSuccessful).reduce((s: number, x: any) => s + parseFloat(x.amountPaid), 0),
+        successfulPayments: paymentStats.successfulPayments,
+        failedPayments: paymentStats.failedPayments,
+        totalPayments: paymentStats.totalPayments,
+        collectionRate: paymentStats.collectionRate,
         revenueByMonth: groupByMonth(p),
         maintenanceByStatus: groupMaintByStatus(m),
         recentApplications: a.slice(0, 5),
@@ -158,6 +165,7 @@ export default function StaffDashboard() {
           fName: x.lease?.user?.fName, lName: x.lease?.user?.lName,
           netId: x.lease?.user?.netId, amountPaid: x.amountPaid,
           transactionDate: x.transactionDate, method: x.method,
+          isSuccessful: x.isSuccessful,
         })),
       });
     } finally { setLoading(false); }
@@ -242,8 +250,8 @@ export default function StaffDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-lg font-semibold tracking-tight">Revenue Over Time</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">Last 6 months of payments collected</p>
+                <h2 className="text-lg font-semibold tracking-tight">Monthly Collections</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Rent payments collected per month</p>
               </div>
               <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 px-2.5 py-1 rounded-full">
                 <TrendingUp className="h-3 w-3" />
@@ -457,7 +465,7 @@ export default function StaffDashboard() {
               <div>
                 <h2 className="text-base font-semibold tracking-tight">Recent Payments</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {fmt(stats!.totalRevenue)} collected
+                  {stats!.successfulPayments} successful, {stats!.failedPayments} missed
                 </p>
               </div>
               <Button

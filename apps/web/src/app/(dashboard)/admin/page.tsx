@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Pie, PieChart, Cell } from "recharts";
-import { Users, Building2, FileText, CreditCard, ShieldCheck, ChevronRight } from "lucide-react";
+import { Users, Building2, FileText, ShieldCheck, ChevronRight, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
 interface SystemStats {
@@ -23,7 +23,10 @@ interface SystemStats {
   activeLeases: number;
   totalMaintenance: number;
   openMaintenance: number;
-  totalRevenue: number;
+  successfulPayments: number;
+  failedPayments: number;
+  totalPayments: number;
+  collectionRate: number;
   usersByRole: { role: string; count: number }[];
   appsByStatus: { status: string; count: number }[];
   recentUsers: { userId: number; fName: string; lName: string; netId: string; email: string; role: string; createdAt?: string }[];
@@ -45,14 +48,6 @@ const PIE_COLORS = [
   "#ef4444", // red-500
 ];
 
-function fmt(v: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
-}
-function fmtDate(d?: string) {
-  if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
 const ROLE_LABELS: Record<string, string> = {
   STUDENT: "Students", STAFF: "Staff", ADMIN: "Admins",
 };
@@ -67,21 +62,20 @@ export default function AdminDashboard() {
   async function fetchStats() {
     try {
       const token = Cookies.get('access_token');
-      const [usersRes, appsRes, leasesRes, maintRes, paymentsRes] = await Promise.all([
+      const [usersRes, appsRes, leasesRes, maintRes, paymentStats] = await Promise.all([
         fetch("http://localhost:3009/auth/get-all", {
           headers: { Authorization: `Bearer ${token}` }
         }).then(r => r.ok ? r.json() : []).catch(() => []),
         fetch("http://localhost:3009/housing/applications").then(r => r.json()).catch(() => []),
         fetch("http://localhost:3009/lease/leases").then(r => r.json()).catch(() => []),
         fetch("http://localhost:3009/maintenance/requests").then(r => r.json()).catch(() => []),
-        fetch("http://localhost:3009/payment/all").then(r => r.json()).catch(() => []),
+        fetch("http://localhost:3009/payment/stats").then(r => r.json()).catch(() => ({ totalPayments: 0, successfulPayments: 0, failedPayments: 0, collectionRate: 0 })),
       ]);
 
       const users = Array.isArray(usersRes) ? usersRes : [];
       const apps = Array.isArray(appsRes) ? appsRes : [];
       const leases = Array.isArray(leasesRes) ? leasesRes : [];
       const maint = Array.isArray(maintRes) ? maintRes : [];
-      const payments = Array.isArray(paymentsRes) ? paymentsRes : [];
 
       // Group users by role (normalize case)
       const roleMap: Record<string, number> = {};
@@ -104,7 +98,10 @@ export default function AdminDashboard() {
         activeLeases: leases.filter((l: any) => ["ACTIVE", "SIGNED"].includes(l.status)).length,
         totalMaintenance: maint.length,
         openMaintenance: maint.filter((m: any) => m.status === "OPEN").length,
-        totalRevenue: payments.filter((p: any) => p.isSuccessful).reduce((s: number, p: any) => s + parseFloat(p.amountPaid), 0),
+        successfulPayments: paymentStats.successfulPayments,
+        failedPayments: paymentStats.failedPayments,
+        totalPayments: paymentStats.totalPayments,
+        collectionRate: paymentStats.collectionRate,
         usersByRole: Object.entries(roleMap).map(([role, count]) => ({ role: ROLE_LABELS[role] ?? role, count })),
         appsByStatus: Object.entries(appStatusMap).map(([status, count]) => ({ status: status.replace("_", " "), count })),
         recentUsers: users.slice(-6).reverse(),
@@ -147,7 +144,7 @@ export default function AdminDashboard() {
           { label: "Total Users", value: stats!.totalUsers, sub: `${stats!.staffCount} staff · ${stats!.studentCount} students`, icon: Users },
           { label: "Applications", value: stats!.totalApplications, sub: `${stats!.pendingApplications} pending`, icon: FileText, accent: stats!.pendingApplications > 0 ? "text-orange-500" : undefined },
           { label: "Active Leases", value: stats!.activeLeases, sub: `of ${stats!.totalLeases} total`, icon: Building2 },
-          { label: "Total Revenue", value: fmt(stats!.totalRevenue), sub: "all time", icon: CreditCard },
+          { label: "Rent Collection", value: `${stats!.collectionRate}%`, sub: `${stats!.successfulPayments} of ${stats!.totalPayments} payments`, icon: CheckCircle2, accent: stats!.collectionRate >= 90 ? "text-emerald-500" : "text-orange-500" },
         ].map(({ label, value, sub, icon: Icon, accent }, idx) => (
           <Card
             key={label}

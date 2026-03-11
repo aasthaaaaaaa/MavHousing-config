@@ -10,11 +10,17 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   User, MapPin, Calendar, FileText, Phone, Mail, 
   ArrowLeft, CheckCircle2, XCircle, Clock, ShieldAlert,
-  Home, CreditCard, Users
+  Home, CreditCard, Users, Send
 } from "lucide-react";
 import { getApplicationStatusClass } from "@/lib/status-colors";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreateLeaseDialog } from "@/components/create-lease-dialog";
+import { 
+  Dialog, DialogContent, DialogHeader, DialogTitle, 
+  DialogDescription, DialogFooter 
+} from "@/components/ui/dialog";
+import { Label as UILabel } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ApplicationDetail {
   appId: number;
@@ -82,6 +88,13 @@ export default function ApplicationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [leaseDialogOpen, setLeaseDialogOpen] = useState(false);
 
+  // New state for Flow
+  const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
+  const [infoDialogOpen, setInfoDialogOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [requestInfo, setRequestInfo] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
   useEffect(() => {
     fetchApplication();
   }, [id]);
@@ -99,18 +112,30 @@ export default function ApplicationDetailPage() {
     }
   }
 
-  async function updateStatus(newStatus: string) {
+  async function updateStatus(newStatus: string, actionReason?: string, actionInfo?: string) {
     if (!app) return;
+    setSubmitting(true);
     try {
-      await fetch(`http://localhost:3009/housing/applications/${app.appId}/status`, {
+      const res = await fetch(`http://localhost:3009/housing/applications/${app.appId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ 
+          status: newStatus,
+          reason: actionReason,
+          requestInfo: actionInfo
+        }),
       });
+      if (!res.ok) throw new Error("Failed to update");
       toast({ title: "Status updated" });
       setApp({ ...app, status: newStatus });
+      setDeclineDialogOpen(false);
+      setInfoDialogOpen(false);
+      setReason("");
+      setRequestInfo("");
     } catch {
       toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -153,21 +178,58 @@ export default function ApplicationDetailPage() {
             <p className="text-muted-foreground">ID: #{app.appId} • Submitted on {new Date(app.submissionDate).toLocaleDateString()}</p>
           </div>
         </div>
+        
         <div className="flex items-center gap-3">
           <Badge className={`${getApplicationStatusClass(app.status)} px-3 py-1 text-sm rounded-full variant-outline bg-opacity-10 border-2`}>
             {app.status.replace("_", " ")}
           </Badge>
-          <Select value={app.status} onValueChange={updateStatus}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Update Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="SUBMITTED">Submitted</SelectItem>
-              <SelectItem value="UNDER_REVIEW">Under Review</SelectItem>
-              <SelectItem value="APPROVED">Approved</SelectItem>
-              <SelectItem value="REJECTED">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
+
+          {app.status === 'SUBMITTED' ? (
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="bg-green-600 hover:bg-green-700 h-9"
+                onClick={() => updateStatus('APPROVED')}
+                disabled={submitting}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                Approve
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-amber-600 border-amber-200 hover:bg-amber-50 h-9"
+                onClick={() => setInfoDialogOpen(true)}
+                disabled={submitting}
+              >
+                <Clock className="h-4 w-4 mr-2" />
+                Request Info
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-destructive border-destructive/20 hover:bg-destructive/5 h-9"
+                onClick={() => setDeclineDialogOpen(true)}
+                disabled={submitting}
+              >
+                <XCircle className="h-4 w-4 mr-2" />
+                Decline
+              </Button>
+            </div>
+          ) : (
+            <Select value={app.status} onValueChange={(val) => updateStatus(val)}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Update Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SUBMITTED">Submitted</SelectItem>
+                <SelectItem value="UNDER_REVIEW">Under Review</SelectItem>
+                <SelectItem value="APPROVED">Approved</SelectItem>
+                <SelectItem value="REJECTED">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
 
@@ -299,30 +361,30 @@ export default function ApplicationDetailPage() {
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                 <div>
-                  <Label className="text-xs text-muted-foreground uppercase font-semibold">Cleanliness</Label>
+                  <UILabel className="text-xs text-muted-foreground uppercase font-semibold">Cleanliness</UILabel>
                   <p className="font-medium mt-1">{app.cleanliness}</p>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground uppercase font-semibold">Noise Level</Label>
+                  <UILabel className="text-xs text-muted-foreground uppercase font-semibold">Noise Level</UILabel>
                   <p className="font-medium mt-1">{app.noiseLevel}</p>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground uppercase font-semibold">Sleep Schedule</Label>
+                  <UILabel className="text-xs text-muted-foreground uppercase font-semibold">Sleep Schedule</UILabel>
                   <p className="font-medium mt-1">{app.sleepSchedule}</p>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground uppercase font-semibold">Smoking</Label>
+                  <UILabel className="text-xs text-muted-foreground uppercase font-semibold">Smoking</UILabel>
                   <p className="font-medium mt-1">{app.smokingPreference}</p>
                 </div>
                 <div className="col-span-2">
-                  <Label className="text-xs text-muted-foreground uppercase font-semibold">Dietary Restrictions</Label>
+                  <UILabel className="text-xs text-muted-foreground uppercase font-semibold">Dietary Restrictions</UILabel>
                   <p className="font-medium mt-1">{app.dietaryRestrictions || "None"}</p>
                 </div>
               </div>
               
               {app.specialAccommodations && (
                 <div className="mt-6 p-4 bg-primary/5 rounded-xl border border-primary/10">
-                  <Label className="text-xs text-primary uppercase font-bold">Special Accommodations Requested</Label>
+                  <UILabel className="text-xs text-primary uppercase font-bold">Special Accommodations Requested</UILabel>
                   <p className="text-sm mt-1">{app.specialAccommodations}</p>
                 </div>
               )}
@@ -415,10 +477,75 @@ export default function ApplicationDetailPage() {
             fetchApplication();
         }}
       />
+
+      {/* Decline Dialog */}
+      <Dialog open={declineDialogOpen} onOpenChange={setDeclineDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Decline Application</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for declining this application. This will be sent to the student.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <UILabel htmlFor="reason">Reason for Decline</UILabel>
+              <Textarea 
+                id="reason" 
+                placeholder="e.g. Incomplete background check, max capacity reached..." 
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeclineDialogOpen(false)}>Cancel</Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => updateStatus('REJECTED', reason)}
+              disabled={!reason.trim() || submitting}
+            >
+              {submitting ? "Processing..." : "Confirm Decline"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Info Request Dialog */}
+      <Dialog open={infoDialogOpen} onOpenChange={setInfoDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Request Information</DialogTitle>
+            <DialogDescription>
+              State which documents or information are missing. The status will move to "Under Review".
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <UILabel htmlFor="info">Information/Documents Needed</UILabel>
+              <Textarea 
+                id="info" 
+                placeholder="e.g. Proof of enrollment, updated ID card..." 
+                value={requestInfo}
+                onChange={(e) => setRequestInfo(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInfoDialogOpen(false)}>Cancel</Button>
+            <Button 
+              className="bg-amber-600 hover:bg-amber-700" 
+              onClick={() => updateStatus('UNDER_REVIEW', undefined, requestInfo)}
+              disabled={!requestInfo.trim() || submitting}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {submitting ? "Sending..." : "Send Request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-}
-
-function Label({ className, children }: { className?: string, children: React.ReactNode }) {
-  return <span className={className}>{children}</span>;
 }

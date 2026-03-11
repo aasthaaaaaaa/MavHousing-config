@@ -287,7 +287,8 @@ export class UploadService implements OnModuleInit {
           data: { profilePicUrl: picKey },
         });
       } catch (e) {
-        this.logger.error('Failed to update user profile pic key', e);
+        // this.logger.error('Failed to update user profile pic key', e);
+        console.error('Failed to update user profile pic key because no old entry found to update');
       }
       return {
         fName: ocrData.fName,

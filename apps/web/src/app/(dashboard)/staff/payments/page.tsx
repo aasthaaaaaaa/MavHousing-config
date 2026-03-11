@@ -56,14 +56,10 @@ export default function StaffPaymentsPage() {
 
   const filtered = payments.filter(p => filterMethod === "ALL" || p.method === filterMethod);
 
-  const totalRevenue = filtered
-    .filter(p => p.isSuccessful)
-    .reduce((sum, p) => sum + parseFloat(p.amountPaid), 0);
-
   const stats = {
     total: filtered.length,
     successful: filtered.filter(p => p.isSuccessful).length,
-    revenue: totalRevenue,
+    failed: filtered.filter(p => !p.isSuccessful).length,
   };
 
   return (
@@ -79,7 +75,7 @@ export default function StaffPaymentsPage() {
         {[
           { label: "Total Transactions", value: stats.total, color: "text-blue-600" },
           { label: "Successful", value: stats.successful, color: "text-green-600" },
-          { label: "Total Revenue", value: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(stats.revenue), color: "text-primary" },
+          { label: "Missed / Failed", value: stats.failed, color: "text-red-600" },
         ].map((s, idx) => (
           <Card
             key={s.label}

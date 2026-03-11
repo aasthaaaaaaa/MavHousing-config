@@ -125,11 +125,13 @@ export class HousingController {
   @Patch('applications/:id/status')
   async updateApplicationStatus(
     @Param('id') id: string,
-    @Body() body: { status: string },
+    @Body() body: { status: string; reason?: string; requestInfo?: string },
   ) {
     return this.housingService.updateApplicationStatus(
       parseInt(id),
       body.status,
+      body.reason,
+      body.requestInfo,
     );
   }
 

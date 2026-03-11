@@ -9,5 +9,6 @@ import { SmsModule } from './sms/sms.module';
   imports: [ConfigModule.forRoot({ isGlobal: true }), EmailModule, SmsModule],
   controllers: [CommsServerController],
   providers: [CommsServerService],
+  exports: [EmailModule],
 })
 export class CommsServerModule {}

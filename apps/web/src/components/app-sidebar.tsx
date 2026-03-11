@@ -79,7 +79,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       { title: "Leases", url: "/staff/leases", icon: FileText },
       { title: "Maintenance", url: "/staff/maintenance", icon: Wrench },
       { title: "Payments", url: "/staff/payments", icon: CreditCard },
-      { title: "Occupancy", url: "/staff/occupancy", icon: Users },
       { title: "Announcements", url: "/staff/announcements", icon: Megaphone },
     ],
     admin: [
