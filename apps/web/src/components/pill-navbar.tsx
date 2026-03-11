@@ -101,7 +101,10 @@ export function PillNavbar({ role }: PillNavbarProps) {
   const items = role === "staff"
     ? getStaffNavItems(user?.staffPosition)
     : (navItemsByRole[role] || navItemsByRole.admin)
-  const roleLabel = roleLabelMap[role] || "Portal"
+  const baseRoleLabel = roleLabelMap[role] || "Portal"
+  const roleLabel = role === "staff" && user?.staffPosition
+    ? `${baseRoleLabel} (${user.staffPosition === "RESIDENT_A" ? "Resident Assistant" : user.staffPosition.charAt(0) + user.staffPosition.slice(1).toLowerCase()})`
+    : baseRoleLabel;
   const homeUrl = `/${role}`
 
   const handleLogout = () => {
@@ -169,9 +172,8 @@ export function PillNavbar({ role }: PillNavbarProps) {
             alt="MavHousing"
             className="hidden h-9 w-9 rounded-xl shadow-sm ring-1 ring-white/10 dark:block transition-transform group-hover:scale-105"
           />
-          <div className="hidden sm:flex flex-col leading-tight">
+          <div className="hidden sm:flex flex-col leading-tight justify-center">
             <span className="font-semibold text-sm tracking-tight">MavHousing</span>
-            <span className="text-[11px] text-muted-foreground">{roleLabel}</span>
           </div>
         </Link>
       </div>
@@ -219,30 +221,34 @@ export function PillNavbar({ role }: PillNavbarProps) {
       </nav>
 
       {/* Right: User menu + theme toggle */}
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-4 shrink-0">
         <ModeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center p-0 border-none bg-transparent cursor-pointer rounded-full transition-transform duration-200 hover:scale-105 active:scale-95">
-              <Avatar className="h-8 w-8 rounded-full ring-2 ring-primary/20 transition-all hover:ring-primary/40">
+            <button className="flex items-center gap-3 p-1 pr-1.5 border border-transparent bg-transparent cursor-pointer rounded-full transition-all duration-200 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 group">
+              <div className="hidden md:flex flex-col items-end text-sm leading-tight ml-2">
+                <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{user?.fName ? `${user.fName} ${user.lName}` : (user?.username || "User")}</span>
+                <span className="text-[11px] text-muted-foreground">{roleLabel}</span>
+              </div>
+              <Avatar className="h-9 w-9 rounded-full ring-2 ring-primary/20 transition-all group-hover:ring-primary/50 shadow-sm">
                 <AvatarImage src="" alt={user?.username || "User"} />
-                <AvatarFallback className="rounded-full text-xs font-medium bg-primary/10 text-primary">
-                  {(user?.username || "U").substring(0, 2).toUpperCase()}
+                <AvatarFallback className="rounded-full text-xs font-semibold bg-primary/10 text-primary">
+                  {(user?.fName?.[0] || user?.username?.[0] || "U").toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56 rounded-xl" align="end" sideOffset={8}>
             <DropdownMenuLabel className="font-normal">
-              <div className="flex items-center gap-2 py-1">
-                <Avatar className="h-8 w-8 rounded-full">
+              <div className="flex items-center gap-3 py-1.5">
+                <Avatar className="h-10 w-10 rounded-full shadow-sm">
                   <AvatarImage src="" alt={user?.username || "User"} />
-                  <AvatarFallback className="rounded-full text-xs bg-primary/10 text-primary">
-                    {(user?.username || "U").substring(0, 2).toUpperCase()}
+                  <AvatarFallback className="rounded-full text-sm font-semibold bg-primary/10 text-primary">
+                    {(user?.fName?.[0] || user?.username?.[0] || "U").toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">{user?.username || "User"}</span>
+                  <span className="text-sm font-medium">{user?.fName ? `${user.fName} ${user.lName}` : (user?.username || "User")}</span>
                   <span className="text-xs text-muted-foreground">{roleLabel}</span>
                 </div>
               </div>
