@@ -113,7 +113,10 @@ export class AuthServerService {
     };
 
     const updateData: any = {};
+    if (data.fName !== undefined) updateData.fName = data.fName;
+    if (data.lName !== undefined) updateData.lName = data.lName;
     if (data.email !== undefined) updateData.email = data.email;
+    if (data.phone !== undefined) updateData.phone = data.phone ? BigInt(data.phone) : null;
     if (data.role !== undefined)
       updateData.role = roleMapping[data.role] || data.role.toUpperCase();
     if (data.gender !== undefined) updateData.gender = data.gender;
@@ -123,6 +126,11 @@ export class AuthServerService {
       updateData.staffPosition = data.staffPosition;
     if (data.requiresAdaAccess !== undefined)
       updateData.requiresAdaAccess = data.requiresAdaAccess;
+    if (data.isLocked !== undefined) updateData.isLocked = data.isLocked;
+    if (data.lockReason !== undefined) updateData.lockReason = data.lockReason;
+    if (data.newPassword) {
+      updateData.passwordHash = await bcrypt.hash(data.newPassword, 10);
+    }
 
     const updated = await this.prisma.user.update({
       where: { netId },
@@ -187,6 +195,14 @@ export class AuthServerService {
         throw new UnauthorizedException(
           'Incorrect password. Please try again.',
         );
+      }
+
+      // Check if account is locked
+      if (user.isLocked) {
+        return {
+          locked: true,
+          lockReason: user.lockReason || 'Your account has been placed on hold.',
+        };
       }
 
       const payload = {

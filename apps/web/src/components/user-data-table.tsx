@@ -85,7 +85,7 @@ import {
 } from "@/components/ui/tabs"
 import { authApi } from "@/lib/api"
 import { User } from "@/context/AuthContext"
-import { EditUserSheet } from "@/components/edit-user-sheet"
+import { EditUserDialog } from "@/components/edit-user-dialog"
 
 import { userSchema, type UserData } from "@/lib/types"
 
@@ -141,7 +141,14 @@ export function UserDataTable({
         header: "Name",
         accessorFn: (row) => `${row.fName} ${row.lName}`,
         cell: ({ row }) => {
-        return <TableCellViewer item={row.original} />
+        return (
+          <div className="flex items-center gap-2">
+            <TableCellViewer item={row.original} />
+            {row.original.isLocked && (
+              <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4">Locked</Badge>
+            )}
+          </div>
+        )
         },
     },
     {
@@ -335,7 +342,7 @@ export function UserDataTable({
           </div>
         </div>
         
-        <EditUserSheet 
+        <EditUserDialog 
             open={isEditOpen} 
             onOpenChange={setIsEditOpen} 
             user={editingUser} 

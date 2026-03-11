@@ -3,7 +3,16 @@
 import { useState } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { authApi } from "@/lib/api"
-import { User, Lock, ArrowRight, Loader2 } from "lucide-react"
+import { User, Lock, ArrowRight, Loader2, ShieldAlert } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export function LoginForm({
   className,
@@ -13,6 +22,8 @@ export function LoginForm({
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [lockedOpen, setLockedOpen] = useState(false);
+  const [lockedReason, setLockedReason] = useState('');
   const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,7 +37,11 @@ export function LoginForm({
         password,
       });
 
-      if (response.data && response.data.access_token) {
+      if (response.data && response.data.locked) {
+        // Account is locked
+        setLockedReason(response.data.lockReason || '');
+        setLockedOpen(true);
+      } else if (response.data && response.data.access_token) {
         login(response.data.access_token);
       } else {
         setError('Invalid response from server');
@@ -49,6 +64,7 @@ export function LoginForm({
   };
 
   return (
+    <>
     <div className={className} {...props}>
       <div className="mb-8 text-center md:text-left landing-fade-in" style={{ animationDelay: '0.4s' }}>
         <h2 className="text-3xl font-bold tracking-tight text-[#0a2240]" style={{ fontFamily: 'var(--font-display)' }}>
@@ -133,5 +149,37 @@ export function LoginForm({
         </button>
       </form>
     </div>
+
+    {/* Account Locked Dialog */}
+    <AlertDialog open={lockedOpen} onOpenChange={setLockedOpen}>
+      <AlertDialogContent className="max-w-md">
+        <AlertDialogHeader>
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="h-14 w-14 rounded-full bg-destructive/10 flex items-center justify-center">
+              <ShieldAlert className="h-7 w-7 text-destructive" />
+            </div>
+            <AlertDialogTitle className="text-xl">Account On Hold</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm leading-relaxed">
+              Your account has been placed on hold. Please contact the
+              <strong> Housing Department </strong>
+              for further information.
+            </AlertDialogDescription>
+            {lockedReason && (
+              <div className="w-full mt-1 p-3 rounded-lg bg-muted text-xs text-muted-foreground text-left border">
+                <p className="font-medium mb-0.5">Reason:</p>
+                <p>{lockedReason}</p>
+              </div>
+            )}
+          </div>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="sm:justify-center">
+          <AlertDialogAction onClick={() => setLockedOpen(false)}>
+            OK
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   )
 }
+

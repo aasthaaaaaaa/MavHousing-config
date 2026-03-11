@@ -7,6 +7,7 @@ import {
   Body,
   Post,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { LeaseService } from './lease.service';
 
@@ -47,5 +48,33 @@ export class LeaseController {
       body.leaseId,
       body.asHolder,
     );
+  }
+
+  @Get('occupancy')
+  async getOccupancy() {
+    return this.leaseService.getOccupancy();
+  }
+
+  @Post('occupancy/:leaseId')
+  async addOccupant(
+    @Param('leaseId', ParseIntPipe) leaseId: number,
+    @Body() body: { userId: number; occupantType: string },
+  ) {
+    return this.leaseService.addOccupant(leaseId, body.userId, body.occupantType);
+  }
+
+  @Delete('occupancy/:occupantId')
+  async removeOccupant(@Param('occupantId', ParseIntPipe) occupantId: number) {
+    return this.leaseService.removeOccupant(occupantId);
+  }
+
+  @Get('user-lease/:userId')
+  async getUserLease(@Param('userId', ParseIntPipe) userId: number) {
+    return this.leaseService.getUserLease(userId);
+  }
+
+  @Patch('end/:id')
+  async endLease(@Param('id', ParseIntPipe) id: number) {
+    return this.leaseService.updateLeaseStatus(id, 'COMPLETED');
   }
 }

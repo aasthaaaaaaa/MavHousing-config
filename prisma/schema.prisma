@@ -27,6 +27,8 @@ model User {
   profilePicUrl       String?
   profileUrl          String?
   requiresAdaAccess   Boolean              @default(false)
+  isLocked            Boolean              @default(false)
+  lockReason          String?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   applications        Application[]

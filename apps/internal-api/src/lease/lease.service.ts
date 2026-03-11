@@ -153,6 +153,43 @@ export class LeaseService {
     return this.prisma.occupant.delete({ where: { occupantId } });
   }
 
+  async getUserLease(userId: number) {
+    return this.prisma.lease.findFirst({
+      where: {
+        OR: [{ userId }, { occupants: { some: { userId } } }],
+        status: { in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE'] as any },
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            netId: true,
+            fName: true,
+            lName: true,
+            email: true,
+          },
+        },
+        unit: { include: { property: true } },
+        room: true,
+        bed: true,
+        occupants: {
+          include: {
+            user: {
+              select: {
+                userId: true,
+                netId: true,
+                fName: true,
+                lName: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async reassignUserToLease(
     userId: number,
     targetLeaseId: number,

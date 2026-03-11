@@ -8,12 +8,15 @@ export const userSchema = z.object({
   mName: z.string().optional().nullable(),
   lName: z.string(),
   email: z.string(),
+  phone: z.string().optional().nullable(),
   role: z.string(),
   dob: z.string().optional(),
   gender: z.string().optional(),
   studentStatus: z.string().optional().nullable(),
   staffPosition: z.string().optional().nullable(),
   requiresAdaAccess: z.boolean().optional(),
+  isLocked: z.boolean().optional(),
+  lockReason: z.string().optional().nullable(),
   // Add an ID for dnd-kit if not present in user object, though netId is unique
   id: z.string().optional(),
 });
