@@ -15,43 +15,43 @@ import {
 // ============================================
 export const mockApplications = [
   // --- Original applications ---
-  { userId: 1, term: 'Fall 2025', status: ApplicationStatus.SUBMITTED, preferredPropertyId: 1, submissionDate: new Date('2024-12-10') },
-  { userId: 2, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 1, submissionDate: new Date('2024-12-05') },
-  { userId: 3, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 2, submissionDate: new Date('2024-12-08') },
-  { userId: 4, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 1, submissionDate: new Date('2024-12-12') },
-  { userId: 5, term: 'Fall 2025', status: ApplicationStatus.UNDER_REVIEW, preferredPropertyId: 3, submissionDate: new Date('2024-12-15') },
-  { userId: 6, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 3, submissionDate: new Date('2024-12-06') },
-  { userId: 7, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 5, submissionDate: new Date('2024-12-09') },
+  { userId: 1, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 1, submissionDate: new Date('2025-06-10') },
+  { userId: 2, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 1, submissionDate: new Date('2025-06-05') },
+  { userId: 3, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 2, submissionDate: new Date('2025-06-08') },
+  { userId: 4, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 1, submissionDate: new Date('2025-06-12') },
+  { userId: 5, term: 'Fall 2025', status: ApplicationStatus.UNDER_REVIEW, preferredPropertyId: 3, submissionDate: new Date('2026-02-15') },
+  { userId: 6, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 3, submissionDate: new Date('2025-06-06') },
+  { userId: 7, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 5, submissionDate: new Date('2025-06-09') },
   // --- New approved applications (residents with leases) ---
-  { userId: 8, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 1, submissionDate: new Date('2024-12-02') },
-  { userId: 9, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 2, submissionDate: new Date('2024-12-03') },
-  { userId: 10, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 4, submissionDate: new Date('2024-12-04') },
-  { userId: 12, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 5, submissionDate: new Date('2024-12-07') },
-  { userId: 13, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 6, submissionDate: new Date('2024-12-08') },
-  { userId: 14, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 7, submissionDate: new Date('2024-12-09') },
-  { userId: 15, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 1, submissionDate: new Date('2024-12-10') },
-  { userId: 17, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 3, submissionDate: new Date('2024-12-11') },
-  { userId: 18, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 2, submissionDate: new Date('2024-12-12') },
-  { userId: 19, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 4, submissionDate: new Date('2024-12-13') },
-  { userId: 20, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 6, submissionDate: new Date('2024-12-14') },
-  { userId: 22, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 7, submissionDate: new Date('2024-12-15') },
-  { userId: 23, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 1, submissionDate: new Date('2024-12-16') },
-  { userId: 24, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 5, submissionDate: new Date('2024-12-17') },
-  { userId: 26, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 3, submissionDate: new Date('2024-12-18') },
-  { userId: 27, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 2, submissionDate: new Date('2024-12-19') },
-  { userId: 28, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 7, submissionDate: new Date('2024-12-20') },
-  { userId: 29, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 6, submissionDate: new Date('2024-12-21') },
+  { userId: 8, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 1, submissionDate: new Date('2025-06-02') },
+  { userId: 9, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 2, submissionDate: new Date('2025-06-03') },
+  { userId: 10, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 4, submissionDate: new Date('2025-06-04') },
+  { userId: 12, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 5, submissionDate: new Date('2025-06-07') },
+  { userId: 13, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 6, submissionDate: new Date('2025-06-08') },
+  { userId: 14, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 7, submissionDate: new Date('2025-06-09') },
+  { userId: 15, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 1, submissionDate: new Date('2025-06-10') },
+  { userId: 17, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 3, submissionDate: new Date('2025-06-11') },
+  { userId: 18, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 2, submissionDate: new Date('2025-06-12') },
+  { userId: 19, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 4, submissionDate: new Date('2025-06-13') },
+  { userId: 20, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 6, submissionDate: new Date('2025-06-14') },
+  { userId: 22, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 7, submissionDate: new Date('2025-06-15') },
+  { userId: 23, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 1, submissionDate: new Date('2025-06-16') },
+  { userId: 24, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 5, submissionDate: new Date('2025-06-17') },
+  { userId: 26, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 3, submissionDate: new Date('2025-06-18') },
+  { userId: 27, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 2, submissionDate: new Date('2025-06-19') },
+  { userId: 28, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 7, submissionDate: new Date('2025-06-20') },
+  { userId: 29, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 6, submissionDate: new Date('2025-06-21') },
   // --- Pending / under-review / rejected ---
-  { userId: 11, term: 'Fall 2025', status: ApplicationStatus.UNDER_REVIEW, preferredPropertyId: 4, submissionDate: new Date('2025-01-05') },
-  { userId: 16, term: 'Fall 2025', status: ApplicationStatus.SUBMITTED, preferredPropertyId: 5, submissionDate: new Date('2025-01-08') },
-  { userId: 21, term: 'Fall 2025', status: ApplicationStatus.SUBMITTED, preferredPropertyId: 7, submissionDate: new Date('2025-01-10') },
-  { userId: 25, term: 'Fall 2025', status: ApplicationStatus.UNDER_REVIEW, preferredPropertyId: 6, submissionDate: new Date('2025-01-12') },
-  { userId: 30, term: 'Fall 2025', status: ApplicationStatus.REJECTED, preferredPropertyId: 1, submissionDate: new Date('2024-11-28') },
+  { userId: 11, term: 'Fall 2025', status: ApplicationStatus.UNDER_REVIEW, preferredPropertyId: 4, submissionDate: new Date('2026-01-05') },
+  { userId: 16, term: 'Fall 2025', status: ApplicationStatus.SUBMITTED, preferredPropertyId: 5, submissionDate: new Date('2026-01-08') },
+  { userId: 21, term: 'Fall 2025', status: ApplicationStatus.SUBMITTED, preferredPropertyId: 7, submissionDate: new Date('2026-01-10') },
+  { userId: 25, term: 'Fall 2025', status: ApplicationStatus.UNDER_REVIEW, preferredPropertyId: 6, submissionDate: new Date('2026-01-12') },
+  { userId: 30, term: 'Fall 2025', status: ApplicationStatus.REJECTED, preferredPropertyId: 1, submissionDate: new Date('2025-11-28') },
   // --- Spring 2026 early applications ---
-  { userId: 2, term: 'Spring 2026', status: ApplicationStatus.SUBMITTED, preferredPropertyId: 1, submissionDate: new Date('2025-10-01') },
-  { userId: 3, term: 'Spring 2026', status: ApplicationStatus.SUBMITTED, preferredPropertyId: 2, submissionDate: new Date('2025-10-05') },
-  { userId: 8, term: 'Spring 2026', status: ApplicationStatus.UNDER_REVIEW, preferredPropertyId: 3, submissionDate: new Date('2025-10-10') },
-  { userId: 39, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 2, submissionDate: new Date('2024-12-01') },
+  { userId: 2, term: 'Spring 2026', status: ApplicationStatus.SUBMITTED, preferredPropertyId: 1, submissionDate: new Date('2026-02-01') },
+  { userId: 3, term: 'Spring 2026', status: ApplicationStatus.SUBMITTED, preferredPropertyId: 2, submissionDate: new Date('2026-02-05') },
+  { userId: 8, term: 'Spring 2026', status: ApplicationStatus.UNDER_REVIEW, preferredPropertyId: 3, submissionDate: new Date('2026-02-10') },
+  { userId: 39, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 2, submissionDate: new Date('2025-06-01') },
 ];
 
 // ============================================
@@ -60,101 +60,102 @@ export const mockApplications = [
 // ============================================
 export const mockLeases = [
   // --- Meadow Run North Tower (BY_UNIT, unitIds 1-4) ---
-  // Lease 1: John + Alok → Unit 101 ($950/mo)
-  { userId: 2, leaseType: LeaseType.BY_UNIT, assignedUnitId: 1, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 11400.00, dueThisMonth: 950.00, status: LeaseStatus.ACTIVE },
-  // Lease 2: Emily + Christopher → Unit 102 ($950/mo)
-  { userId: 3, leaseType: LeaseType.BY_UNIT, assignedUnitId: 2, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 11400.00, dueThisMonth: 950.00, status: LeaseStatus.ACTIVE },
-  // Lease 3: Michael (ADA) → Unit 103 ($1050/mo — ADA single-occupant)
-  { userId: 4, leaseType: LeaseType.BY_UNIT, assignedUnitId: 3, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 12600.00, dueThisMonth: 1050.00, status: LeaseStatus.ACTIVE },
-  // Lease 4: Ryan + Lauren → Unit 201 ($925/mo)
-  { userId: 8, leaseType: LeaseType.BY_UNIT, assignedUnitId: 4, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 11100.00, dueThisMonth: 925.00, status: LeaseStatus.ACTIVE },
+  // Lease 1: Alok + John → Unit 101 ($950/mo) - ACTIVE
+  { userId: 1, leaseType: LeaseType.BY_UNIT, assignedUnitId: 1, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 11400.00, dueThisMonth: 950.00, status: LeaseStatus.ACTIVE },
+  // Lease 2: Emily + Christopher → Unit 102 ($950/mo) - ACTIVE
+  { userId: 3, leaseType: LeaseType.BY_UNIT, assignedUnitId: 2, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 11400.00, dueThisMonth: 950.00, status: LeaseStatus.ACTIVE },
+  // Lease 3: Michael (ADA) → Unit 103 ($1050/mo) - ACTIVE
+  { userId: 4, leaseType: LeaseType.BY_UNIT, assignedUnitId: 3, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 12600.00, dueThisMonth: 1050.00, status: LeaseStatus.ACTIVE },
+  // Lease 4: Ryan + Lauren → Unit 201 ($925/mo) - SIGNED
+  { userId: 8, leaseType: LeaseType.BY_UNIT, assignedUnitId: 4, assignedRoomId: null, assignedBedId: null, startDate: new Date('2026-08-15'), endDate: new Date('2027-07-31'), totalDue: 11100.00, dueThisMonth: 925.00, status: LeaseStatus.SIGNED },
 
   // --- Meadow Run South Tower (BY_UNIT, unitIds 5-10) ---
-  // Lease 5: Sophia + Alicia → Unit 101 ($950/mo)
-  { userId: 5, leaseType: LeaseType.BY_UNIT, assignedUnitId: 5, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 11400.00, dueThisMonth: 950.00, status: LeaseStatus.ACTIVE },
-  // Lease 6: Daniel + James → Unit 102 ($950/mo)
-  { userId: 10, leaseType: LeaseType.BY_UNIT, assignedUnitId: 6, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 11400.00, dueThisMonth: 950.00, status: LeaseStatus.ACTIVE },
-  // Lease 7: Tyler + Natalie → Unit 201 ($900/mo)
-  { userId: 18, leaseType: LeaseType.BY_UNIT, assignedUnitId: 7, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 10800.00, dueThisMonth: 900.00, status: LeaseStatus.ACTIVE },
-  // Lease 8: Ethan solo → Unit 202 ADA ($1075/mo)
-  { userId: 20, leaseType: LeaseType.BY_UNIT, assignedUnitId: 8, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 12900.00, dueThisMonth: 1075.00, status: LeaseStatus.ACTIVE },
-  // Lease 9: Olivia + William → Unit 301 ($875/mo)
-  { userId: 27, leaseType: LeaseType.BY_UNIT, assignedUnitId: 9, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 10500.00, dueThisMonth: 875.00, status: LeaseStatus.ACTIVE },
-  // Lease 10: atiq → Unit 302 ($875/mo)
-  { userId: 39, leaseType: LeaseType.BY_UNIT, assignedUnitId: 10, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 10500.00, dueThisMonth: 875.00, status: LeaseStatus.ACTIVE },
+  // Lease 5: Sophia + Alicia → Unit 101 ($950/mo) - ACTIVE
+  { userId: 5, leaseType: LeaseType.BY_UNIT, assignedUnitId: 5, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 11400.00, dueThisMonth: 950.00, status: LeaseStatus.ACTIVE },
+  // Lease 6: Daniel + James → Unit 102 ($950/mo) - COMPLETED
+  { userId: 10, leaseType: LeaseType.BY_UNIT, assignedUnitId: 6, assignedRoomId: null, assignedBedId: null, startDate: new Date('2024-08-15'), endDate: new Date('2025-07-31'), totalDue: 11400.00, dueThisMonth: 0.00, status: LeaseStatus.COMPLETED },
+  // Lease 7: Tyler + Natalie → Unit 201 ($900/mo) - ACTIVE
+  { userId: 18, leaseType: LeaseType.BY_UNIT, assignedUnitId: 7, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 10800.00, dueThisMonth: 900.00, status: LeaseStatus.ACTIVE },
+  // Lease 8: Ethan solo → Unit 202 ADA ($1075/mo) - ACTIVE
+  { userId: 20, leaseType: LeaseType.BY_UNIT, assignedUnitId: 8, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 12900.00, dueThisMonth: 1075.00, status: LeaseStatus.ACTIVE },
+  // Lease 9: Olivia + William → Unit 301 ($875/mo) - ACTIVE
+  { userId: 27, leaseType: LeaseType.BY_UNIT, assignedUnitId: 9, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 10500.00, dueThisMonth: 875.00, status: LeaseStatus.ACTIVE },
+  // Lease 10: atiq → Unit 302 ($875/mo) - ACTIVE
+  { userId: 39, leaseType: LeaseType.BY_UNIT, assignedUnitId: 10, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 10500.00, dueThisMonth: 875.00, status: LeaseStatus.ACTIVE },
 
   // --- Heights on Pecan East (BY_ROOM, unitIds 11-13, roomIds 1-6) ---
-  // Lease 11: Kayla → Room A in Unit 101 ($725/mo)
-  { userId: 17, leaseType: LeaseType.BY_ROOM, assignedUnitId: 11, assignedRoomId: 1, assignedBedId: null, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 8700.00, dueThisMonth: 725.00, status: LeaseStatus.ACTIVE },
-  // Lease 12: Megan → Room B in Unit 101 ($725/mo)
-  { userId: 13, leaseType: LeaseType.BY_ROOM, assignedUnitId: 11, assignedRoomId: 2, assignedBedId: null, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 8700.00, dueThisMonth: 725.00, status: LeaseStatus.ACTIVE },
+  // Lease 11: Kayla → Room A in Unit 101 ($725/mo) - ACTIVE
+  { userId: 17, leaseType: LeaseType.BY_ROOM, assignedUnitId: 11, assignedRoomId: 1, assignedBedId: null, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 8700.00, dueThisMonth: 725.00, status: LeaseStatus.ACTIVE },
+  // Lease 12: Megan → Room B in Unit 101 ($725/mo) - ACTIVE
+  { userId: 13, leaseType: LeaseType.BY_ROOM, assignedUnitId: 11, assignedRoomId: 2, assignedBedId: null, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 8700.00, dueThisMonth: 725.00, status: LeaseStatus.ACTIVE },
 
   // --- Heights on Pecan West (BY_ROOM, unitIds 14-16, roomIds 7-12) ---
-  // Lease 13: Rachel → Room A in Unit 101 ($725/mo)
-  { userId: 19, leaseType: LeaseType.BY_ROOM, assignedUnitId: 14, assignedRoomId: 7, assignedBedId: null, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 8700.00, dueThisMonth: 725.00, status: LeaseStatus.ACTIVE },
+  // Lease 13: Rachel → Room A in Unit 101 ($725/mo) - ACTIVE
+  { userId: 19, leaseType: LeaseType.BY_ROOM, assignedUnitId: 14, assignedRoomId: 7, assignedBedId: null, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 8700.00, dueThisMonth: 725.00, status: LeaseStatus.ACTIVE },
 
   // --- Timber Brooks East Wing (BY_BED, unitIds 15-17, roomIds 13-18, bedIds 1-12) ---
-  // Lease 14: Jason → Bed L in Room A of Unit 1A ($625/mo)
-  { userId: 22, leaseType: LeaseType.BY_BED, assignedUnitId: 15, assignedRoomId: 13, assignedBedId: 1, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 7500.00, dueThisMonth: 625.00, status: LeaseStatus.ACTIVE },
-  // Lease 15: Victoria → Bed R in Room A of Unit 1A ($625/mo)
-  { userId: 23, leaseType: LeaseType.BY_BED, assignedUnitId: 15, assignedRoomId: 13, assignedBedId: 2, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 7500.00, dueThisMonth: 625.00, status: LeaseStatus.ACTIVE },
-  // Lease 16: David → Bed 1 in Room B of Unit 1A ($625/mo)
-  { userId: 24, leaseType: LeaseType.BY_BED, assignedUnitId: 15, assignedRoomId: 14, assignedBedId: 3, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 7500.00, dueThisMonth: 625.00, status: LeaseStatus.ACTIVE },
+  // Lease 14: Jason → Bed L in Room A of Unit 1A ($625/mo) - TERMINATED
+  { userId: 22, leaseType: LeaseType.BY_BED, assignedUnitId: 15, assignedRoomId: 13, assignedBedId: 1, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 7500.00, dueThisMonth: 0.00, status: LeaseStatus.TERMINATED },
+  // Lease 15: Victoria → Bed R in Room A of Unit 1A ($625/mo) - ACTIVE
+  { userId: 23, leaseType: LeaseType.BY_BED, assignedUnitId: 15, assignedRoomId: 13, assignedBedId: 2, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 7500.00, dueThisMonth: 625.00, status: LeaseStatus.ACTIVE },
+  // Lease 16: David → Bed 1 in Room B of Unit 1A ($625/mo) - ACTIVE
+  { userId: 24, leaseType: LeaseType.BY_BED, assignedUnitId: 15, assignedRoomId: 14, assignedBedId: 3, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 7500.00, dueThisMonth: 625.00, status: LeaseStatus.ACTIVE },
 
   // --- Arlington Hall (BY_BED, unitIds 21-24, roomIds 28-36, bedIds 40-60) ---
-  // Lease 17: Adrian → Bed L in Room A of Unit A1 ($575/mo)
-  { userId: 28, leaseType: LeaseType.BY_BED, assignedUnitId: 21, assignedRoomId: 28, assignedBedId: 40, startDate: new Date('2025-01-15'), endDate: new Date('2025-12-15'), totalDue: 6900.00, dueThisMonth: 575.00, status: LeaseStatus.ACTIVE },
-  // Lease 18: Isabella → Bed R in Room A of Unit A1 ($575/mo)  — COMPLETED (moved out early)
-  { userId: 29, leaseType: LeaseType.BY_BED, assignedUnitId: 21, assignedRoomId: 28, assignedBedId: 41, startDate: new Date('2025-01-15'), endDate: new Date('2025-06-15'), totalDue: 3450.00, dueThisMonth: 575.00, status: LeaseStatus.COMPLETED },
+  // Lease 17: Adrian → Bed L in Room A of Unit A1 ($575/mo) - ACTIVE
+  { userId: 28, leaseType: LeaseType.BY_BED, assignedUnitId: 21, assignedRoomId: 28, assignedBedId: 40, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 6900.00, dueThisMonth: 575.00, status: LeaseStatus.ACTIVE },
+  // Lease 18: Isabella → Bed R in Room A of Unit A1 ($575/mo)   — COMPLETED (moved out early)
+  { userId: 29, leaseType: LeaseType.BY_BED, assignedUnitId: 21, assignedRoomId: 28, assignedBedId: 41, startDate: new Date('2025-08-15'), endDate: new Date('2025-12-15'), totalDue: 2300.00, dueThisMonth: 0.00, status: LeaseStatus.COMPLETED },
+
 ];
 
 // ============================================
 // OCCUPANTS (26 total)
 // ============================================
 export const mockOccupants = [
-  // Lease 1: John + Alok
-  { leaseId: 1, userId: 2, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
-  { leaseId: 1, userId: 1, occupantType: OccupantType.OCCUPANT, moveInDate: new Date('2025-01-14') },
+  // Lease 1: Alok + John
+  { leaseId: 1, userId: 1, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
+  { leaseId: 1, userId: 2, occupantType: OccupantType.OCCUPANT, moveInDate: new Date('2025-08-15') },
   // Lease 2: Emily + Christopher
-  { leaseId: 2, userId: 3, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-14') },
-  { leaseId: 2, userId: 6, occupantType: OccupantType.ROOMMATE, moveInDate: new Date('2025-01-15') },
+  { leaseId: 2, userId: 3, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-14') },
+  { leaseId: 2, userId: 6, occupantType: OccupantType.ROOMMATE, moveInDate: new Date('2025-08-15') },
   // Lease 3: Michael (ADA solo)
-  { leaseId: 3, userId: 4, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
-  // Lease 4: Ryan + Lauren
-  { leaseId: 4, userId: 8, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
-  { leaseId: 4, userId: 9, occupantType: OccupantType.ROOMMATE, moveInDate: new Date('2025-01-16') },
+  { leaseId: 3, userId: 4, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
+  // Lease 4: Ryan + Lauren (Lease signed for future)
+  { leaseId: 4, userId: 8, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2026-08-15') },
+  { leaseId: 4, userId: 9, occupantType: OccupantType.ROOMMATE, moveInDate: new Date('2026-08-16') },
   // Lease 5: Sophia + Alicia
-  { leaseId: 5, userId: 5, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
-  { leaseId: 5, userId: 7, occupantType: OccupantType.ROOMMATE, moveInDate: new Date('2025-01-16') },
-  // Lease 6: Daniel + James
-  { leaseId: 6, userId: 10, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
-  { leaseId: 6, userId: 12, occupantType: OccupantType.ROOMMATE, moveInDate: new Date('2025-01-15') },
+  { leaseId: 5, userId: 5, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
+  { leaseId: 5, userId: 7, occupantType: OccupantType.ROOMMATE, moveInDate: new Date('2025-08-16') },
+  // Lease 6: Daniel + James (Completed)
+  { leaseId: 6, userId: 10, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2024-08-15'), moveOutDate: new Date('2025-07-31') },
+  { leaseId: 6, userId: 12, occupantType: OccupantType.ROOMMATE, moveInDate: new Date('2024-08-15'), moveOutDate: new Date('2025-07-31') },
   // Lease 7: Tyler + Natalie
-  { leaseId: 7, userId: 18, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
-  { leaseId: 7, userId: 15, occupantType: OccupantType.ROOMMATE, moveInDate: new Date('2025-01-16') },
+  { leaseId: 7, userId: 18, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
+  { leaseId: 7, userId: 15, occupantType: OccupantType.ROOMMATE, moveInDate: new Date('2025-08-16') },
   // Lease 8: Ethan solo
-  { leaseId: 8, userId: 20, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  { leaseId: 8, userId: 20, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
   // Lease 9: Olivia + William
-  { leaseId: 9, userId: 27, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
-  { leaseId: 9, userId: 26, occupantType: OccupantType.ROOMMATE, moveInDate: new Date('2025-01-16') },
+  { leaseId: 9, userId: 27, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
+  { leaseId: 9, userId: 26, occupantType: OccupantType.ROOMMATE, moveInDate: new Date('2025-08-16') },
   // Lease 10: atiq solo
-  { leaseId: 10, userId: 39, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  { leaseId: 10, userId: 39, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
   // Lease 11: Kayla solo (room)
-  { leaseId: 11, userId: 17, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  { leaseId: 11, userId: 17, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
   // Lease 12: Megan solo (room)
-  { leaseId: 12, userId: 13, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  { leaseId: 12, userId: 13, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
   // Lease 13: Rachel solo (room)
-  { leaseId: 13, userId: 19, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
-  // Lease 14: Jason (bed)
-  { leaseId: 14, userId: 22, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  { leaseId: 13, userId: 19, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
+  // Lease 14: Jason (bed) - EVICTED/TERMINATED
+  { leaseId: 14, userId: 22, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15'), moveOutDate: new Date('2025-12-31') },
   // Lease 15: Victoria (bed)
-  { leaseId: 15, userId: 23, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  { leaseId: 15, userId: 23, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
   // Lease 16: David (bed)
-  { leaseId: 16, userId: 24, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
+  { leaseId: 16, userId: 24, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
   // Lease 17: Adrian (bed)
-  { leaseId: 17, userId: 28, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15') },
-  // Lease 18: Isabella (bed — moved out)
-  { leaseId: 18, userId: 29, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-01-15'), moveOutDate: new Date('2025-06-15') },
+  { leaseId: 17, userId: 28, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
+  // Lease 18: Isabella (bed — moved out early)
+  { leaseId: 18, userId: 29, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15'), moveOutDate: new Date('2025-12-15') },
 ];
 
 // ============================================
