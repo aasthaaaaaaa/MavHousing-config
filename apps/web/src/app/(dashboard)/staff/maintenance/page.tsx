@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, User, Calendar, Paperclip, Send, ExternalLink, Trash2, Eye, Film, Download } from "lucide-react";
 import { getMaintenanceStatusClass, getPriorityClass } from "@/lib/status-colors";
@@ -56,8 +57,8 @@ export default function StaffMaintenancePage() {
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
-  const [filterStatus, setFilterStatus] = useState("ALL");
   const [filterPriority, setFilterPriority] = useState("ALL");
+  const [activeTab, setActiveTab] = useState("unassigned");
   const [selected, setSelected] = useState<MaintenanceRequest | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [resolutionPrompt, setResolutionPrompt] = useState<{ requestId: number } | null>(null);
@@ -240,15 +241,21 @@ export default function StaffMaintenancePage() {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
-  const filtered = sortedRequests.filter(r =>
-    (filterStatus === "ALL" || r.status === filterStatus) &&
+  const filteredByTab = sortedRequests.filter(r => {
+    if (activeTab === "unassigned") return !r.assignedStaff;
+    if (activeTab === "active") return r.assignedStaff && r.status !== "RESOLVED" && r.status !== "CLOSED";
+    if (activeTab === "inactive") return r.status === "RESOLVED" || r.status === "CLOSED";
+    return true;
+  });
+
+  const filtered = filteredByTab.filter(r =>
     (filterPriority === "ALL" || r.priority === filterPriority)
   );
 
   const stats = {
-    open: requests.filter(r => r.status === "OPEN").length,
-    inProgress: requests.filter(r => r.status === "IN_PROGRESS").length,
-    resolved: requests.filter(r => r.status === "RESOLVED").length,
+    unassigned: requests.filter(r => !r.assignedStaff).length,
+    active: requests.filter(r => r.assignedStaff && !["RESOLVED", "CLOSED"].includes(r.status)).length,
+    inactive: requests.filter(r => ["RESOLVED", "CLOSED"].includes(r.status)).length,
     emergency: requests.filter(r => r.priority === "EMERGENCY" && !["RESOLVED", "CLOSED"].includes(r.status)).length,
   };
 
@@ -261,9 +268,9 @@ export default function StaffMaintenancePage() {
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: "Open", value: stats.open, color: "text-blue-600" },
-          { label: "In Progress", value: stats.inProgress, color: "text-yellow-600" },
-          { label: "Resolved", value: stats.resolved, color: "text-green-600" },
+          { label: "Unassigned", value: stats.unassigned, color: "text-blue-600" },
+          { label: "Active", value: stats.active, color: "text-yellow-600" },
+          { label: "Inactive", value: stats.inactive, color: "text-green-600" },
           { label: "Emergency", value: stats.emergency, color: "text-red-600" },
         ].map((s, idx) => (
           <Card
@@ -279,22 +286,27 @@ export default function StaffMaintenancePage() {
         ))}
       </div>
 
-      <div className="flex gap-3 flex-wrap items-center animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both" style={{ animationDelay: "360ms" }}>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="All Statuses" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Statuses</SelectItem>
-            {STATUSES.map(s => <SelectItem key={s} value={s}>{s.replace("_", " ")}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={filterPriority} onValueChange={setFilterPriority}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="All Priorities" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Priorities</SelectItem>
-            {["LOW", "MEDIUM", "HIGH", "EMERGENCY"].map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <p className="text-sm text-muted-foreground">{filtered.length} request{filtered.length !== 1 ? "s" : ""}</p>
+      <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-3 duration-500 fill-mode-both" style={{ animationDelay: "360ms" }}>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
+            <TabsList className="grid grid-cols-3 w-[400px]">
+              <TabsTrigger value="unassigned">Unassigned / NEW</TabsTrigger>
+              <TabsTrigger value="active">Active</TabsTrigger>
+              <TabsTrigger value="inactive">Inactive</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <div className="flex items-center gap-3">
+            <Select value={filterPriority} onValueChange={setFilterPriority}>
+              <SelectTrigger className="w-40"><SelectValue placeholder="All Priorities" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Priorities</SelectItem>
+                {["LOW", "MEDIUM", "HIGH", "EMERGENCY"].map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground">{filtered.length} request{filtered.length !== 1 ? "s" : ""}</p>
+          </div>
+        </div>
       </div>
 
       <Card className="animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl py-0 gap-0" style={{ animationDelay: "440ms" }}>
