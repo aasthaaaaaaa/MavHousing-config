@@ -160,7 +160,7 @@ export default function StaffMaintenancePage() {
     await fetch(`http://localhost:3009/maintenance/requests/${selected.requestId}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: 1, content: newComment, attachmentUrl }),
+      body: JSON.stringify({ userId: user?.userId, content: newComment, attachmentUrl }),
     });
 
     setNewComment("");
@@ -579,6 +579,7 @@ export default function StaffMaintenancePage() {
       {/* Media Viewer Dialog */}
       <Dialog open={!!viewerUrl} onOpenChange={(open) => !open && setViewerUrl(null)}>
         <DialogContent className="max-w-4xl p-1 bg-black/95 border-none">
+          <DialogTitle className="sr-only">Media Viewer</DialogTitle>
           <div className="relative flex items-center justify-center min-h-[50vh]">
             {viewerType === "image" ? (
               <img src={viewerUrl!} alt="Viewer" className="max-h-[85vh] max-w-full object-contain rounded" />

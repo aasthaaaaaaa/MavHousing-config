@@ -430,6 +430,7 @@ export default function MyRequestsPage() {
       {/* Media Viewer Dialog */}
       <Dialog open={!!viewerUrl} onOpenChange={(open) => !open && setViewerUrl(null)}>
         <DialogContent className="max-w-4xl p-1 bg-black/95 border-none">
+          <DialogTitle className="sr-only">Media Viewer</DialogTitle>
           <div className="relative flex items-center justify-center min-h-[50vh]">
             {viewerType === "image" ? (
               <img src={viewerUrl!} alt="Viewer" className="max-h-[85vh] max-w-full object-contain rounded" />
