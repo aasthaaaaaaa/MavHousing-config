@@ -9,6 +9,6 @@ import { CommsServerModule } from '../../../comms-server/src/comms-server.module
   imports: [UtilsModule, CommsServerModule],
   controllers: [HousingController],
   providers: [HousingService, UploadService],
-  exports: [HousingService],
+  exports: [HousingService, UploadService],
 })
 export class HousingModule {}

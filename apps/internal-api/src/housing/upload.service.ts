@@ -348,4 +348,28 @@ export class UploadService implements OnModuleInit {
     
     return uploadedUrls;
   }
+
+  async uploadBulletinPhoto(file: Express.Multer.File, authorId: number): Promise<string> {
+    if (!file) throw new Error('File is required for Bulletin Photo upload');
+    if (file.size > 10 * 1024 * 1024) {
+      throw new HttpException('File exceeds 10MB limit', HttpStatus.PAYLOAD_TOO_LARGE);
+    }
+
+    const isImage = file.mimetype.startsWith('image/');
+    if (!isImage) {
+      throw new HttpException('Bulletins currently only support images.', HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+    }
+    
+    const fileExt = file.originalname.split('.').pop() || 'jpg';
+    const fileName = `bulletin-${authorId}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    
+    const compressedBuffer = await this.imageProcessor.compress(file.buffer, 85, 1920);
+    
+    return this.uploadFileToR2(
+      compressedBuffer,
+      fileName,
+      'bulletin-boards',
+      file.mimetype
+    );
+  }
 }

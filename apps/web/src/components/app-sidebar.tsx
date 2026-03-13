@@ -68,6 +68,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navItems = {
     student: [
       { title: "Dashboard", url: "/student", icon: Home },
+      { title: "Bulletin Board", url: "/student/bulletins", icon: Megaphone },
       { title: "My Applications", url: "/student/my-applications", icon: FileText },
       { title: "My Lease", url: "/student/my-lease", icon: FileText },
       { title: "Maintenance", url: "/student/maintenance/my-requests", icon: Wrench },
@@ -80,6 +81,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       { title: "Birds View", url: "/admin/birds-view", icon: Map },
       { title: "Occupancy Dashboard", url: "/admin/occupancy", icon: PieChart },
       { title: "Announcements", url: "/admin/announcements", icon: Megaphone },
+      { title: "Bulletin Board", url: "/admin/bulletin", icon: FileText },
     ]
   };
 
@@ -92,17 +94,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     { title: "Maintenance", url: "/staff/maintenance", icon: Wrench },
     { title: "Payments", url: "/staff/payments", icon: CreditCard },
     { title: "Announcements", url: "/staff/announcements", icon: Megaphone },
+    { title: "Bulletin Board", url: "/admin/bulletin", icon: FileText },
   ];
 
   const staffNavByPosition: Record<string, string[]> = {
-    MANAGEMENT: ["Dashboard", "Applications", "Leases", "Maintenance", "Payments", "Announcements"],
-    RESIDENT_A: ["Dashboard", "Maintenance", "Announcements"],
+    MANAGEMENT: ["Dashboard", "Applications", "Leases", "Maintenance", "Payments", "Announcements", "Bulletin Board"],
+    RESIDENT_A: ["Dashboard", "Maintenance", "Announcements", "Bulletin Board"],
     MAINTENANCE: ["Maint. Dashboard", "Maintenance"],
   };
 
-  const role = (user?.role || 'student') as string;
+  const rawRole = (user?.role || 'student') as string;
+  const role = rawRole.toLowerCase();
   const staffPosition = user?.staffPosition;
-  const items = role === 'staff'
+  const isStaff = role === 'staff' || role === 'management';
+
+  const items = isStaff
     ? allStaffItems.filter(item => {
         const allowed = staffNavByPosition[staffPosition || "MANAGEMENT"] || staffNavByPosition.MANAGEMENT;
         return allowed.includes(item.title);
