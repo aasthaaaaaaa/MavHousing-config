@@ -23,7 +23,7 @@ interface HierarchyData {
 
 const PropertyNode = ({ data }: any) => {
     return (
-        <div className="w-[280px] bg-background dark:bg-slate-900 border-2 border-primary/50 dark:border-primary/40 rounded-xl shadow-md p-4 transition-colors">
+        <div className="w-[364px] bg-background dark:bg-slate-900 border-2 border-primary/50 dark:border-primary/40 rounded-xl shadow-md p-4 transition-colors">
             <div className="flex items-center gap-3 border-b border-border pb-3 mb-3">
                 <div className="bg-primary/10 p-2 rounded-lg">
                     <Building className="w-5 h-5 text-primary" />
@@ -40,7 +40,7 @@ const PropertyNode = ({ data }: any) => {
 
 const UnitNode = ({ data }: any) => {
     return (
-        <div className="w-[260px] bg-background dark:bg-slate-900 border border-border rounded-lg shadow-sm p-3 transition-colors">
+        <div className="w-[338px] bg-background dark:bg-slate-900 border border-border rounded-lg shadow-sm p-3 transition-colors">
             <Handle type="target" position={Position.Left} className="!bg-muted-foreground" />
             <div className="flex items-center gap-2 mb-2">
                 <DoorOpen className="w-4 h-4 text-orange-500" />
@@ -66,7 +66,7 @@ const UnitNode = ({ data }: any) => {
 
 const RoomNode = ({ data }: any) => {
     return (
-        <div className="w-[220px] bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-3 transition-colors">
+        <div className="w-[286px] bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-300 dark:border-slate-700 rounded-lg p-3 transition-colors">
             <Handle type="target" position={Position.Left} className="!bg-slate-400 dark:!bg-slate-600" />
             <div className="flex items-center gap-2 mb-1.5">
                 <BedDouble className="w-4 h-4 text-emerald-500" />
@@ -89,7 +89,7 @@ const RoomNode = ({ data }: any) => {
 
 const BedNode = ({ data }: any) => {
     return (
-        <div className="w-[180px] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md p-2 hover:border-slate-300 dark:hover:border-slate-700 transition-colors shadow-sm">
+        <div className="w-[234px] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md p-2 hover:border-slate-300 dark:hover:border-slate-700 transition-colors shadow-sm">
             <Handle type="target" position={Position.Left} className="!bg-slate-300 dark:!bg-slate-700" />
             <div className="flex items-center gap-2">
                 <Bed className="w-3.5 h-3.5 text-blue-500" />
@@ -127,7 +127,7 @@ export function BirdsViewGraph({ data }: { data: HierarchyData }) {
         const newEdges: Edge[] = [];
 
         let startY = 50;
-        const X_SPACING = 350;
+        const X_SPACING = 455;
 
         data.properties.forEach((property: any, pIndex: number) => {
             const pNodeId = `prop-${property.propertyId}`;
