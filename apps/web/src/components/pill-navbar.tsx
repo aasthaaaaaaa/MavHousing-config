@@ -47,9 +47,11 @@ const navItemsByRole: Record<string, NavItem[]> = {
     { title: "Birds View", url: "/admin/birds-view", icon: Map },
     { title: "Occupancy", url: "/admin/occupancy", icon: PieChart },
     { title: "Announcements", url: "/admin/announcements", icon: Megaphone },
+    { title: "Bulletin Board", url: "/admin/bulletin", icon: FileText },
   ],
   student: [
     { title: "Dashboard", url: "/student", icon: Home },
+    { title: "Bulletin Board", url: "/student/bulletins", icon: Megaphone },
     { title: "My Applications", url: "/student/my-applications", icon: FileText },
     { title: "My Lease", url: "/student/my-lease", icon: FileText },
     { title: "Maintenance", url: "/student/maintenance/my-requests", icon: Wrench },
@@ -67,11 +69,12 @@ const allStaffNavItems: NavItem[] = [
   { title: "Maintenance", url: "/staff/maintenance", icon: Wrench },
   { title: "Payments", url: "/staff/payments", icon: CreditCard },
   { title: "Announcements", url: "/staff/announcements", icon: Megaphone },
+  { title: "Bulletin Board", url: "/admin/bulletin", icon: FileText },
 ]
 
 const staffNavByPosition: Record<string, string[]> = {
-  MANAGEMENT: ["Dashboard", "Applications", "Leases", "Maintenance", "Payments", "Announcements"],
-  RESIDENT_A: ["Dashboard", "Maintenance", "Announcements"],
+  MANAGEMENT: ["Dashboard", "Applications", "Leases", "Maintenance", "Payments", "Announcements", "Bulletin Board"],
+  RESIDENT_A: ["Dashboard", "Maintenance", "Announcements", "Bulletin Board"],
   MAINTENANCE: ["Maint. Dashboard", "Maintenance"],
 }
 
@@ -225,7 +228,7 @@ export function PillNavbar({ role }: PillNavbarProps) {
         <ModeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-3 p-1 pr-1.5 border border-transparent bg-transparent cursor-pointer rounded-full transition-all duration-200 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 group">
+            <div role="button" tabIndex={0} className="flex items-center gap-3 p-1 pr-1.5 border border-transparent bg-transparent cursor-pointer rounded-full transition-all duration-200 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               <span className="hidden md:flex flex-col items-end text-sm leading-tight ml-2">
                 <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{user?.fName ? `${user.fName} ${user.lName}` : (user?.username || "User")}</span>
                 <span className="text-[11px] text-muted-foreground">{roleLabel}</span>
@@ -236,7 +239,7 @@ export function PillNavbar({ role }: PillNavbarProps) {
                   {(user?.fName?.[0] || user?.username?.[0] || "U").toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-            </button>
+            </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56 rounded-xl" align="end" sideOffset={8}>
             <DropdownMenuLabel className="font-normal">

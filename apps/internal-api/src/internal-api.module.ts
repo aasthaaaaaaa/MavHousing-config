@@ -17,6 +17,7 @@ import { PaymentModule } from './payment/payment.module';
 import { ApplicationModule } from './application/application.module';
 import { ChatModule } from './chat/chat.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
+import { BulletinModule } from './bulletin/bulletin.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { AnnouncementsModule } from './announcements/announcements.module';
     ApplicationModule,
     ChatModule,
     AnnouncementsModule,
+    BulletinModule,
   ],
   controllers: [InternalApiController],
   providers: [InternalApiService, InternalApiResolver],
