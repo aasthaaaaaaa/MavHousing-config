@@ -197,7 +197,7 @@ export function CreateBulletinDialog({ open, onOpenChange, onSuccess }: { open: 
                     <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit} disabled={loading || (!content && !uploadingImage)}>
+                    <Button onClick={handleSubmit} disabled={loading || (type === "TEXT" ? !content : (!title || !selectedFile))}>
                         {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                         Publish Bulletin
                     </Button>

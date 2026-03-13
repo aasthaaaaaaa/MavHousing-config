@@ -22,50 +22,67 @@ export class BulletinService {
   async findAllForUser(userId: number, role: string) {
     const userRoleLower = role.toLowerCase();
 
+    let bulletins: any[] = [];
+
     // Admins and staff can view all bulletins
     if (userRoleLower === 'admin' || userRoleLower === 'staff' || userRoleLower === 'management' || userRoleLower === 'resident_a' || userRoleLower === 'maintenance') {
-      return this.bulletinModel.find().sort({ createdAt: -1 }).exec();
+      bulletins = await this.bulletinModel.find().sort({ createdAt: -1 }).exec();
+    } else {
+      // Students only see bulletins targeting ALL, or targeting their active properties, active leases, or specific property types
+      const userLeases = await this.prisma.lease.findMany({
+        where: { userId },
+        include: {
+          unit: {
+            select: { propertyId: true },
+          },
+        },
+      });
+
+      const activeLeaseIds = userLeases.map((l) => l.leaseId);
+      const activePropertyIds = userLeases
+        .map((l) => l.unit?.propertyId)
+        .filter((id) => id != null) as number[];
+
+      // We need to also know the PropertyTypes for the properties they are in
+      const properties = await this.prisma.property.findMany({
+        where: { propertyId: { in: activePropertyIds } },
+        select: { propertyType: true },
+      });
+      const activePropertyTypes = properties.map((p) => p.propertyType);
+
+      bulletins = await this.bulletinModel.find({
+        $or: [
+          { targetType: BulletinTargetType.ALL },
+          { 
+            targetType: BulletinTargetType.PROPERTY, 
+            targetPropertyIds: { $in: Array.from(activePropertyIds) } 
+          },
+          { 
+            targetType: BulletinTargetType.LEASE, 
+            targetLeaseIds: { $in: Array.from(activeLeaseIds) } 
+          },
+          { 
+            targetType: BulletinTargetType.PROPERTY_TYPE, 
+            targetPropertyTypes: { $in: Array.from(activePropertyTypes) } 
+          },
+        ]
+      }).sort({ createdAt: -1 }).exec();
     }
 
-    // Students only see bulletins targeting ALL, or targeting their active properties, active leases, or specific property types
-    const userLeases = await this.prisma.lease.findMany({
-      where: { userId },
-      include: {
-        unit: {
-          select: { propertyId: true },
-        },
-      },
+    // Populate the author information manually using Prisma
+    const authorIds = [...new Set(bulletins.map((b) => b.authorId))].filter(Boolean);
+    const authors = await this.prisma.user.findMany({
+      where: { userId: { in: authorIds } },
+      select: { userId: true, fName: true, lName: true },
     });
+    
+    const authorMap = new Map(authors.map((a) => [a.userId, a]));
 
-    const activeLeaseIds = userLeases.map((l) => l.leaseId);
-    const activePropertyIds = userLeases
-      .map((l) => l.unit?.propertyId)
-      .filter((id) => id != null) as number[];
-
-    // We need to also know the PropertyTypes for the properties they are in
-    const properties = await this.prisma.property.findMany({
-      where: { propertyId: { in: activePropertyIds } },
-      select: { propertyType: true },
+    return bulletins.map((b) => {
+      const doc = b.toObject();
+      doc.author = authorMap.get(doc.authorId) || null;
+      return doc;
     });
-    const activePropertyTypes = properties.map((p) => p.propertyType);
-
-    return this.bulletinModel.find({
-      $or: [
-        { targetType: BulletinTargetType.ALL },
-        { 
-          targetType: BulletinTargetType.PROPERTY, 
-          targetPropertyIds: { $in: Array.from(activePropertyIds) } 
-        },
-        { 
-          targetType: BulletinTargetType.LEASE, 
-          targetLeaseIds: { $in: Array.from(activeLeaseIds) } 
-        },
-        { 
-          targetType: BulletinTargetType.PROPERTY_TYPE, 
-          targetPropertyTypes: { $in: Array.from(activePropertyTypes) } 
-        },
-      ]
-    }).sort({ createdAt: -1 }).exec();
   }
 
   async remove(id: string) {

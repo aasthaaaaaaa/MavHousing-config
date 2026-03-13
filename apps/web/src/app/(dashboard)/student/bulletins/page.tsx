@@ -87,7 +87,7 @@ export default function ResidentBulletinsPage() {
                                     <CalendarDays className="w-3.5 h-3.5" />
                                     <span>{new Date(b.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                     <span className="mx-1.5">•</span>
-                                    <span>{b.author?.fName}</span>
+                                    <span>{b.author?.fName} {b.author?.lName}</span>
                                 </div>
                             </CardContent>
                         </Card>
