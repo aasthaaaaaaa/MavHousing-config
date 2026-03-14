@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { User, Building2, Calendar, DollarSign, MapPin } from "lucide-react";
+import { User, Building2, Calendar, DollarSign, MapPin, AlertTriangle, RefreshCcw } from "lucide-react";
 import { getLeaseStatusClass } from "@/lib/status-colors";
+import { Input } from "@/components/ui/input";
 
 interface Lease {
   leaseId: number;
@@ -18,14 +19,18 @@ interface Lease {
   startDate: string;
   endDate: string;
   totalDue: string;
+  dueThisMonth: string;
   status: string;
-  user: { netId: string; fName: string; lName: string; email: string };
+  terminationFee?: string;
+  terminationReason?: string;
+  user: { userId: number; netId: string; fName: string; lName: string; email: string };
   unit?: { unitNumber: string; property: { name: string; address: string } };
   room?: { roomLetter: string };
   bed?: { bedLetter: string };
+  payments: any[];
 }
 
-const STATUSES = ["DRAFT", "PENDING_SIGNATURE", "SIGNED", "ACTIVE", "COMPLETED", "TERMINATED"];
+const STATUSES = ["DRAFT", "PENDING_SIGNATURE", "SIGNED", "ACTIVE", "TERMINATION_REQUESTED", "TERMINATED", "COMPLETED"];
 
 function fmtDate(d?: string) {
   if (!d) return "—";
@@ -48,6 +53,8 @@ export default function StaffLeasesPage() {
   const [selected, setSelected] = useState<Lease | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [updating, setUpdating] = useState<number | null>(null);
+  const [termFeeInput, setTermFeeInput] = useState("");
+  const [finishingTerm, setFinishingTerm] = useState(false);
 
   useEffect(() => { fetchLeases(); }, []);
 
@@ -55,7 +62,14 @@ export default function StaffLeasesPage() {
     try {
       const res = await fetch("http://localhost:3009/lease/leases");
       const data = await res.json();
-      setLeases(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : [];
+      setLeases(list);
+      
+      // Also update selected if it's open
+      if (selected) {
+        const updated = list.find(l => l.leaseId === selected.leaseId);
+        if (updated) setSelected(updated);
+      }
     } finally {
       setLoading(false);
     }
@@ -73,6 +87,39 @@ export default function StaffLeasesPage() {
       if (selected?.leaseId === leaseId) setSelected(prev => prev ? { ...prev, status } : null);
     } finally {
       setUpdating(null);
+    }
+  }
+
+  async function handleSetTerminationFee() {
+    if (!selected) return;
+    setUpdating(selected.leaseId);
+    try {
+      await fetch(`http://localhost:3009/lease/${selected.leaseId}/termination-fee`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: parseFloat(termFeeInput) }),
+      });
+      const updated = { ...selected, terminationFee: termFeeInput };
+      setSelected(updated);
+      setLeases(prev => prev.map(l => l.leaseId === selected.leaseId ? updated : l));
+    } finally {
+      setUpdating(null);
+    }
+  }
+
+  async function handleApproveTermination() {
+    if (!selected) return;
+    setFinishingTerm(true);
+    try {
+      await fetch(`http://localhost:3009/lease/${selected.leaseId}/approve-termination`, {
+        method: "PATCH",
+      });
+      const updated = { ...selected, status: "TERMINATED" };
+      setSelected(updated);
+      setLeases(prev => prev.map(l => l.leaseId === selected.leaseId ? updated : l));
+      setSheetOpen(false);
+    } finally {
+      setFinishingTerm(false);
     }
   }
 
@@ -214,6 +261,77 @@ export default function StaffLeasesPage() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {selected.status === 'TERMINATION_REQUESTED' && (
+                  <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-xl space-y-4">
+                    <div className="flex items-center gap-2 text-amber-600 font-semibold">
+                      <AlertTriangle className="h-4 w-4" />
+                      Early Termination Requested
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Reason</p>
+                      <p className="text-sm italic">&quot;{selected.terminationReason || "No reason provided."}&quot;</p>
+                    </div>
+                    
+                    <Separator className="bg-amber-500/10" />
+                    
+                    <div className="space-y-2">
+                       <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Add Termination Fee ($)</Label>
+                       <div className="flex gap-2">
+                         <Input 
+                            type="number" 
+                            placeholder="0.00" 
+                            value={termFeeInput} 
+                            onChange={e => setTermFeeInput(e.target.value)}
+                            className="bg-white dark:bg-black"
+                         />
+                         <Button variant="outline" size="sm" onClick={handleSetTerminationFee} disabled={updating === selected.leaseId}>Apply</Button>
+                       </div>
+                    </div>
+
+                    {selected.terminationFee && parseFloat(selected.terminationFee) > 0 && (() => {
+                      const totalPaid = (selected.payments || []).reduce((acc: number, p: any) => acc + parseFloat(p.amountPaid), 0);
+                      const now = new Date();
+                      const start = new Date(selected.startDate);
+                      const monthsElapsed = Math.max(1, (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()) + 1);
+                      const expectedTillNow = (parseFloat(selected.dueThisMonth) * monthsElapsed) + parseFloat(selected.terminationFee || "0");
+                      const balance = Math.max(0, expectedTillNow - totalPaid);
+                      const isClear = balance <= 0.01;
+
+                      return (
+                        <div className="pt-2">
+                           <div className="flex items-center justify-between mb-2">
+                              <p className="text-xs font-medium uppercase text-muted-foreground">Balance Check</p>
+                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={fetchLeases} disabled={updating === selected.leaseId}>
+                                <RefreshCcw className={`h-3 w-3 ${updating === selected.leaseId ? 'animate-spin' : ''}`} />
+                              </Button>
+                           </div>
+                           
+                           <div className="flex items-center justify-between mt-1 p-3 bg-white dark:bg-black border rounded-lg">
+                             <div className="space-y-0.5">
+                               <p className="text-[10px] text-muted-foreground uppercase">Current Balance</p>
+                               <p className={`text-lg font-bold ${isClear ? 'text-green-600' : 'text-destructive'}`}>
+                                 {fmtMoney(String(balance))}
+                               </p>
+                             </div>
+                             <Badge variant="outline" className={isClear ? "text-green-600 bg-green-50 border-green-200" : "text-amber-600 bg-amber-50 border-amber-200"}>
+                               {isClear ? "CLEAR" : "DUE"}
+                             </Badge>
+                           </div>
+                           
+                           <Button 
+                              className={`w-full mt-4 ${isClear ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-600 hover:bg-amber-700'} text-white transition-all`}
+                              onClick={handleApproveTermination}
+                              disabled={finishingTerm || !isClear}
+                           >
+                              {finishingTerm ? "Terminating..." : isClear ? "Finalize Termination" : "Waiting for Payment..."}
+                           </Button>
+                           {!isClear && <p className="text-[10px] text-center text-muted-foreground mt-2">Lease cannot be ended until balance is $0.00</p>}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
             </>
           )}

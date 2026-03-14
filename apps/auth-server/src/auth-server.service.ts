@@ -50,14 +50,16 @@ export class AuthServerService {
     };
     const mappedRole = roleMapping[user.role] || 'STUDENT';
 
+    const normalize = (s: string) => s ? s.trim().charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '';
+
     await this.prisma.user.create({
       data: {
         netId: user.netId,
         utaId: user.utaId,
         passwordHash: hashedPassword,
-        fName: user.fName || '',
-        mName: user.mName || null,
-        lName: user.lName || '',
+        fName: normalize(user.fName),
+        mName: user.mName ? normalize(user.mName) : null,
+        lName: normalize(user.lName),
         email: user.email || `${user.netId}@mavs.uta.edu`,
         role: mappedRole,
         gender: user.gender,
@@ -66,6 +68,7 @@ export class AuthServerService {
         staffPosition: user.staffPosition || null,
         requiresAdaAccess: user.requiresAdaAccess ?? false,
         assignedPropertyId: user.assignedPropertyId || null,
+        phone: user.phone ? BigInt(user.phone) : null,
       },
     });
 
@@ -113,9 +116,11 @@ export class AuthServerService {
       staff: 'STAFF',
     };
 
+    const normalize = (s: string) => (s ? s.trim().charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '');
+
     const updateData: any = {};
-    if (data.fName !== undefined) updateData.fName = data.fName;
-    if (data.lName !== undefined) updateData.lName = data.lName;
+    if (data.fName !== undefined) updateData.fName = normalize(data.fName);
+    if (data.lName !== undefined) updateData.lName = normalize(data.lName);
     if (data.email !== undefined) updateData.email = data.email;
     if (data.phone !== undefined) updateData.phone = data.phone ? BigInt(data.phone) : null;
     if (data.role !== undefined)

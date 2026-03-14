@@ -163,7 +163,12 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }: Edit
     if (!user) return
     setSaving(true)
     try {
-      const payload: any = { ...formData }
+      const normalize = (s: string) => s ? s.trim().charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '';
+      const payload: any = { 
+        ...formData,
+        fName: normalize(formData.fName),
+        lName: normalize(formData.lName),
+      }
       if(formData.phone.length != 10){
         toast.error("Phone number must be 10 digits")
         setSaving(false)

@@ -46,6 +46,7 @@ const leaseStatusMap: Record<string, string> = {
   ACTIVE: green,
   COMPLETED: muted,
   TERMINATED: red,
+  TERMINATION_REQUESTED: orange,
 };
 
 /** Human-readable label for lease status (handles underscores). */
@@ -56,6 +57,7 @@ export const leaseStatusLabel: Record<string, string> = {
   ACTIVE: 'Active',
   COMPLETED: 'Completed',
   TERMINATED: 'Terminated',
+  TERMINATION_REQUESTED: 'Termination Requested',
 };
 
 export function getLeaseStatusClass(status: string): string {

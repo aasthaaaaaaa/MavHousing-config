@@ -9,6 +9,7 @@ export class LeaseService {
     return this.prisma.lease.findFirst({
       where: {
         OR: [{ userId }, { occupants: { some: { userId } } }],
+        status: { in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE', 'TERMINATION_REQUESTED'] as any },
       },
       orderBy: { createdAt: 'desc' },
       include: {
@@ -82,16 +83,34 @@ export class LeaseService {
         },
         room: true,
         bed: true,
+        payments: true,
       },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async updateLeaseStatus(leaseId: number, status: string) {
-    return this.prisma.lease.update({
+    const updatedLease = await this.prisma.lease.update({
       where: { leaseId },
-      data: { status: status as any, updatedAt: new Date() },
+      data: {
+        status: status as any,
+        updatedAt: new Date(),
+        ...(status === 'SIGNED' ? { signedAt: new Date() } : {}),
+      },
     });
+
+    // If lease is signed, ensure any pending application is marked as approved
+    if (status === 'SIGNED') {
+      await this.prisma.application.updateMany({
+        where: {
+          userId: updatedLease.userId,
+          status: { in: ['SUBMITTED', 'UNDER_REVIEW', 'DRAFT'] as any },
+        },
+        data: { status: 'APPROVED' },
+      });
+    }
+
+    return updatedLease;
   }
 
   async getOccupancy() {
@@ -157,7 +176,7 @@ export class LeaseService {
     return this.prisma.lease.findFirst({
       where: {
         OR: [{ userId }, { occupants: { some: { userId } } }],
-        status: { in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE'] as any },
+        status: { in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE', 'TERMINATION_REQUESTED'] as any },
       },
       orderBy: { createdAt: 'desc' },
       include: {
@@ -263,6 +282,55 @@ export class LeaseService {
       });
 
       return newOccupant;
+    });
+  }
+
+  async requestTermination(leaseId: number, reason: string) {
+    return this.prisma.lease.update({
+      where: { leaseId },
+      data: {
+        status: 'TERMINATION_REQUESTED',
+        terminationReason: reason,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  async setTerminationFee(leaseId: number, amount: number) {
+    return this.prisma.lease.update({
+      where: { leaseId },
+      data: {
+        terminationFee: amount,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  async approveTermination(leaseId: number) {
+    return this.prisma.$transaction(async (tx) => {
+      const lease = await tx.lease.findUnique({
+        where: { leaseId },
+        include: { occupants: true },
+      });
+
+      if (!lease) throw new Error('Lease not found');
+
+      // Finalize status
+      await tx.lease.update({
+        where: { leaseId },
+        data: { status: 'TERMINATED', updatedAt: new Date() },
+      });
+
+      // Clear property assignment from roommates/occupants
+      await tx.occupant.updateMany({
+        where: { leaseId },
+        data: { moveOutDate: new Date() },
+      });
+
+      // If it was by unit/bed, we might want to release the beds, but Prisma relations handle it if we just clear the lease status or delete. 
+      // Actually, just changing status to TERMINATED is enough for availability logic usually.
+
+      return { success: true };
     });
   }
 }

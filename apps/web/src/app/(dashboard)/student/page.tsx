@@ -73,10 +73,10 @@ export default function StudentDashboard() {
     if (!user?.userId) return;
     const uid = user.userId;
     Promise.all([
-      fetch(`http://localhost:3009/lease/my-lease?userId=${uid}`).then(r => r.json()).catch(() => null),
-      fetch(`http://localhost:3009/payment/summary?userId=${uid}`).then(r => r.json()).catch(() => null),
-      fetch(`http://localhost:3009/maintenance/my-requests?userId=${uid}`).then(r => r.json()).catch(() => []),
-      fetch(`http://localhost:3009/housing/my-applications?userId=${uid}`).then(r => r.json()).catch(() => []),
+      fetch(`http://localhost:3009/lease/my-lease?userId=${uid}`).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch(`http://localhost:3009/payment/summary?userId=${uid}`).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch(`http://localhost:3009/maintenance/my-requests?userId=${uid}`).then(r => r.ok ? r.json() : null).catch(() => []),
+      fetch(`http://localhost:3009/housing/my-applications?userId=${uid}`).then(r => r.ok ? r.json() : null).catch(() => []),
     ]).then(([leaseData, payData, reqData, appData]) => {
       setLease(leaseData ?? null);
       setPayments(payData ?? null);
@@ -157,7 +157,7 @@ export default function StudentDashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">Lease Details</CardTitle>
-              {lease && (
+              {lease?.status && (
                 <Badge variant="outline" className={`${getLeaseStatusClass(lease.status)} rounded-full px-2.5 text-xs`}>
                   {lease.status.replace(/_/g, " ")}
                 </Badge>
@@ -170,7 +170,7 @@ export default function StudentDashboard() {
                 <div className="h-4 bg-muted animate-pulse rounded-lg" />
                 <div className="h-4 bg-muted animate-pulse rounded-lg w-3/4" />
               </div>
-            ) : lease ? (
+            ) : (lease && lease.status) ? (
               <>
                 <div className="space-y-1">
                   <p className="font-semibold">{lease.unit?.property.name}</p>

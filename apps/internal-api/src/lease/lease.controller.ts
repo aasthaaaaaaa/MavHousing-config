@@ -77,4 +77,25 @@ export class LeaseController {
   async endLease(@Param('id', ParseIntPipe) id: number) {
     return this.leaseService.updateLeaseStatus(id, 'COMPLETED');
   }
+
+  @Patch(':id/request-termination')
+  async requestTermination(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { reason: string },
+  ) {
+    return this.leaseService.requestTermination(id, body.reason);
+  }
+
+  @Patch(':id/termination-fee')
+  async setTerminationFee(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { amount: number },
+  ) {
+    return this.leaseService.setTerminationFee(id, body.amount);
+  }
+
+  @Patch(':id/approve-termination')
+  async approveTermination(@Param('id', ParseIntPipe) id: number) {
+    return this.leaseService.approveTermination(id);
+  }
 }

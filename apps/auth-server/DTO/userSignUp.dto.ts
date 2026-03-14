@@ -76,4 +76,8 @@ export class UserSignup {
   @ApiProperty()
   @IsOptional()
   readonly assignedPropertyId?: number;
+
+  @ApiProperty()
+  @IsOptional()
+  readonly phone?: string;
 }

@@ -7,10 +7,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Building2, Calendar, CreditCard, BedDouble, DoorOpen, Key, Users, UserPlus, Trash2 } from "lucide-react";
+import { Building2, Calendar, CreditCard, BedDouble, DoorOpen, Key, Users, UserPlus, Trash2, AlertTriangle, Send } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getLeaseStatusClass, getOccupantTypeClass } from "@/lib/status-colors";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Lease {
   leaseId: number;
@@ -21,6 +30,8 @@ interface Lease {
   dueThisMonth: string;
   status: string;
   signedAt: string;
+  terminationFee?: string;
+  terminationReason?: string;
   unit?: {
     unitNumber: string;
     floorLevel?: number;
@@ -62,6 +73,9 @@ export default function MyLeasePage() {
   const [signing, setSigning] = useState(false);
   const [inviteUtaId, setInviteUtaId] = useState("");
   const [inviting, setInviting] = useState(false);
+  const [termDialogOpen, setTermDialogOpen] = useState(false);
+  const [termReason, setTermReason] = useState("");
+  const [requestingTerm, setRequestingTerm] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -149,6 +163,29 @@ export default function MyLeasePage() {
     }
   }
 
+  async function handleTerminationRequest() {
+    if (!termReason.trim()) return;
+    setRequestingTerm(true);
+    try {
+      const res = await fetch(`http://localhost:3009/lease/${lease!.leaseId}/request-termination`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: termReason }),
+      });
+      if (res.ok) {
+        toast.success("Termination request submitted to management.");
+        setLease({ ...lease!, status: "TERMINATION_REQUESTED", terminationReason: termReason });
+        setTermDialogOpen(false);
+      } else {
+        toast.error("Failed to submit termination request.");
+      }
+    } catch {
+      toast.error("An error occurred.");
+    } finally {
+      setRequestingTerm(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex flex-1 flex-col gap-6 p-6">
@@ -198,6 +235,27 @@ export default function MyLeasePage() {
               {signing ? "Signing..." : "Accept & Sign Lease"}
             </Button>
           </CardContent>
+        </Card>
+      )}
+      
+      {lease.status === 'TERMINATION_REQUESTED' && (
+        <Card className="border-amber-500/50 bg-amber-500/5 rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "80ms" }}>
+          <CardHeader>
+            <CardTitle className="text-amber-600 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" /> Termination Request Pending
+            </CardTitle>
+            <CardDescription className="text-base text-foreground mt-2">
+              You have requested to end your lease early. Management is currently reviewing your request. 
+              {lease.terminationFee && parseFloat(lease.terminationFee) > 0 ? (
+                <span className="block mt-2 font-bold text-destructive">
+                  An early termination fee of {formatMoney(lease.terminationFee)} has been added to your account. 
+                  Please clear all dues to finalize the termination.
+                </span>
+              ) : (
+                <span className="block mt-2">Waiting for management to set termination fees if applicable.</span>
+              )}
+            </CardDescription>
+          </CardHeader>
         </Card>
       )}
 
@@ -298,6 +356,14 @@ export default function MyLeasePage() {
               <span className="text-muted-foreground">Due This Month</span>
               <span className="font-bold text-xl text-primary">{formatMoney(lease.dueThisMonth)}</span>
             </div>
+            {lease.status === 'ACTIVE' && (
+              <>
+                <Separator />
+                <Button variant="outline" className="w-full text-destructive hover:bg-destructive/10 border-destructive/20" onClick={() => setTermDialogOpen(true)}>
+                  Request Early Lease Ending
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -374,6 +440,36 @@ export default function MyLeasePage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Termination Request Dialog */}
+      <Dialog open={termDialogOpen} onOpenChange={setTermDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Early Lease Termination</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to end your lease early? This request will be sent to management for approval. Early termination fees may apply.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Reason for Termination</label>
+              <Textarea 
+                placeholder="Please explain why you need to end your lease..." 
+                value={termReason} 
+                onChange={e => setTermReason(e.target.value)}
+                className="h-32"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTermDialogOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleTerminationRequest} disabled={requestingTerm || !termReason.trim()}>
+              <Send className="h-4 w-4 mr-2" />
+              {requestingTerm ? "Submitting..." : "Submit Request"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

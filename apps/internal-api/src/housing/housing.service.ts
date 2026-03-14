@@ -69,6 +69,7 @@ export class HousingService {
         address: true,
         propertyType: true,
         leaseType: true,
+        baseRate: true,
       },
     });
   }
@@ -183,12 +184,10 @@ export class HousingService {
   }
 
   async getTerms() {
-    // For MVP, return hardcoded terms
-    // In production, this could come from a Terms table
     return [
-      { value: 'FALL_2026', label: 'Fall 2026' },
-      { value: 'SPRING_2027', label: 'Spring 2027' },
-      { value: 'SUMMER_2027', label: 'Summer 2027' },
+      { value: '3_MONTHS', label: '3 Months' },
+      { value: '6_MONTHS', label: '6 Months' },
+      { value: '12_MONTHS', label: '12 Months' },
     ];
   }
 
@@ -270,6 +269,8 @@ export class HousingService {
             propertyId: true,
             name: true,
             address: true,
+            propertyType: true,
+            leaseType: true,
           },
         },
       },
@@ -318,34 +319,19 @@ export class HousingService {
   }
 
   private getTermDates(term: string): { startDate: Date; endDate: Date } {
-    // Basic parser for "FALL_2026", "SPRING_2027", etc.
-    const [season, yearStr] = term.split('_');
-    const year = parseInt(yearStr) || new Date().getFullYear();
-
-    if (season === 'FALL') {
-      return {
-        startDate: new Date(`${year}-08-15T00:00:00Z`),
-        endDate: new Date(`${year}-12-15T00:00:00Z`),
-      };
-    }
-    if (season === 'SPRING') {
-      return {
-        startDate: new Date(`${year}-01-10T00:00:00Z`),
-        endDate: new Date(`${year}-05-15T00:00:00Z`),
-      };
-    }
-    if (season === 'SUMMER') {
-      return {
-        startDate: new Date(`${year}-06-01T00:00:00Z`),
-        endDate: new Date(`${year}-08-01T00:00:00Z`),
-      };
-    }
-
-    // Default fallback
     const now = new Date();
-    const nextYear = new Date();
-    nextYear.setFullYear(now.getFullYear() + 1);
-    return { startDate: now, endDate: nextYear };
+    // Start at 1st of NEXT month
+    const startDate = new Date(Date.UTC(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0));
+
+    let months = 6; // default
+    if (term === '3_MONTHS') months = 3;
+    else if (term === '6_MONTHS') months = 6;
+    else if (term === '12_MONTHS') months = 12;
+
+    const endDate = new Date(startDate);
+    endDate.setUTCMonth(startDate.getUTCMonth() + months);
+
+    return { startDate, endDate };
   }
 
   async updateApplicationStatus(
@@ -422,11 +408,48 @@ export class HousingService {
         );
       }
 
+      // 1.5 Check if a lease was already manually created (e.g. via dialog)
+      const manuallyCreatedLease = await this.prisma.lease.findFirst({
+        where: {
+          userId: application.userId,
+          status: 'PENDING_SIGNATURE',
+          createdAt: { gte: new Date(Date.now() - 60000) } // Created in last minute
+        }
+      });
+
+      if (manuallyCreatedLease) {
+        return this.prisma.application.update({
+          where: { appId },
+          data: { status: status as any },
+        });
+      }
+
       // 2. Identify the term dates
       const { startDate, endDate } = this.getTermDates(application.term);
 
       // Default to property leaseType if available, else fallback to BY_BED
       const leaseType = application.preferredProperty?.leaseType || 'BY_BED';
+      
+      // Calculate suggested rent
+      // Heuristic: Residence Hall Bed (~400), Apartment Bed (~520), Apartment Unit (~1200+)
+      let monthlyRate = 400; 
+      if (application.preferredProperty?.baseRate) {
+        monthlyRate = Number(application.preferredProperty.baseRate);
+      } else {
+        const isApartment = application.preferredProperty?.propertyType === 'APARTMENT';
+        if (leaseType === 'BY_UNIT') {
+          monthlyRate = isApartment ? 1200 : 800;
+        } else {
+          monthlyRate = isApartment ? 520 : 400;
+        }
+      }
+
+      // Calculate months
+      let diffMonths = 6;
+      if (application.term?.includes('3')) diffMonths = 3;
+      else if (application.term?.includes('12')) diffMonths = 12;
+      
+      const totalDue = monthlyRate * diffMonths;
 
       // 3. Auto-create a LEASE and Occupant record
       await this.prisma.lease.create({
@@ -435,9 +458,9 @@ export class HousingService {
           leaseType: leaseType as any,
           startDate,
           endDate,
-          totalDue: 0,
-          dueThisMonth: 0,
-          status: 'ACTIVE',
+          totalDue: totalDue,
+          dueThisMonth: monthlyRate,
+          status: 'PENDING_SIGNATURE', // Change to PENDING_SIGNATURE so user can see it
           occupants: {
             create: {
               userId: application.userId,
@@ -488,13 +511,8 @@ export class HousingService {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }
 
-    // Prevent deletion of approved applications
-    if (application.status === 'APPROVED') {
-      throw new HttpException(
-        'Cannot delete an approved application. Please contact staff.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    // Deletion of approved applications only blocked if a lease is already created
+    // (This check will be handled by the activeLease check below)
 
     // Prevent deletion if there is an active lease for this term
     const activeLease = await this.prisma.lease.findFirst({

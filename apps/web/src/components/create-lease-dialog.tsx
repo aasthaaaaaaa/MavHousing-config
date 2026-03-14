@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -38,20 +38,41 @@ export function CreateLeaseDialog({
   
   // Form State
   const [selectedBedId, setSelectedBedId] = useState("");
-  const [totalDue, setTotalDue] = useState("9000");
-  const [dueThisMonth, setDueThisMonth] = useState("900");
-  
-  // Default dates for Academic Year 2025-2026
-  const [startDate, setStartDate] = useState("2025-08-15");
-  const [endDate, setEndDate] = useState("2026-05-15");
+  const [totalDue, setTotalDue] = useState("0");
+  const [dueThisMonth, setDueThisMonth] = useState("0");
+  const [duration, setDuration] = useState(application?.term?.includes("3") ? "3" : application?.term?.includes("12") ? "12" : "6");
 
   const { toast } = useToast();
 
+  // Calculate Dates
+  const { startDate, endDate, monthsCount } = useMemo(() => {
+    const now = new Date();
+    // Lease starts on the 1st of the next month
+    const start = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const end = new Date(start);
+    const m = parseInt(duration);
+    end.setMonth(start.getMonth() + m);
+
+    return {
+      startDate: start.toISOString().split("T")[0],
+      endDate: end.toISOString().split("T")[0],
+      monthsCount: m,
+    };
+  }, [duration]);
+
+  // Handle auto-calculations
   useEffect(() => {
-    if (open && application?.preferredProperty?.propertyId) {
+    if (open && application?.preferredProperty) {
       fetchBeds(application.preferredProperty.propertyId);
+      
+      const rate = application.preferredProperty.baseRate 
+        ? parseFloat(application.preferredProperty.baseRate)
+        : (application.preferredProperty.propertyType === 'APARTMENT' ? 520 : 400);
+
+      setDueThisMonth(String(rate));
+      setTotalDue(String(rate * monthsCount));
     }
-  }, [open, application]);
+  }, [open, application, monthsCount]);
 
   async function fetchBeds(propertyId: number) {
     setLoadingBeds(true);
@@ -89,11 +110,19 @@ export function CreateLeaseDialog({
           startDate,
           endDate,
           totalDue: parseFloat(totalDue),
-          dueThisMonth: parseFloat(dueThisMonth)
+          dueThisMonth: parseFloat(dueThisMonth),
+          leaseType: application.preferredProperty.leaseType || 'BY_BED'
         }),
       });
 
       if (!res.ok) throw new Error("Failed to create lease");
+
+      // Update application status to APPROVED
+      await fetch(`http://localhost:3009/housing/applications/${application.appId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "APPROVED" }),
+      });
 
       toast({ title: "Success", description: "Lease offer created successfully!" });
       onOpenChange(false);
@@ -108,6 +137,16 @@ export function CreateLeaseDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
+        <style>{`
+          input::-webkit-outer-spin-button,
+          input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+          }
+          input[type=number] {
+            -moz-appearance: textfield;
+          }
+        `}</style>
         <DialogHeader>
           <DialogTitle>Create Lease Offer</DialogTitle>
           <DialogDescription>
@@ -132,25 +171,56 @@ export function CreateLeaseDialog({
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Start Date</Label>
-              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label>End Date</Label>
-              <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} required />
-            </div>
+          <div className="space-y-2">
+            <Label>Lease Duration</Label>
+            <Select value={duration} onValueChange={setDuration}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="3">3 Months</SelectItem>
+                <SelectItem value="6">6 Months</SelectItem>
+                <SelectItem value="12">12 Months</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Starts: <span className="font-bold text-primary">{startDate}</span> • 
+              Ends: <span className="font-bold text-primary">{endDate}</span>
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Total Due ($)</Label>
-              <Input type="number" step="0.01" value={totalDue} onChange={e => setTotalDue(e.target.value)} required />
+              <Label>Due This Month ($)</Label>
+              <Input 
+                type="number" 
+                step="0.01" 
+                value={dueThisMonth} 
+                onChange={e => {
+                  const val = e.target.value;
+                  setDueThisMonth(val);
+                  if (!isNaN(parseFloat(val))) {
+                    setTotalDue(String(parseFloat(val) * monthsCount));
+                  }
+                }} 
+                required 
+              />
             </div>
             <div className="space-y-2">
-              <Label>Due This Month ($)</Label>
-              <Input type="number" step="0.01" value={dueThisMonth} onChange={e => setDueThisMonth(e.target.value)} required />
+              <Label>Total Due ($)</Label>
+              <Input 
+                type="number" 
+                step="0.01" 
+                value={totalDue} 
+                onChange={e => {
+                  const val = e.target.value;
+                  setTotalDue(val);
+                  if (!isNaN(parseFloat(val)) && monthsCount > 0) {
+                    setDueThisMonth(String((parseFloat(val) / monthsCount).toFixed(2)));
+                  }
+                }} 
+                required 
+              />
             </div>
           </div>
 

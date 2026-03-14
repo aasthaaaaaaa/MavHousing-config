@@ -190,11 +190,11 @@ export default function ApplicationDetailPage() {
                 variant="default" 
                 size="sm" 
                 className="bg-green-600 hover:bg-green-700 h-9"
-                onClick={() => updateStatus('APPROVED')}
+                onClick={() => setLeaseDialogOpen(true)}
                 disabled={submitting}
               >
                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                Approve
+                Approve & Issue Lease
               </Button>
               <Button 
                 variant="outline" 

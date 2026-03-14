@@ -45,6 +45,7 @@ export function CreateUserDialog({
     netId: "",
     utaId: "",
     email: "",
+    phone: "",
     passwordHash: "",
     role: "student",
     gender: "MALE",
@@ -63,7 +64,7 @@ export function CreateUserDialog({
         .then(data => setProperties(Array.isArray(data) ? data : []))
         .catch(() => {});
     }
-  }, [open]);
+  }, [open, properties.length]);
 
   const resetForm = () => {
     setFormData({
@@ -72,6 +73,7 @@ export function CreateUserDialog({
       netId: "",
       utaId: "",
       email: "",
+      phone: "",
       passwordHash: "",
       role: "student",
       gender: "MALE",
@@ -124,15 +126,23 @@ export function CreateUserDialog({
       return;
     }
 
+    if (formData.phone && formData.phone.length !== 10) {
+      toast.error("Phone number must be exactly 10 digits.");
+      return;
+    }
+
+    const normalize = (s: string) => s ? s.trim().charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '';
+
     setSubmitting(true);
     try {
       // Build payload — only include optional fields if they have values
       const payload: any = {
-        fName: formData.fName,
-        lName: formData.lName,
+        fName: normalize(formData.fName),
+        lName: normalize(formData.lName),
         netId: formData.netId,
         utaId: formData.utaId,
         email: formData.email,
+        phone: formData.phone || undefined,
         passwordHash: formData.passwordHash,
         role: formData.role,
         gender: formData.gender,
@@ -221,17 +231,28 @@ export function CreateUserDialog({
             </div>
           </div>
 
-          {/* Email */}
-          <div className="space-y-2">
-            <Label htmlFor="cu-email">Email</Label>
-            <Input
-              id="cu-email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="jxd1234@mavs.uta.edu"
-              required
-            />
+          {/* Email & Phone */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="cu-email">Email</Label>
+              <Input
+                id="cu-email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="jxd1234@mavs.uta.edu"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cu-phone">Phone Number</Label>
+              <Input
+                id="cu-phone"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="8175551234"
+              />
+            </div>
           </div>
 
           {/* Password */}

@@ -52,6 +52,7 @@ model Property {
   propertyType  PropertyType
   leaseType     LeaseType
   phone         BigInt?
+  baseRate      Decimal?      @db.Decimal(10, 2)
   totalCapacity Int?
   createdAt     DateTime      @default(now())
   applicants    Application[] @relation("PreferredProperty")
@@ -137,6 +138,8 @@ model Lease {
   signedAt            DateTime             @default(now())
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+  terminationFee      Decimal?             @db.Decimal(10, 2)
+  terminationReason   String?
   chatRoom            ChatRoom?
   bed                 Bed?                 @relation(fields: [assignedBedId], references: [bedId])
   room                Room?                @relation(fields: [assignedRoomId], references: [roomId])
@@ -290,6 +293,7 @@ enum LeaseStatus {
   ACTIVE
   COMPLETED
   TERMINATED
+  TERMINATION_REQUESTED
 }
 
 enum PaymentMethod {

@@ -56,8 +56,15 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
       return;
     }
 
+    const normalize = (s: string) => s ? s.trim().charAt(0).toUpperCase() + s.slice(1).toLowerCase() : '';
+
     try {
-      await authApi.post('/auth/create-new', formData);
+      const payload = {
+        ...formData,
+        fName: normalize(formData.fName),
+        lName: normalize(formData.lName),
+      };
+      await authApi.post('/auth/create-new', payload);
       router.push('/login?signup=success');
     } catch (err: any) {
        if (err.response) {
