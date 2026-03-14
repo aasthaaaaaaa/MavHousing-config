@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import { type UserData } from "@/lib/types"
 import { authApi } from "@/lib/api"
+import { getErrorMessage } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -46,6 +47,8 @@ import {
   FileText, MapPin, Users, AlertTriangle, Key,
 } from "lucide-react"
 
+import {validatePasswordSec} from "@common/index"
+ 
 /* ─── Types ─── */
 interface LeaseInfo {
   leaseId: number
@@ -112,7 +115,7 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }: Edit
         lName: user.lName || "",
         email: user.email || "",
         phone: user.phone || "",
-        role: user.role || "student",
+        role: (user.role || "student").toLowerCase(),
         gender: user.gender || "",
         studentStatus: user.studentStatus || null,
         staffPosition: user.staffPosition || null,
@@ -161,12 +164,25 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }: Edit
     setSaving(true)
     try {
       const payload: any = { ...formData }
-      if (!payload.newPassword) delete payload.newPassword
+      if(formData.phone.length != 10){
+        toast.error("Phone number must be 10 digits")
+        setSaving(false)
+        return
+      }
+      if (payload.newPassword) {
+        if (!validatePasswordSec(payload.newPassword, formData.fName, formData.lName, undefined, formData.email)) {
+          toast.error("Password must be at least 10 characters and include uppercase, lowercase, numbers, special characters, and no personal info.")
+          setSaving(false)
+          return
+        }
+      } else {
+        delete payload.newPassword
+      }
       await authApi.patch(`/auth/users/${user.netId}`, payload)
       toast.success(`User ${user.netId} updated successfully`)
       onUserUpdated()
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to update user")
+      toast.error(getErrorMessage(err) || "Failed to update user")
     } finally {
       setSaving(false)
     }
@@ -190,7 +206,7 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }: Edit
       fetchLease(user.userId)
       setTargetLeaseId("")
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to reassign. Check if lease holder exists or unit is full.")
+      toast.error(getErrorMessage(err) || "Failed to reassign. Check if lease holder exists or unit is full.")
     } finally {
       setReassignLoading(false)
     }
@@ -408,6 +424,9 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }: Edit
                   <div>
                     <Label htmlFor="newPassword" className="text-xs flex items-center gap-1"><Key className="h-3 w-3" /> New Password</Label>
                     <Input id="newPassword" type="password" value={formData.newPassword} onChange={e => setFormData({ ...formData, newPassword: e.target.value })} className="mt-1" placeholder="Leave blank to keep current" />
+                    <p className="text-[10px] text-muted-foreground mt-1 leading-tight">
+                      Min 10 chars, with uppercase, lowercase, numbers, and symbols. No personal info.
+                    </p>
                   </div>
                 </div>
               </div>

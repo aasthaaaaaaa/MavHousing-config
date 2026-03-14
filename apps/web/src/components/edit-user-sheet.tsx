@@ -4,6 +4,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { type UserData } from "@/lib/types"
 import { authApi } from "@/lib/api"
+import { getErrorMessage } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -54,7 +55,7 @@ export function EditUserSheet({
   if (open && user && !initialDataLoaded) {
     setFormData({
       email: user.email || "",
-      role: user.role || "student",
+      role: (user.role || "student").toLowerCase(),
       gender: user.gender || "",
       studentStatus: user.studentStatus || null,
       staffPosition: user.staffPosition || null,
@@ -80,7 +81,7 @@ export function EditUserSheet({
       onUserUpdated()
     } catch (error) {
       console.error("Failed to update user", error)
-      toast.error("Failed to update user")
+      toast.error(getErrorMessage(error) || "Failed to update user")
     } finally {
       setLoading(false)
     }
@@ -104,8 +105,7 @@ export function EditUserSheet({
       setTargetLeaseId("");
     } catch (error: any) {
       console.error("Failed to reassign user", error);
-      const errorMessage = error.response?.data?.message || "Failed to reassign user";
-      toast.error(errorMessage);
+      toast.error(getErrorMessage(error) || "Failed to reassign user");
     } finally {
       setReassignLoading(false);
     }

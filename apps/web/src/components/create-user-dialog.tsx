@@ -22,6 +22,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { authApi } from "@/lib/api";
+import { getErrorMessage } from "@/lib/utils";
 import { Check, X } from "lucide-react";
 
 interface CreateUserDialogProps {
@@ -155,14 +156,7 @@ export function CreateUserDialog({
       onOpenChange(false);
       onUserCreated();
     } catch (err: any) {
-      const msg = err.response?.data?.message;
-      const errorText =
-        typeof msg === "string"
-          ? msg
-          : Array.isArray(msg)
-            ? msg.join(", ")
-            : "Failed to create user";
-      toast.error(errorText);
+      toast.error(getErrorMessage(err) || "Failed to create user");
     } finally {
       setSubmitting(false);
     }
