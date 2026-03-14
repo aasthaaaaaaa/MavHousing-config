@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis,
 } from "recharts";
 import {
-  FileText, Wrench, Building2, TrendingUp, ChevronRight, ArrowUpRight,
+  FileText, Wrench, Building2, TrendingUp, ChevronRight, ArrowUpRight, Users,
 } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,6 +23,17 @@ const PRIORITY_DOT: Record<string, string> = {
   HIGH:      "bg-orange-500",
   EMERGENCY: "bg-red-500",
 };
+
+interface MaintenanceRequest {
+  requestId: number;
+  category: string;
+  priority: string;
+  status: string;
+  createdAt: string;
+  createdBy: { fName: string; lName: string; netId: string };
+  assignedStaff?: { userId: number; fName: string; lName: string };
+  lease?: { unit?: { unitNumber: string; property: { name: string } } };
+}
 
 interface Stats {
   pendingApplications: number;
@@ -37,6 +50,8 @@ interface Stats {
   recentApplications: { appId: number; status: string; submissionDate: string; user: { fName: string; lName: string; netId: string } }[];
   recentMaintenance: { requestId: number; category: string; priority: string; status: string; createdAt: string; createdBy: { fName: string; lName: string } }[];
   recentPayments: { fName: string; lName: string; netId: string; amountPaid: string; transactionDate: string; method: string; isSuccessful: boolean }[];
+  staffWorkload: { staff: { userId: number; fName: string; lName: string; netId: string }; open: number; inProgress: number; resolved: number; total: number }[];
+  propertyStats: { property: string; total: number; categories: Record<string, number> }[];
 }
 
 const REVENUE_COLOR = "#22c55e";
@@ -129,25 +144,29 @@ const STAT_CARDS = [
 export default function StaffDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState<Stats | null>(null);
+  const [allRequests, setAllRequests] = useState<MaintenanceRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [detailView, setDetailView] = useState<{ title: string; requests: MaintenanceRequest[] } | null>(null);
 
   useEffect(() => { fetchStats(); }, []);
 
   async function fetchStats() {
     try {
       const propertyQuery = user?.staffPosition === "RESIDENT_A" && user.assignedPropertyId ? `?propertyId=${user.assignedPropertyId}` : "";
-      const [apps, maint, payments, leases, paymentStats] = await Promise.all([
+      const [apps, maint, payments, leases, paymentStats, staff] = await Promise.all([
         fetch("http://localhost:3009/housing/applications").then(r => r.json()).catch(() => []),
         fetch(`http://localhost:3009/maintenance/requests${propertyQuery}`).then(r => r.json()).catch(() => []),
         fetch("http://localhost:3009/payment/all").then(r => r.json()).catch(() => []),
         fetch("http://localhost:3009/lease/leases").then(r => r.json()).catch(() => []),
         fetch("http://localhost:3009/payment/stats").then(r => r.json()).catch(() => ({ totalPayments: 0, successfulPayments: 0, failedPayments: 0, collectionRate: 0 })),
+        fetch("http://localhost:3009/maintenance/staff").then(r => r.json()).catch(() => []),
       ]);
       const a = Array.isArray(apps) ? apps : [];
       const m = Array.isArray(maint) ? maint : [];
       const p = Array.isArray(payments) ? payments : [];
       const l = Array.isArray(leases) ? leases : [];
 
+      setAllRequests(m);
       setStats({
         pendingApplications: a.filter((x: any) => ["SUBMITTED", "UNDER_REVIEW"].includes(x.status)).length,
         totalApplications: a.length,
@@ -168,9 +187,32 @@ export default function StaffDashboard() {
           transactionDate: x.transactionDate, method: x.method,
           isSuccessful: x.isSuccessful,
         })),
+        staffWorkload: (Array.isArray(staff) ? staff : []).map((s: any) => {
+          const sTickets = m.filter((t: any) => t.assignedStaff?.userId === s.userId);
+          return {
+            staff: s,
+            total: sTickets.length,
+            open: sTickets.filter((t: any) => t.status === "OPEN").length,
+            inProgress: sTickets.filter((t: any) => t.status === "IN_PROGRESS").length,
+            resolved: sTickets.filter((t: any) => ["RESOLVED", "CLOSED"].includes(t.status)).length,
+          };
+        }).sort((a: any, b: any) => b.total - a.total).slice(0, 5),
+        propertyStats: Object.entries(m.reduce((acc: any, t: any) => {
+          const prop = t.lease?.unit?.property?.name || "Unknown";
+          if (!acc[prop]) acc[prop] = { total: 0, categories: {} };
+          acc[prop].total++;
+          acc[prop].categories[t.category] = (acc[prop].categories[t.category] || 0) + 1;
+          return acc;
+        }, {})).map(([property, data]: [string, any]) => ({
+          property,
+          total: data.total,
+          categories: data.categories
+        })).sort((a, b) => b.total - a.total),
       });
     } finally { setLoading(false); }
   }
+
+  const isMaint = user?.staffPosition === "MAINTENANCE";
 
   if (loading) {
     return (
@@ -220,12 +262,20 @@ export default function StaffDashboard() {
         </p>
       </div>
 
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        {STAT_CARDS.map(({ key, label, icon: Icon, iconBg, iconColor, valueFn, subFn, accentFn }, idx) => (
+      <div className={`grid gap-4 ${isMaint ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-4"}`}>
+        {STAT_CARDS.filter(c => !isMaint || c.key === "maint").map(({ key, label, icon: Icon, iconBg, iconColor, valueFn, subFn, accentFn }, idx) => (
           <Card
             key={key}
-            className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5 py-0 gap-0"
+            className={`animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5 py-0 gap-0 ${key === 'maint' ? 'cursor-pointer' : ''}`}
             style={{ animationDelay: `${80 + idx * 60}ms` }}
+            onClick={() => {
+              if (key === 'maint') {
+                setDetailView({
+                  title: "Open Maintenance Tickets",
+                  requests: allRequests.filter(r => r.status === "OPEN")
+                });
+              }
+            }}
           >
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-3">
@@ -243,68 +293,70 @@ export default function StaffDashboard() {
         ))}
       </div>
 
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-5">
-        <Card
-          className="lg:col-span-3 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl py-0 gap-0"
-          style={{ animationDelay: "320ms" }}
-        >
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
+      <div className={`grid gap-4 grid-cols-1 ${isMaint ? "" : "lg:grid-cols-5"}`}>
+        {!isMaint && (
+          <Card
+            className="lg:col-span-3 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl py-0 gap-0"
+            style={{ animationDelay: "320ms" }}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold tracking-tight">Monthly Collections</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">Rent payments collected per month</p>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 px-2.5 py-1 rounded-full">
+                  <TrendingUp className="h-3 w-3" />
+                  Revenue
+                </div>
+              </div>
               <div>
-                <h2 className="text-lg font-semibold tracking-tight">Monthly Collections</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">Rent payments collected per month</p>
+              {stats!.revenueByMonth.length < 2 ? (
+                <div className="flex items-center justify-center h-52 text-sm text-muted-foreground/60">
+                  Not enough data to display chart
+                </div>
+              ) : (
+                <ChartContainer config={revenueChartConfig} className="h-56 w-full">
+                  <AreaChart data={stats!.revenueByMonth} margin={{ left: -20, right: 8, top: 8 }}>
+                    <defs>
+                      <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={REVENUE_COLOR} stopOpacity={0.25} />
+                        <stop offset="100%" stopColor={REVENUE_COLOR} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted/50" />
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={v => `$${(v / 1000).toFixed(0)}k`}
+                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Area
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke={REVENUE_COLOR}
+                      strokeWidth={2.5}
+                      fill="url(#revenueGrad)"
+                      dot={{ r: 4, fill: REVENUE_COLOR, strokeWidth: 2, stroke: "var(--color-background)" }}
+                      activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--color-background)" }}
+                    />
+                  </AreaChart>
+                </ChartContainer>
+              )}
               </div>
-              <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 px-2.5 py-1 rounded-full">
-                <TrendingUp className="h-3 w-3" />
-                Revenue
-              </div>
-            </div>
-            <div>
-            {stats!.revenueByMonth.length < 2 ? (
-              <div className="flex items-center justify-center h-52 text-sm text-muted-foreground/60">
-                Not enough data to display chart
-              </div>
-            ) : (
-              <ChartContainer config={revenueChartConfig} className="h-56 w-full">
-                <AreaChart data={stats!.revenueByMonth} margin={{ left: -20, right: 8, top: 8 }}>
-                  <defs>
-                    <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={REVENUE_COLOR} stopOpacity={0.25} />
-                      <stop offset="100%" stopColor={REVENUE_COLOR} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted/50" />
-                  <XAxis
-                    dataKey="month"
-                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={v => `$${(v / 1000).toFixed(0)}k`}
-                  />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke={REVENUE_COLOR}
-                    strokeWidth={2.5}
-                    fill="url(#revenueGrad)"
-                    dot={{ r: 4, fill: REVENUE_COLOR, strokeWidth: 2, stroke: "var(--color-background)" }}
-                    activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--color-background)" }}
-                  />
-                </AreaChart>
-              </ChartContainer>
-            )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         <Card
-          className="lg:col-span-2 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl py-0 gap-0"
+          className={`${isMaint ? "" : "lg:col-span-2"} animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl py-0 gap-0`}
           style={{ animationDelay: "400ms" }}
         >
           <CardContent className="p-6">
@@ -349,59 +401,151 @@ export default function StaffDashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
-
-        <Card
-          className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl py-0 gap-0"
-          style={{ animationDelay: "480ms" }}
-        >
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-base font-semibold tracking-tight">Recent Applications</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {stats!.pendingApplications} need review
-                </p>
+      {!isMaint && (
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-5 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "440ms" }}>
+          <Card className="lg:col-span-3 rounded-2xl py-0 gap-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold tracking-tight">Property Ticket Distribution</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">Tickets grouped by property and category</p>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs font-medium text-purple-600 bg-purple-500/10 px-2.5 py-1 rounded-full">
+                  <Building2 className="h-3 w-3" /> Properties
+                </div>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-xs gap-1 rounded-full text-muted-foreground hover:text-foreground"
-                asChild
-              >
-                <Link href="/staff/applications">
-                  View all <ArrowUpRight className="h-3 w-3" />
-                </Link>
-              </Button>
-            </div>
-            {stats!.recentApplications.length === 0 ? (
-              <p className="text-sm text-muted-foreground/60">No applications yet.</p>
-            ) : (
-              <div className="space-y-0.5">
-                {stats!.recentApplications.map((app) => (
-                  <div
-                    key={app.appId}
-                    className="flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors hover:bg-muted/50"
+              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                {stats!.propertyStats.map((ps) => (
+                  <div 
+                    key={ps.property} 
+                    className="p-3.5 rounded-xl border bg-muted/20 cursor-pointer hover:bg-muted/30 transition-all hover:border-primary/50 group"
+                    onClick={() => setDetailView({ 
+                      title: `Tickets for ${ps.property}`, 
+                      requests: allRequests.filter(r => r.lease?.unit?.property?.name === ps.property) 
+                    })}
                   >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{app.user?.fName} {app.user?.lName}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">{app.user?.netId} · {fmtDate(app.submissionDate)}</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-semibold text-sm">{ps.property}</p>
+                      <Badge variant="secondary" className="text-[10px]">{ps.total} total</Badge>
                     </div>
-                    <Badge
-                      variant="outline"
-                      className={`${getApplicationStatusClass(app.status)} text-xs rounded-full px-2.5 shrink-0 ml-2`}
-                    >
-                      {app.status.replace("_", " ")}
-                    </Badge>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(ps.categories).map(([cat, count]) => (
+                        <div key={cat} className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-background border text-[10px] font-medium transition-colors hover:border-primary/50">
+                          <span className="text-muted-foreground">{cat}:</span>
+                          <span>{count}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
+                {stats!.propertyStats.length === 0 && <p className="text-sm text-muted-foreground text-center py-6">No property data available.</p>}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-2 rounded-2xl py-0 gap-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold tracking-tight">Staff Workload</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">Quick view of assigned tasks</p>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-500/10 px-2.5 py-1 rounded-full">
+                  <Users className="h-3 w-3" /> Load
+                </div>
+              </div>
+              <div className="space-y-3">
+                {stats!.staffWorkload.map((sl) => (
+                  <div 
+                    key={sl.staff.userId} 
+                    className="p-3 rounded-xl border bg-muted/10 group hover:bg-muted/20 transition-colors cursor-pointer"
+                    onClick={() => setDetailView({ 
+                      title: `Tickets Assigned to ${sl.staff.fName} ${sl.staff.lName}`, 
+                      requests: allRequests.filter(r => r.assignedStaff?.userId === sl.staff.userId) 
+                    })}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                          {sl.staff.fName[0]}{sl.staff.lName[0]}
+                        </div>
+                        <p className="text-sm font-medium">{sl.staff.fName} {sl.staff.lName}</p>
+                      </div>
+                      <span className="text-xs font-bold text-primary">{sl.total}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1">
+                      <div className="h-1 rounded-full bg-blue-500/20"><div className="h-full bg-blue-500 rounded-full" style={{ width: `${(sl.open/sl.total)*100}%` }} /></div>
+                      <div className="h-1 rounded-full bg-amber-500/20"><div className="h-full bg-amber-500 rounded-full" style={{ width: `${(sl.inProgress/sl.total)*100}%` }} /></div>
+                      <div className="h-1 rounded-full bg-emerald-500/20"><div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(sl.resolved/sl.total)*100}%` }} /></div>
+                    </div>
+                    <div className="flex justify-between mt-1.5">
+                      <span className="text-[9px] text-muted-foreground">{sl.open} open</span>
+                      <span className="text-[9px] text-muted-foreground">{sl.inProgress} active</span>
+                      <span className="text-[9px] text-muted-foreground">{sl.resolved} done</span>
+                    </div>
+                  </div>
+                ))}
+                {stats!.staffWorkload.length === 0 && <p className="text-sm text-muted-foreground text-center py-6">No staff workload data.</p>}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <div className={`grid gap-4 grid-cols-1 ${isMaint ? "" : "lg:grid-cols-3"}`}>
+        {!isMaint && (
+          <Card
+            className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl py-0 gap-0"
+            style={{ animationDelay: "480ms" }}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-base font-semibold tracking-tight">Recent Applications</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {stats!.pendingApplications} need review
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1 rounded-full text-muted-foreground hover:text-foreground"
+                  asChild
+                >
+                  <Link href="/staff/applications">
+                    View all <ArrowUpRight className="h-3 w-3" />
+                  </Link>
+                </Button>
+              </div>
+              {stats!.recentApplications.length === 0 ? (
+                <p className="text-sm text-muted-foreground/60">No applications yet.</p>
+              ) : (
+                <div className="space-y-0.5">
+                  {stats!.recentApplications.map((app) => (
+                    <div
+                      key={app.appId}
+                      className="flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors hover:bg-muted/50"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{app.user?.fName} {app.user?.lName}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">{app.user?.netId} · {fmtDate(app.submissionDate)}</p>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className={`${getApplicationStatusClass(app.status)} text-xs rounded-full px-2.5 shrink-0 ml-2`}
+                      >
+                        {app.status.replace("_", " ")}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Card
-          className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl py-0 gap-0"
+          className={`animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl py-0 gap-0 ${isMaint ? "" : ""}`}
           style={{ animationDelay: "550ms" }}
         >
           <CardContent className="p-6">
@@ -457,54 +601,100 @@ export default function StaffDashboard() {
           </CardContent>
         </Card>
 
-        <Card
-          className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl py-0 gap-0"
-          style={{ animationDelay: "620ms" }}
-        >
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-base font-semibold tracking-tight">Recent Payments</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {stats!.successfulPayments} successful, {stats!.failedPayments} missed
-                </p>
+        {!isMaint && (
+          <Card
+            className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl py-0 gap-0"
+            style={{ animationDelay: "620ms" }}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-base font-semibold tracking-tight">Recent Payments</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {stats!.successfulPayments} successful, {stats!.failedPayments} missed
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1 rounded-full text-muted-foreground hover:text-foreground"
+                  asChild
+                >
+                  <Link href="/staff/payments">
+                    View all <ArrowUpRight className="h-3 w-3" />
+                  </Link>
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-xs gap-1 rounded-full text-muted-foreground hover:text-foreground"
-                asChild
-              >
-                <Link href="/staff/payments">
-                  View all <ArrowUpRight className="h-3 w-3" />
-                </Link>
-              </Button>
-            </div>
-            {stats!.recentPayments.length === 0 ? (
-              <p className="text-sm text-muted-foreground/60">No payments yet.</p>
-            ) : (
-              <div className="space-y-0.5">
-                {stats!.recentPayments.map((p, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors hover:bg-muted/50"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{p.fName} {p.lName}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">{p.netId} · {fmtDate(p.transactionDate)}</p>
+              {stats!.recentPayments.length === 0 ? (
+                <p className="text-sm text-muted-foreground/60">No payments yet.</p>
+              ) : (
+                <div className="space-y-0.5">
+                  {stats!.recentPayments.map((p, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors hover:bg-muted/50"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{p.fName} {p.lName}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">{p.netId} · {fmtDate(p.transactionDate)}</p>
+                      </div>
+                      <div className="text-right shrink-0 ml-2">
+                        <p className="text-sm font-bold tabular-nums">{fmt(parseFloat(p.amountPaid))}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{p.method?.replace(/_/g, " ")}</p>
+                      </div>
                     </div>
-                    <div className="text-right shrink-0 ml-2">
-                      <p className="text-sm font-bold tabular-nums">{fmt(parseFloat(p.amountPaid))}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{p.method?.replace(/_/g, " ")}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
+
+      <Dialog open={!!detailView} onOpenChange={(open) => !open && setDetailView(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{detailView?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Priority</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {detailView?.requests.map((r) => (
+                  <TableRow key={r.requestId}>
+                    <TableCell className="font-mono text-xs">#{r.requestId}</TableCell>
+                    <TableCell className="text-sm font-medium">{r.category}</TableCell>
+                    <TableCell>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${getMaintenanceStatusClass(r.status)}`}>
+                        {r.priority}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={`${getMaintenanceStatusClass(r.status)} text-[10px] rounded-full`}>
+                        {r.status.replace("_", " ")}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{fmtDate(r.createdAt)}</TableCell>
+                  </TableRow>
+                ))}
+                {detailView?.requests.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">No tickets found.</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

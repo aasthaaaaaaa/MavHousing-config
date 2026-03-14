@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,6 +68,7 @@ export default function MaintenanceDashboard() {
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [staffSearch, setStaffSearch] = useState("");
+  const [detailView, setDetailView] = useState<{ title: string; requests: MaintRequest[] } | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -197,7 +200,21 @@ export default function MaintenanceDashboard() {
           { label: "Resolved", value: stats.resolved + stats.closed, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
           { label: "Emergency", value: stats.emergency, icon: AlertTriangle, color: stats.emergency > 0 ? "text-red-500" : "text-muted-foreground", bg: stats.emergency > 0 ? "bg-red-500/10" : "bg-muted" },
         ].map(({ label, value, icon: Icon, color, bg }, idx) => (
-          <Card key={label} className="rounded-2xl py-0 gap-0 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: `${80 + idx * 50}ms` }}>
+          <Card 
+            key={label} 
+            className="rounded-2xl py-0 gap-0 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both cursor-pointer hover:shadow-md transition-all" 
+            style={{ animationDelay: `${80 + idx * 50}ms` }}
+            onClick={() => {
+              const statusMap: Record<string, string> = { "Open Tickets": "OPEN", "In Progress": "IN_PROGRESS", "Resolved": "RESOLVED", "Emergency": "EMERGENCY" };
+              const targetStatus = statusMap[label];
+              setDetailView({
+                title: `${label} List`,
+                requests: targetStatus === "EMERGENCY" 
+                  ? requests.filter(r => r.priority === "EMERGENCY" && !["RESOLVED", "CLOSED"].includes(r.status))
+                  : requests.filter(r => targetStatus === "RESOLVED" ? ["RESOLVED", "CLOSED"].includes(r.status) : r.status === targetStatus)
+              });
+            }}
+          >
             <CardContent className="p-4 flex items-center gap-3">
               <div className={`h-9 w-9 rounded-xl ${bg} flex items-center justify-center flex-shrink-0`}>
                 <Icon className={`h-4 w-4 ${color}`} />
@@ -299,7 +316,11 @@ export default function MaintenanceDashboard() {
                 {filteredStaff.map(sl => (
                   <div
                     key={sl.staff.userId}
-                    className="p-3.5 rounded-xl border bg-muted/20 hover:bg-muted/40 transition-colors"
+                    className="p-3.5 rounded-xl border bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer group"
+                    onClick={() => setDetailView({
+                      title: `Tickets for ${sl.staff.fName} ${sl.staff.lName}`,
+                      requests: requests.filter(r => r.assignedStaff?.userId === sl.staff.userId)
+                    })}
                   >
                     <div className="flex items-center gap-2.5 mb-2.5">
                       <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
@@ -442,6 +463,51 @@ export default function MaintenanceDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={!!detailView} onOpenChange={(open) => !open && setDetailView(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{detailView?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Priority</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {detailView?.requests.map((r) => (
+                  <TableRow key={r.requestId}>
+                    <TableCell className="font-mono text-xs">#{r.requestId}</TableCell>
+                    <TableCell className="text-sm font-medium">{r.category}</TableCell>
+                    <TableCell>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${getPriorityClass(r.priority)}`}>
+                        {r.priority}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={`${getMaintenanceStatusClass(r.status)} text-[10px] rounded-full`}>
+                        {r.status.replace("_", " ")}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{fmtDate(r.createdAt)}</TableCell>
+                  </TableRow>
+                ))}
+                {detailView?.requests.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">No tickets found.</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
