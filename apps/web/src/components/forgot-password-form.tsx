@@ -35,7 +35,14 @@ export function ForgotPasswordForm() {
       setUserInfo(resp.data);
       setStep(2);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'User not found');
+      const msg = err.response?.data?.message;
+      setError(
+        typeof msg === 'string' 
+          ? msg 
+          : Array.isArray(msg) 
+            ? msg.join(', ') 
+            : 'User not found'
+      );
     } finally {
       setLoading(false);
     }
@@ -49,7 +56,14 @@ export function ForgotPasswordForm() {
       setTimeLeft(300);
       setStep(3);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send code');
+      const msg = err.response?.data?.message;
+      setError(
+        typeof msg === 'string' 
+          ? msg 
+          : Array.isArray(msg) 
+            ? msg.join(', ') 
+            : 'Failed to send code'
+      );
     } finally {
       setLoading(false);
     }
@@ -67,7 +81,14 @@ export function ForgotPasswordForm() {
       await authApi.post('/auth/forgot-password/reset', { netId, code, newPassword });
       setStep(4);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Invalid code or failed to reset');
+      const msg = err.response?.data?.message;
+      setError(
+        typeof msg === 'string' 
+          ? msg 
+          : Array.isArray(msg) 
+            ? msg.join(', ') 
+            : 'Invalid code or failed to reset'
+      );
     } finally {
       setLoading(false);
     }
