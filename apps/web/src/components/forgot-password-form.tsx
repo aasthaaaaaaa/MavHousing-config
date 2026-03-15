@@ -113,7 +113,7 @@ export function ForgotPasswordForm() {
                 required
                 value={netId}
                 onChange={(e) => setNetId(e.target.value)}
-                className="block w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm focus:border-[#c75b12] focus:ring-1 focus:ring-[#c75b12] outline-none"
+                className="block w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm text-gray-900 focus:border-[#c75b12] focus:ring-1 focus:ring-[#c75b12] outline-none"
               />
             </div>
           </div>
@@ -198,7 +198,7 @@ export function ForgotPasswordForm() {
                   required
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  className="block w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 text-center text-lg font-bold tracking-[0.5em] focus:border-[#c75b12] focus:ring-1 focus:ring-[#c75b12] outline-none"
+                  className="block w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 text-center text-lg font-bold tracking-[0.5em] text-gray-900 focus:border-[#c75b12] focus:ring-1 focus:ring-[#c75b12] outline-none"
                 />
               </div>
             </div>
@@ -213,7 +213,7 @@ export function ForgotPasswordForm() {
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="block w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm focus:border-[#c75b12] focus:ring-1 focus:ring-[#c75b12] outline-none"
+                  className="block w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm text-gray-900 focus:border-[#c75b12] focus:ring-1 focus:ring-[#c75b12] outline-none"
                 />
               </div>
             </div>
@@ -228,7 +228,7 @@ export function ForgotPasswordForm() {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="block w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm focus:border-[#c75b12] focus:ring-1 focus:ring-[#c75b12] outline-none"
+                  className="block w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm text-gray-900 focus:border-[#c75b12] focus:ring-1 focus:ring-[#c75b12] outline-none"
                 />
               </div>
             </div>
