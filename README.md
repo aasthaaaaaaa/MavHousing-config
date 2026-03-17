@@ -5,28 +5,49 @@
 **Team:** The Builders Squad  
 A NestJS monorepo housing platform for UTA's MavHousing — managing student applications, leasing, maintenance requests, payments, and communications.
 
-## Tech Stack
+## Technology Stack
 
-- **Backend Framework:** [NestJS](https://nestjs.com/) (TypeScript)
-- **Frontend:** [Next.js](https://nextjs.org/) (React, TailwindCSS, Radix UI)
-- **Database:** [PostgreSQL](https://www.postgresql.org/) + [Prisma ORM](https://www.prisma.io/) & [MongoDB Atlas](https://www.mongodb.com/) (Mongoose)
-- **Cloud Storage:** [Cloudflare R2](https://www.cloudflare.com/developer-platform/r2/) (S3-compatible bucket storage for media/documents)
-- **AI & ML:** [Google Gemini 2.5](https://deepmind.google/technologies/gemini/) (OCR) & `face-api.js` (Image processing)
-- **Email:** [Resend](https://resend.com/)
-- **SMS:** [Twilio](https://www.twilio.com/)
-- **API Docs:** [Swagger](https://swagger.io/) (via `@nestjs/swagger`)
-- **Language:** TypeScript
+### Core Infrastructure
+- **Programming Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Backend Architecture**: [NestJS](https://nestjs.com/) (Enterprise-grade monorepo design)
+- **Frontend Architecture**: [Next.js](https://nextjs.org/) (App Router, React, TailwindCSS)
+- **Component UI**: [Radix UI](https://www.radix-ui.com/) & [Lucide Icons](https://lucide.dev/)
+
+### Data & Persistence
+- **Relational Hub**: [PostgreSQL](https://www.postgresql.org/) with [Prisma ORM](https://www.prisma.io/)
+- **Document Store**: [MongoDB Atlas](https://www.mongodb.com/) with [Mongoose](https://mongoosejs.com/)
+- **Object Storage**: [Cloudflare R2](https://www.cloudflare.com/developer-platform/r2/) (Distributed S3-compatible storage)
+- **Caching & Job Queue**: [Redis](https://redis.io/) via [BullMQ](https://docs.bullmq.io/)
+
+### Intelligence & Services
+- **AI/ML Engine**: [Google Gemini 2.5](https://deepmind.google/technologies/gemini/) (Intelligent OCR & Document Analysis)
+- **Computer Vision**: `face-api.js` (Client-side localized image processing)
+- **Email Delivery**: [Resend](https://resend.com/) (High-deliverability transactional engine)
+- **Telephony & SMS**: [Twilio](https://www.twilio.com/)
+- **API Documentation**: [Swagger/OpenAPI](https://swagger.io/) (Automated via `@nestjs/swagger`)
 
 ---
 
 ## Prerequisites
 
-Make sure you have the following installed before getting started:
+Ensure your development environment meets the following specifications before initializing the platform:
 
-- [Node.js](https://nodejs.org/) (v18+ recommended)
-- [npm](https://www.npmjs.com/) (v9+)
-- [PostgreSQL](https://www.postgresql.org/) (v14+)
-- [Git](https://git-scm.com/)
+### Runtime & Tooling
+- **[Node.js](https://nodejs.org/)**: Version 18.x or higher (LTS stable recommended).
+- **[npm](https://www.npmjs.com/)**: Version 9.x or higher.
+- **[Git](https://git-scm.com/)**: Required for repository cloning and version management.
+
+### Data & Background Persistence
+- **[PostgreSQL](https://www.postgresql.org/)**: v14.0+ (Required for primary relational data).
+- **[Redis](https://redis.io/)**: v6.2+ (Essential for **BullMQ** job handling and caching).
+- **[MongoDB](https://www.mongodb.com/)**: v5.0+ (Required for flexible document-based chat storage).
+
+### External API Connectivity
+Functional credentials and secure tokens are required to enable the following integrations:
+- **Google Gemini (AI & Vision)**: Powers the Intelligent OCR engine for automated student ID verification and application parsing.
+- **Cloudflare R2 (Object Storage)**: Provides globally distributed, S3-compatible storage for user-uploaded media, maintenance attachments, and generated PDF reports.
+- **Resend (Communications)**: High-performance transactional email delivery engine for administrative reports and system notifications.
+- **Twilio (Telephony)**: Enterprise-grade SMS gateway for real-time alerts and user engagement.
 
 ---
 
@@ -40,9 +61,16 @@ cd MavHousing-config
 ```
 
 ### 2. Install Dependencies
+Dependencies must be installed for both the backend services and the specific Next.js web application:
 
+#### **Root Monorepo (Backend)**
 ```bash
 npm install
+```
+
+#### **Web Application (Frontend)**
+```bash
+cd apps/web && npm install
 ```
 
 ### 3. Configure Environment Variables
@@ -53,15 +81,24 @@ Copy the example env file and fill in your credentials:
 cp .env.example .env
 ```
 
-Your `.env` file should contain the following variables:
+Your `.env` file must be configured with following secure keys:
 
-| Variable            | Description                                                                                |
-| ------------------- | ------------------------------------------------------------------------------------------ |
-| `TWILIO_SID`        | Twilio Account SID                                                                         |
-| `TWILIO_AUTH_TOKEN` | Twilio Auth Token                                                                          |
-| `TWILIO_PH_NUM`     | Twilio phone number (e.g. `+18551234567`)                                                  |
-| `RESEND_API`        | Resend API key for sending emails                                                          |
-| `SQL_DATABASE_URL`  | PostgreSQL connection string (e.g. `postgresql://user:password@localhost:5432/mavhousing`) |
+| Category | Variable | Description |
+| :--- | :--- | :--- |
+| **Auth** | `JWT_SECRET` | 256-bit key for securing stateless API tokens. |
+| **Databases** | `SQL_DATABASE_URL` | PostgreSQL connection string for Prisma. |
+| | `MONGO_URI` | MongoDB Atlas cluster connection string. |
+| **Jobs** | `REDIS_HOST` | Hostname for BullMQ/Redis (Default: localhost). |
+| | `REDIS_PORT` | Port for BullMQ/Redis (Default: 6379). |
+| **Communication** | `RESEND_API` | Transactional email key for report delivery. |
+| | `TWILIO_SID` | SID for automated SMS alerts. |
+| | `TWILIO_AUTH_TOKEN` | Auth token for Twilio gateway. |
+| | `TWILIO_PH_NUM` | Source phone number (+1XXXXXXXXXX). |
+| **AI/Storage** | `GEMINI_API_KEY` | Google Gemini key for intelligent OCR systems. |
+| | `R2_ACCESS_KEY_ID` | Cloudflare R2 Access ID. |
+| | `R2_SECRET_ACCESS_KEY` | Cloudflare R2 Secret Key. |
+| | `R2_BUCKET_NAME` | Main media bucket name. |
+| | `R2_ENDPOINT` | Cloudflare Distributed Endpoint URL. |
 
 ### 4. Set Up the Database
 
@@ -78,6 +115,12 @@ Seed the database with mock data:
 
 ```bash
 npm run seed
+```
+
+#### **Quick Reset/Reseed**
+To quickly reset the database, apply all migrations, and re-seed in one command, you can use the provided utility script:
+```bash
+./prisma/prismaReset.sh
 ```
 
 ### 5. Run the Application
@@ -108,10 +151,11 @@ mav-housing-config/
 │   ├── db/                      # Database module (Prisma service)
 │   ├── graphql/                 # GraphQL module
 │   └── messaging/               # Messaging module
-├── prisma/                      # Prisma schema, migrations, and seed script
-│   ├── schema.prisma            # Database schema
-│   ├── seed.ts                  # Seed script with mock data
-│   └── migrations/              # Database migrations
+├── prisma/                      # Database configuration & seeding
+│   ├── schema.prisma            # Primary data models & relations
+│   ├── seed.ts                  # Mock data generation script
+│   ├── prismaReset.sh           # One-click DB reset & re-seed utility
+│   └── migrations/              # Version-controlled DB schema changes
 ├── docs/                        # Project documentation (architecture, requirements, roadmap)
 ├── generated/                   # Auto-generated Prisma client
 ├── .env.example                 # Environment variable template
@@ -164,55 +208,10 @@ The system offloads heavy computations—such as generating high-fidelity PDF re
 - **`contracts`**: Shared TypeScript interfaces ensuring strict typing between frontend and backend.
 - **`auth`**: Common guards and strategies for consistent RBAC enforcement.
 
----
-
-## Available Scripts
-
-| Script              | Command                       | Description                                     |
-| ------------------- | ----------------------------- | ----------------------------------------------- |
-| **Dev**             | `npm run start:dev <service>` | Start a service in watch mode                   |
-| **Debug**           | `npm run start:debug`         | Start with debugger attached                    |
-| **Build**           | `npm run build`               | Build the project                               |
-| **Production**      | `npm run start:prod`          | Run the production build                        |
-| **Lint**            | `npm run lint`                | Lint & auto-fix code                            |
-| **Format**          | `npm run format`              | Format code with Prettier                       |
-| **Test**            | `npm run test`                | Run unit tests                                  |
-| **Test (Watch)**    | `npm run test:watch`          | Run tests in watch mode                         |
-| **Test (Coverage)** | `npm run test:cov`            | Run tests with coverage report                  |
-| **Test (E2E)**      | `npm run test:e2e`            | Run end-to-end tests                            |
-| **Seed**            | `npm run seed`                | Generate Prisma client & seed the database      |
-| **Web Dev**         | `npm run web:dev`             | Starts Next.js in development mode (hot reload) |
-| **Web Build**       | `npm run web:build`           | Creates a production build                      |
-| **Web Start**       | `npm run web:start`           | Serves the production build                     |
-| **Web Lint**        | `npm run web:lint`            | Runs ESLint on the web app                      |
 
 ---
 
-## Database
-
-### Schema Overview
-
-The Prisma schema (`prisma/schema.prisma`) defines the following models:
-
-- **User** — Students, Staff, and Admins with role-based access
-- **Property** — Housing properties (Residence Halls, Apartments)
-- **Unit** → **Room** → **Bed** — Hierarchical housing structure
-- **Application** — Student housing applications with status tracking
-- **Lease** — Lease agreements supporting unit, room, or bed-level assignment
-- **Occupant** — Tracks lease holders, occupants, and roommates
-- **Payment** — Payment records tied to leases
-- **MaintenanceRequest** — Maintenance tickets with category, priority, specific location, media attachments schema, and interactive comments.
-- **ChatDocument** *(MongoDB)* — Real-time lease-chat attachment tracking, dynamically indexing user media uploads natively mapped to `.mp4`, `.png`, and `.pdf` objects in Cloudflare R2 bucket.
-
-## Key Features Implemented
-
-* **Smart ID Verification:** AI-driven OCR extraction natively scanning student IDs utilizing **Google Gemini** for intelligent parsing and `face-api.js` local model weights to map and crop geometric face bounds specifically directly into cloud infrastructure.
-* **Lease Application Workflows:** Supports granular "By Unit" or "By Room/Bed" booking assignments securely tracked directly alongside occupant configurations.
-* **Immersive Maintenance Desk:** Staff and students can converse back-and-forth dynamically inside native React contexts over maintenance comments. Integrated explicit location routing natively tracked inside Postgres databases.
-* **Lease Member Real-time Chat:** Real-time Socket.io split-pane dashboard strictly tracking Mongoose Document attachments mapping to pre-signed Cloudflare R2 cloud buckets up to 10MB cleanly over dynamic dialog grids.
-* **Native Media Viewers:** Radix UI interactive `<Dialog>` media hubs actively unpacking and rendering `<video>` auto-play containers and native `<img>` schemas dynamically securely straight from the browser DOM.
-
-### Useful Prisma Commands
+## Database Operations
 
 | Command                                | Description                                        |
 | -------------------------------------- | -------------------------------------------------- |
