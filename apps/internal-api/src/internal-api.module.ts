@@ -23,6 +23,7 @@ import { ChatModule } from './chat/chat.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { BulletinModule } from './bulletin/bulletin.module';
 import { HelloWorldProcessor } from './jobs/hello-world.processor';
+import { OccupancyReportProcessor } from './jobs/occupancy-report.processor';
 
 @Module({
   imports: [
@@ -60,19 +61,22 @@ import { HelloWorldProcessor } from './jobs/hello-world.processor';
       }),
       inject: [ConfigService],
     }),
-    BullModule.registerQueue({
-      name: 'hello-world',
-    }),
+    BullModule.registerQueue({ name: 'hello-world' }),
     BullBoardModule.forRoot({
       adapter: ExpressAdapter,
       route: '/queues',
     }),
-    BullBoardModule.forFeature({
-      name: 'hello-world',
-      adapter: BullMQAdapter,
-    }),
+    BullBoardModule.forFeature(
+      { name: 'hello-world', adapter: BullMQAdapter },
+      { name: 'occupancy-report', adapter: BullMQAdapter },
+    ),
   ],
   controllers: [InternalApiController],
-  providers: [InternalApiService, InternalApiResolver, HelloWorldProcessor],
+  providers: [
+    InternalApiService,
+    InternalApiResolver,
+    HelloWorldProcessor,
+    OccupancyReportProcessor,
+  ],
 })
 export class InternalApiModule {}

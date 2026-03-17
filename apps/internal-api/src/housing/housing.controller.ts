@@ -14,6 +14,8 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { HousingService } from './housing.service';
 import { UploadService } from './upload.service';
@@ -25,6 +27,7 @@ export class HousingController {
   constructor(
     private readonly housingService: HousingService,
     private readonly uploadService: UploadService,
+    @InjectQueue('occupancy-report') private readonly reportQueue: Queue,
   ) {}
 
   @Get('user-by-utaid/:utaId')
@@ -198,5 +201,17 @@ export class HousingController {
   @Get('occupancy-stats')
   async getOccupancyStats() {
     return this.housingService.getOccupancyStats();
+  }
+
+  @Post('occupancy-report/trigger')
+  async triggerOccupancyReport() {
+    const job = await this.reportQueue.add('generate-report', {
+      triggeredAt: new Date().toISOString(),
+    });
+
+    return {
+      message: 'Occupancy report job added to queue',
+      jobId: job.id,
+    };
   }
 }
