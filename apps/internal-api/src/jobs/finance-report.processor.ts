@@ -68,7 +68,7 @@ export class FinanceReportProcessor extends WorkerHost {
 
         // Stats Card (Only for "All" reports normally, but helpful either way)
         doc.rect(40, 90, 515, 60).fill(gray);
-        doc.fillColor(primary).fontSize(10).font('Helvetica-Bold').text('PORTFOLIO PERFORMANCE', 60, 105);
+        doc.fillColor(primary).fontSize(10).font('Helvetica-Bold').text(`PAYMENTS`, 60, 105);
         
         let statsText = `Collection Rate: ${stats.collectionRate}% | Total Transactions: ${stats.totalPayments}`;
         if (netId && payments.length > 0) {

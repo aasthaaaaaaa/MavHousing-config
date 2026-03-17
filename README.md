@@ -229,7 +229,7 @@ The **Bull Board** interface is available at `/queues`. You can monitor job stat
 | :--- | :--- | :--- | :--- |
 | **`property-reports`** | `PropertyReportProcessor` | Generates a roster of assigned residents. | `{}` |
 | **`lease-reports`** | `LeaseReportProcessor` | Master landscape ledger of all leases. | `{}` |
-| **`finance-reports`** | `FinanceReportProcessor` | Payment summary and student audits. | `{"netId": "abc1234", "sortBy": "person" }` |
+| **`finance-reports`** | `FinanceReportProcessor` | Payment summary and student audits. | **All Payments**: `{}` <br> **Specific Student**: `{"netId": "abc1234"}` <br> **Sorted by Name**: `{"sortBy": "person"}` |
 | **`occupancy-report`** | `OccupancyReportProcessor` | Monthly occupancy & vacancy percentages. | `{"type": "AUTOMATED"}` |
 | **`hello-world`** | `HelloWorldProcessor` | System health check (logs to console). | `{"message": "Hello!"}` |
 
