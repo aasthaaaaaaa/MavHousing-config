@@ -144,6 +144,28 @@ npm run start:dev auth-server
 
 ---
 
+## Core Architecture
+
+### 1. Monorepo & Service Design
+MavHousing is architected as a **NestJS Monorepo**, ensuring consistency across multiple specialized microservices:
+- **`auth-server`**: Single point of entry for user authentication, password management, and permission logic.
+- **`comms-server`**: Decoupled notification service handling the complexities of Twilio (SMS) and Resend (Email) delivery.
+- **`internal-api`**: The operational hub managing core business entities (Leases, Maintenance, Payments).
+
+### 2. Dual-Database Strategy
+- **Relational Hub (PostgreSQL + Prisma)**: All mission-critical, high-integrity data (Financials, Lease Contracts, User Roles) resides in Postgres.
+- **Real-Time Layer (MongoDB + Mongoose)**: High-velocity data like chat messages and maintenance comments are stored as flexible documents to support features like media attachments and rich content.
+
+### 3. Background Processing (BullMQ)
+The system offloads heavy computations—such as generating high-fidelity PDF reports—from the main request/response cycle to background workers via **Redis**. This ensures the student dashboard remains fast even during heavy reporting periods.
+
+### 4. Shared Libraries (`libs/`)
+- **`db`**: Unified Prisma service injected across all Postgres-dependent apps.
+- **`contracts`**: Shared TypeScript interfaces ensuring strict typing between frontend and backend.
+- **`auth`**: Common guards and strategies for consistent RBAC enforcement.
+
+---
+
 ## Available Scripts
 
 | Script              | Command                       | Description                                     |
@@ -219,7 +241,7 @@ MavHousing uses **BullMQ** for handling long-running or asynchronous background 
   REDIS_PORT=6379
   ```
 
-### 🐂 **BullMQ & Background Jobs**
+### BullMQ & Background Jobs
 MavHousing uses **BullMQ** for background task processing (PDF generation, reporting, etc.).
 
 #### **Monitoring & Manual Triggering**
