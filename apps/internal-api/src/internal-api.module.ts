@@ -1,6 +1,10 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { Module } from '@nestjs/common';
+import { BullModule } from '@nestjs/bullmq';
+import { BullBoardModule } from '@bull-board/nestjs';
+import { ExpressAdapter } from '@bull-board/express';
 import { InternalApiController } from './internal-api.controller';
 import { InternalApiService } from './internal-api.service';
 import { InternalApiResolver } from './internal-api.resolver';
@@ -18,6 +22,7 @@ import { ApplicationModule } from './application/application.module';
 import { ChatModule } from './chat/chat.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { BulletinModule } from './bulletin/bulletin.module';
+import { HelloWorldProcessor } from './jobs/hello-world.processor';
 
 @Module({
   imports: [
@@ -45,8 +50,29 @@ import { BulletinModule } from './bulletin/bulletin.module';
     ChatModule,
     AnnouncementsModule,
     BulletinModule,
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        connection: {
+          host: configService.get<string>('REDIS_HOST') || 'localhost',
+          port: configService.get<number>('REDIS_PORT') || 6379,
+        },
+      }),
+      inject: [ConfigService],
+    }),
+    BullModule.registerQueue({
+      name: 'hello-world',
+    }),
+    BullBoardModule.forRoot({
+      adapter: ExpressAdapter,
+      route: '/queues',
+    }),
+    BullBoardModule.forFeature({
+      name: 'hello-world',
+      adapter: BullMQAdapter,
+    }),
   ],
   controllers: [InternalApiController],
-  providers: [InternalApiService, InternalApiResolver],
+  providers: [InternalApiService, InternalApiResolver, HelloWorldProcessor],
 })
 export class InternalApiModule {}
