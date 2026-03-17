@@ -237,7 +237,8 @@ A simple verification queue to test the BullMQ setup.
 #### **Queue: `occupancy-report`**
 Generates and emails a PDF occupancy report to administrators.
 - **Trigger**: `POST http://localhost:3009/housing/occupancy-report/trigger`
-- **Output**: Generates a file named `Occupancy_{DATE}_{TIME}_admin.pdf` and emails it to `axjh03@gmail.com`.
+- **Automation**: Automatically runs at **midnight on the 1st of every month**.
+- **Output**: Generates a file named `Occupancy_{DATE}_{TIME}_admin.pdf` with charts and tables, then emails it to `axjh03@gmail.com`.
 
 ---
 
