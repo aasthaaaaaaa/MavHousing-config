@@ -219,26 +219,24 @@ MavHousing uses **BullMQ** for handling long-running or asynchronous background 
   REDIS_PORT=6379
   ```
 
-### 2. Monitoring Dashboard (Bull Board)
-You can monitor the status of all queues, view completed jobs, and retry failed ones via the Bull Board dashboard:
-- **URL**: [http://localhost:3009/queues](http://localhost:3009/queues)
+### 🐂 **BullMQ & Background Jobs**
+MavHousing uses **BullMQ** for background task processing (PDF generation, reporting, etc.).
 
-### 3. Available Queues & Jobs
+#### **Monitoring & Manual Triggering**
+The **Bull Board** interface is available at `/queues`. You can monitor job statuses and **manually trigger** work by clicking **"Add Job"** and providing the **JSON Payload** specified in the table below.
 
-#### **Queue: `hello-world`**
-A simple verification queue to test the BullMQ setup.
-- **Trigger**: `POST http://localhost:3009/trigger-job`
-- **Payload**:
-  ```json
-  { "name": "Your Name" }
-  ```
-- **Function**: Logs a greeting message in the background.
+| Queue Name | Processor | Purpose | Expected JSON Payload for Bull Board |
+| :--- | :--- | :--- | :--- |
+| **`property-reports`** | `PropertyReportProcessor` | Generates a roster of assigned residents. | `{}` |
+| **`lease-reports`** | `LeaseReportProcessor` | Master landscape ledger of all leases. | `{}` |
+| **`finance-reports`** | `FinanceReportProcessor` | Payment summary and student audits. | `{"netId": "abc1234", "sortBy": "person" }` |
+| **`occupancy-report`** | `OccupancyReportProcessor` | Monthly occupancy & vacancy percentages. | `{"type": "AUTOMATED"}` |
+| **`hello-world`** | `HelloWorldProcessor` | System health check (logs to console). | `{"message": "Hello!"}` |
 
-#### **Queue: `occupancy-report`**
-Generates and emails a PDF occupancy report to administrators.
-- **Trigger**: `POST http://localhost:3009/housing/occupancy-report/trigger`
-- **Automation**: Automatically runs at **midnight on the 1st of every month**.
-- **Output**: Generates a file named `Occupancy_{DATE}_{TIME}_admin.pdf` with charts and tables, then emails it to `axjh03@gmail.com`.
+---
+
+#### **Automated Job Schedule**
+All administrative reports are automatically scheduled via `OnModuleInit` to run at **midnight on the 1st of every month**.
 
 ---
 

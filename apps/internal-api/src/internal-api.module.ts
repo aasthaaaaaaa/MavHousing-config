@@ -24,6 +24,9 @@ import { AnnouncementsModule } from './announcements/announcements.module';
 import { BulletinModule } from './bulletin/bulletin.module';
 import { HelloWorldProcessor } from './jobs/hello-world.processor';
 import { OccupancyReportProcessor } from './jobs/occupancy-report.processor';
+import { PropertyReportProcessor } from './jobs/property-report.processor';
+import { LeaseReportProcessor } from './jobs/lease-report.processor';
+import { FinanceReportProcessor } from './jobs/finance-report.processor';
 
 @Module({
   imports: [
@@ -61,7 +64,12 @@ import { OccupancyReportProcessor } from './jobs/occupancy-report.processor';
       }),
       inject: [ConfigService],
     }),
-    BullModule.registerQueue({ name: 'hello-world' }),
+    BullModule.registerQueue(
+      { name: 'hello-world' },
+      { name: 'property-reports' },
+      { name: 'lease-reports' },
+      { name: 'finance-reports' },
+    ),
     BullBoardModule.forRoot({
       adapter: ExpressAdapter,
       route: '/queues',
@@ -69,6 +77,9 @@ import { OccupancyReportProcessor } from './jobs/occupancy-report.processor';
     BullBoardModule.forFeature(
       { name: 'hello-world', adapter: BullMQAdapter },
       { name: 'occupancy-report', adapter: BullMQAdapter },
+      { name: 'property-reports', adapter: BullMQAdapter },
+      { name: 'lease-reports', adapter: BullMQAdapter },
+      { name: 'finance-reports', adapter: BullMQAdapter },
     ),
   ],
   controllers: [InternalApiController],
@@ -77,6 +88,9 @@ import { OccupancyReportProcessor } from './jobs/occupancy-report.processor';
     InternalApiResolver,
     HelloWorldProcessor,
     OccupancyReportProcessor,
+    PropertyReportProcessor,
+    LeaseReportProcessor,
+    FinanceReportProcessor,
   ],
 })
 export class InternalApiModule {}

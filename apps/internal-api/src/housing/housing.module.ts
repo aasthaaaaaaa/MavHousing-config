@@ -12,9 +12,12 @@ import { BullModule } from '@nestjs/bullmq';
   imports: [
     UtilsModule,
     CommsServerModule,
-    BullModule.registerQueue({
-      name: 'occupancy-report',
-    }),
+    BullModule.registerQueue(
+      { name: 'occupancy-report' },
+      { name: 'property-reports' },
+      { name: 'lease-reports' },
+      { name: 'finance-reports' },
+    ),
   ],
   controllers: [HousingController],
   providers: [HousingService, UploadService],
@@ -23,22 +26,38 @@ import { BullModule } from '@nestjs/bullmq';
 export class HousingModule implements OnModuleInit {
   constructor(
     @InjectQueue('occupancy-report') private readonly reportQueue: Queue,
+    @InjectQueue('property-reports') private readonly propertyQueue: Queue,
+    @InjectQueue('lease-reports') private readonly leaseQueue: Queue,
+    @InjectQueue('finance-reports') private readonly financeQueue: Queue,
   ) {}
 
   async onModuleInit() {
-    // Schedule the job to run at 11:59 PM on the last day of every month
-    // "59 23 L * *" is supported by most BullMQ cron parsers for 'Last day'
-    // Fallback to "0 0 1 * *" (1st of month) if native 'L' is not supported in the env
+    // Schedule Occupancy Report
     await this.reportQueue.add(
       'monthly-automated-report',
       { type: 'AUTOMATED' },
       {
-        repeat: {
-          pattern: '0 0 1 * *', // Run on 1st of every month at midnight
-        },
-        jobId: 'monthly-occupancy-report', // Fixed ID to avoid duplicates
+        repeat: { pattern: '0 0 1 * *' },
+        jobId: 'monthly-occupancy-report',
       },
     );
-    console.log('BullMQ: Scheduled monthly occupancy report for the 1st of every month.');
+
+    // Schedule Admin Reports
+    await this.propertyQueue.add('generate', {}, {
+      repeat: { pattern: '0 0 1 * *' },
+      jobId: 'monthly-prop-report',
+    });
+
+    await this.leaseQueue.add('generate', {}, {
+      repeat: { pattern: '0 0 1 * *' },
+      jobId: 'monthly-lease-report',
+    });
+
+    await this.financeQueue.add('generate', {}, {
+      repeat: { pattern: '0 0 1 * *' },
+      jobId: 'monthly-finance-report',
+    });
+
+    console.log('BullMQ: Scheduled all monthly administrative reports.');
   }
 }
