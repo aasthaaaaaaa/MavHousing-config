@@ -202,6 +202,45 @@ The Prisma schema (`prisma/schema.prisma`) defines the following models:
 
 ---
 
+---
+
+## Background Jobs (BullMQ)
+
+MavHousing uses **BullMQ** for handling long-running or asynchronous background tasks.
+
+### 1. Prerequisites
+- **Redis**: Ensure Redis is installed and running on your machine.
+  ```bash
+  redis-server
+  ```
+- **Configuration**: Ensure your `.env` has the correct Redis credentials:
+  ```env
+  REDIS_HOST=localhost
+  REDIS_PORT=6379
+  ```
+
+### 2. Monitoring Dashboard (Bull Board)
+You can monitor the status of all queues, view completed jobs, and retry failed ones via the Bull Board dashboard:
+- **URL**: [http://localhost:3009/queues](http://localhost:3009/queues)
+
+### 3. Available Queues & Jobs
+
+#### **Queue: `hello-world`**
+A simple verification queue to test the BullMQ setup.
+- **Trigger**: `POST http://localhost:3009/trigger-job`
+- **Payload**:
+  ```json
+  { "name": "Your Name" }
+  ```
+- **Function**: Logs a greeting message in the background.
+
+#### **Queue: `occupancy-report`**
+Generates and emails a PDF occupancy report to administrators.
+- **Trigger**: `POST http://localhost:3009/housing/occupancy-report/trigger`
+- **Output**: Generates a file named `Occupancy_{DATE}_{TIME}_admin.pdf` and emails it to `axjh03@gmail.com`.
+
+---
+
 ## API Documentation
 
 Each microservice exposes a **Swagger UI** at the `/api` endpoint:

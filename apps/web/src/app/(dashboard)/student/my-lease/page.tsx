@@ -62,6 +62,7 @@ interface Lease {
     transactionDate: string;
     isSuccessful: boolean;
   }[];
+  
 }
 
 function formatDate(d: string) {

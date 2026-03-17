@@ -62,6 +62,39 @@ export class EmailService {
   }
 
   /**
+   * Send an email with an attachment.
+   */
+  async sendEmailWithAttachment(
+    to: string,
+    subject: string,
+    html: string,
+    attachment: { filename: string; content: Buffer },
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      await this.resend.emails.send({
+        to,
+        from: this.defaultSender,
+        subject,
+        html,
+        attachments: [
+          {
+            filename: attachment.filename,
+            content: attachment.content,
+          },
+        ],
+      });
+
+      return {
+        success: true,
+        message: `Email sent to ${to} with attachment ${attachment.filename}`,
+      };
+    } catch (e) {
+      console.error('Failed to send email with attachment:', e);
+      return { success: false, message: `Email not sent: ${e.message}` };
+    }
+  }
+
+  /**
    * Quick test email — kept for debugging/health-check purposes.
    */
   async sendTestEmail(): Promise<string> {
