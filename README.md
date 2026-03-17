@@ -3,7 +3,7 @@
 ## Overview
 
 **Team:** The Builders Squad  
-A NestJS monorepo housing platform for UTA's MavHousing — managing student applications, leasing, maintenance requests, payments, and communications.
+A comprehensive housing management platform for UTA's MavHousing, built with a **NestJS monorepo** backend and a **Next.js** student/admin portal — managing everything from applications and leasing to maintenance, payments, and automated communications.
 
 ## Technology Stack
 
@@ -141,7 +141,7 @@ mav-housing-config/
 │   ├── auth-server/             # Authentication & authorization (JWT, RBAC)
 │   ├── comms-server/            # Communications (Email via Resend, SMS via Twilio)
 │   ├── internal-api/            # Core API (Applications, Leases, Maintenance, Payments)
-│   └── mock/                    # Mock service for testing
+│   └── web/                     # Student & Admin frontend application (Next.js)
 ├── common/                      # Shared utilities & validators
 ├── libs/                        # Shared libraries
 │   ├── auth/                    # Auth helpers
@@ -156,12 +156,14 @@ mav-housing-config/
 │   ├── seed.ts                  # Mock data generation script
 │   ├── prismaReset.sh           # One-click DB reset & re-seed utility
 │   └── migrations/              # Version-controlled DB schema changes
-├── docs/                        # Project documentation (architecture, requirements, roadmap)
-├── generated/                   # Auto-generated Prisma client
-├── .env.example                 # Environment variable template
-├── nest-cli.json                # NestJS monorepo configuration
-├── package.json                 # Dependencies & scripts
-└── tsconfig.json                # TypeScript configuration
+├── docs/                        # Technical documentation & project requirements
+├── generated/                   # Local Prisma client build artifacts
+├── mock_db/                     # Local persistence & research snapshots
+├── product_screenshots/         # UI previews & branding assets
+├── .env.example                 # Master environment variable template
+├── nest-cli.json                # NestJS monorepo workspace config
+├── package.json                 # Project-wide dependencies & global scripts
+└── tsconfig.json                # Base TypeScript compiler settings
 ```
 
 ---
