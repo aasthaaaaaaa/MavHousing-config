@@ -47,6 +47,29 @@ function getLocation(l: Lease) {
   return parts.join(", ");
 }
 
+function calcLeaseStats(l: Lease) {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  
+  const paidThisMonth = (l.payments || [])
+    .filter(p => p.isSuccessful && new Date(p.transactionDate) >= startOfMonth)
+    .reduce((acc, p) => acc + parseFloat(p.amountPaid), 0);
+  
+  const monthlyRent = parseFloat(l.dueThisMonth);
+  const extraFees = parseFloat(l.terminationFee || "0");
+  const totalDueThisMonth = monthlyRent + extraFees;
+  const balanceThisMonth = Math.max(0, totalDueThisMonth - paidThisMonth);
+  
+  return {
+    paidThisMonth,
+    monthlyRent,
+    extraFees,
+    totalDueThisMonth,
+    balanceThisMonth,
+    isClear: balanceThisMonth <= 0.01
+  };
+}
+
 export default function StaffLeasesPage() {
   const [leases, setLeases] = useState<Lease[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,30 +101,32 @@ export default function StaffLeasesPage() {
   async function handleStatusChange(leaseId: number, status: string) {
     setUpdating(leaseId);
     try {
-      await fetch(`http://localhost:3009/lease/leases/${leaseId}/status`, {
+      const res = await fetch(`http://localhost:3009/lease/leases/${leaseId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      setLeases(prev => prev.map(l => l.leaseId === leaseId ? { ...l, status } : l));
-      if (selected?.leaseId === leaseId) setSelected(prev => prev ? { ...prev, status } : null);
+      const updatedLease = await res.json();
+      setLeases(prev => prev.map(l => l.leaseId === leaseId ? updatedLease : l));
+      if (selected?.leaseId === leaseId) setSelected(updatedLease);
     } finally {
       setUpdating(null);
     }
   }
 
   async function handleSetTerminationFee() {
-    if (!selected) return;
+    if (!selected || !termFeeInput) return;
     setUpdating(selected.leaseId);
     try {
-      await fetch(`http://localhost:3009/lease/${selected.leaseId}/termination-fee`, {
+      const res = await fetch(`http://localhost:3009/lease/${selected.leaseId}/termination-fee`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: parseFloat(termFeeInput) }),
       });
-      const updated = { ...selected, terminationFee: termFeeInput };
-      setSelected(updated);
-      setLeases(prev => prev.map(l => l.leaseId === selected.leaseId ? updated : l));
+      const updatedLease = await res.json();
+      setSelected(updatedLease);
+      setLeases(prev => prev.map(l => l.leaseId === selected.leaseId ? updatedLease : l));
+      setTermFeeInput("");
     } finally {
       setUpdating(null);
     }
@@ -111,10 +136,10 @@ export default function StaffLeasesPage() {
     if (!selected) return;
     setFinishingTerm(true);
     try {
-      await fetch(`http://localhost:3009/lease/${selected.leaseId}/approve-termination`, {
+      const res = await fetch(`http://localhost:3009/lease/${selected.leaseId}/approve-termination`, {
         method: "PATCH",
       });
-      const updated = { ...selected, status: "TERMINATED" };
+      const updated = await res.json();
       setSelected(updated);
       setLeases(prev => prev.map(l => l.leaseId === selected.leaseId ? updated : l));
       setSheetOpen(false);
@@ -164,8 +189,8 @@ export default function StaffLeasesPage() {
                   onClick={() => open(lease)}
                 >
                   <TableCell className="pl-6">
-                    <p className="font-medium">{lease.user.fName} {lease.user.lName}</p>
-                    <p className="text-xs text-muted-foreground">{lease.user.netId}</p>
+                    <p className="font-medium">{lease.user?.fName ?? "Unknown"} {lease.user?.lName ?? "Tenant"}</p>
+                    <p className="text-xs text-muted-foreground">{lease.user?.netId ?? "—"}</p>
                   </TableCell>
                   <TableCell>
                     <p className="text-sm">{lease.unit?.property.name ?? "—"}</p>
@@ -245,10 +270,78 @@ export default function StaffLeasesPage() {
                 <Separator />
                 <div>
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Financials</h3>
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-lg font-bold">{fmtMoney(selected.totalDue)}</span>
-                    <span className="text-sm text-muted-foreground">total due</span>
+                   <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="text-sm">Total Due (Full Term)</span>
+                      </div>
+                      <span className="font-semibold">{fmtMoney(selected.totalDue)}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <span className="h-4 w-4" />
+                        <span className="text-sm">Monthly Rent</span>
+                      </div>
+                      <span className="font-medium text-sm">{fmtMoney(selected.dueThisMonth)}</span>
+                    </div>
+
+                    {selected.terminationFee && parseFloat(selected.terminationFee) > 0 && (
+                      <div className="flex items-center justify-between text-destructive">
+                        <div className="flex items-center gap-2">
+                          <span className="h-4 w-4" />
+                          <span className="text-sm font-medium">Extra Fees / Term. Fee</span>
+                        </div>
+                        <span className="font-semibold text-sm">{fmtMoney(selected.terminationFee)}</span>
+                      </div>
+                    )}
+
+                    {(() => {
+                      const stats = calcLeaseStats(selected);
+                      return (
+                        <div className="space-y-3 p-3 bg-muted/40 rounded-xl border border-dashed">
+                          <div className="flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            <span>Monthly Summary</span>
+                            <span className="normal-case font-normal">{new Date().toLocaleDateString("en-US", { month: "long" })}</span>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">Total Obligation (Rent + Fees)</span>
+                              <span>{fmtMoney(String(stats.totalDueThisMonth))}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-green-600">
+                              <span className="">Paid This Month</span>
+                              <span>- {fmtMoney(String(stats.paidThisMonth))}</span>
+                            </div>
+                            <Separator className="my-1" />
+                            <div className="flex justify-between items-center pt-1">
+                              <span className="text-xs font-bold uppercase">Current Balance</span>
+                              <span className={`text-xl font-bold ${stats.isClear ? 'text-green-600' : 'text-primary'}`}>
+                                {fmtMoney(String(stats.balanceThisMonth))}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {['SIGNED', 'ACTIVE', 'TERMINATION_REQUESTED'].includes(selected.status) && (
+                      <div className="space-y-2 pt-2">
+                        <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Add Extra Fee to Account</Label>
+                        <div className="flex gap-2">
+                          <Input 
+                              type="number" 
+                              placeholder="0.00" 
+                              value={termFeeInput} 
+                              onChange={e => setTermFeeInput(e.target.value)}
+                              className="bg-white dark:bg-black h-8 text-sm"
+                          />
+                          <Button variant="outline" size="sm" className="h-8" onClick={handleSetTerminationFee} disabled={updating === selected.leaseId}>Add Fee</Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <Separator />
@@ -275,28 +368,8 @@ export default function StaffLeasesPage() {
                     
                     <Separator className="bg-amber-500/10" />
                     
-                    <div className="space-y-2">
-                       <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Add Termination Fee ($)</Label>
-                       <div className="flex gap-2">
-                         <Input 
-                            type="number" 
-                            placeholder="0.00" 
-                            value={termFeeInput} 
-                            onChange={e => setTermFeeInput(e.target.value)}
-                            className="bg-white dark:bg-black"
-                         />
-                         <Button variant="outline" size="sm" onClick={handleSetTerminationFee} disabled={updating === selected.leaseId}>Apply</Button>
-                       </div>
-                    </div>
-
-                    {selected.terminationFee && parseFloat(selected.terminationFee) > 0 && (() => {
-                      const totalPaid = (selected.payments || []).reduce((acc: number, p: any) => acc + parseFloat(p.amountPaid), 0);
-                      const now = new Date();
-                      const start = new Date(selected.startDate);
-                      const monthsElapsed = Math.max(1, (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()) + 1);
-                      const expectedTillNow = (parseFloat(selected.dueThisMonth) * monthsElapsed) + parseFloat(selected.terminationFee || "0");
-                      const balance = Math.max(0, expectedTillNow - totalPaid);
-                      const isClear = balance <= 0.01;
+                    {(() => {
+                      const stats = calcLeaseStats(selected);
 
                       return (
                         <div className="pt-2">
@@ -309,24 +382,24 @@ export default function StaffLeasesPage() {
                            
                            <div className="flex items-center justify-between mt-1 p-3 bg-white dark:bg-black border rounded-lg">
                              <div className="space-y-0.5">
-                               <p className="text-[10px] text-muted-foreground uppercase">Current Balance</p>
-                               <p className={`text-lg font-bold ${isClear ? 'text-green-600' : 'text-destructive'}`}>
-                                 {fmtMoney(String(balance))}
+                               <p className="text-[10px] text-muted-foreground uppercase">Remaining for Termination</p>
+                               <p className={`text-lg font-bold ${stats.isClear ? 'text-green-600' : 'text-destructive'}`}>
+                                 {fmtMoney(String(stats.balanceThisMonth))}
                                </p>
                              </div>
-                             <Badge variant="outline" className={isClear ? "text-green-600 bg-green-50 border-green-200" : "text-amber-600 bg-amber-50 border-amber-200"}>
-                               {isClear ? "CLEAR" : "DUE"}
+                             <Badge variant="outline" className={stats.isClear ? "text-green-600 bg-green-50 border-green-200" : "text-amber-600 bg-amber-50 border-amber-200"}>
+                               {stats.isClear ? "CLEAR" : "DUE"}
                              </Badge>
                            </div>
                            
                            <Button 
-                              className={`w-full mt-4 ${isClear ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-600 hover:bg-amber-700'} text-white transition-all`}
+                              className={`w-full mt-4 ${stats.isClear ? 'bg-green-600 hover:bg-green-700' : 'bg-amber-600 hover:bg-amber-700'} text-white transition-all`}
                               onClick={handleApproveTermination}
-                              disabled={finishingTerm || !isClear}
+                              disabled={finishingTerm || !stats.isClear}
                            >
-                              {finishingTerm ? "Terminating..." : isClear ? "Finalize Termination" : "Waiting for Payment..."}
+                              {finishingTerm ? "Terminating..." : stats.isClear ? "Finalize Termination" : "Waiting for Payment..."}
                            </Button>
-                           {!isClear && <p className="text-[10px] text-center text-muted-foreground mt-2">Lease cannot be ended until balance is $0.00</p>}
+                           {!stats.isClear && <p className="text-[10px] text-center text-muted-foreground mt-2">Lease cannot be ended until balance is $0.00</p>}
                         </div>
                       );
                     })()}

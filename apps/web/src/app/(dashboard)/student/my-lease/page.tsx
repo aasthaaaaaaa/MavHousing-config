@@ -57,6 +57,11 @@ interface Lease {
       email: string;
     };
   }[];
+  payments?: {
+    amountPaid: string;
+    transactionDate: string;
+    isSuccessful: boolean;
+  }[];
 }
 
 function formatDate(d: string) {
@@ -65,6 +70,29 @@ function formatDate(d: string) {
 
 function formatMoney(val: string) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(parseFloat(val));
+}
+
+function calcLeaseStats(l: Lease) {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  
+  const paidThisMonth = (l.payments || [])
+    .filter(p => p.isSuccessful && new Date(p.transactionDate) >= startOfMonth)
+    .reduce((acc, p) => acc + parseFloat(p.amountPaid), 0);
+  
+  const monthlyRent = parseFloat(l.dueThisMonth);
+  const extraFees = parseFloat(l.terminationFee || "0");
+  const totalDueThisMonth = monthlyRent + extraFees;
+  const balanceThisMonth = Math.max(0, totalDueThisMonth - paidThisMonth);
+  
+  return {
+    paidThisMonth,
+    monthlyRent,
+    extraFees,
+    totalDueThisMonth,
+    balanceThisMonth,
+    isClear: balanceThisMonth <= 0.01
+  };
 }
 
 export default function MyLeasePage() {
@@ -348,14 +376,43 @@ export default function MyLeasePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Total Due (Full Term)</span>
-              <span className="font-semibold text-lg">{formatMoney(lease.totalDue)}</span>
+              <span className="text-muted-foreground text-sm">Total Due (Full Term)</span>
+              <span className="font-semibold">{formatMoney(lease.totalDue)}</span>
             </div>
-            <Separator />
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Due This Month</span>
-              <span className="font-bold text-xl text-primary">{formatMoney(lease.dueThisMonth)}</span>
-            </div>
+            
+            {(() => {
+              const stats = calcLeaseStats(lease);
+              return (
+                <div className="space-y-3 pt-2">
+                   <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Monthly Rent</span>
+                    <span className="font-medium">{formatMoney(String(stats.monthlyRent))}</span>
+                  </div>
+
+                  {stats.extraFees > 0 && (
+                    <div className="flex justify-between items-center text-sm text-destructive">
+                      <span className="">Extra Fees / Termination Fee</span>
+                      <span className="font-semibold">{formatMoney(String(stats.extraFees))}</span>
+                    </div>
+                  )}
+
+                  <Separator />
+
+                  <div className="flex justify-between items-center text-sm text-green-600">
+                    <span className="">Paid This Month</span>
+                    <span>- {formatMoney(String(stats.paidThisMonth))}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-primary/5 rounded-xl border border-primary/20">
+                    <span className="text-xs font-bold uppercase tracking-tight">Remaining This Month</span>
+                    <span className={`text-xl font-bold ${stats.isClear ? 'text-green-600' : 'text-primary'}`}>
+                      {formatMoney(String(stats.balanceThisMonth))}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
+
             {lease.status === 'ACTIVE' && (
               <>
                 <Separator />

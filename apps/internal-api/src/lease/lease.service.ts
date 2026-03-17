@@ -5,6 +5,40 @@ import { PrismaService } from '@common/prisma/prisma.service';
 export class LeaseService {
   constructor(private prisma: PrismaService) {}
 
+  private readonly leaseInclude = {
+    user: {
+      select: {
+        userId: true,
+        netId: true,
+        fName: true,
+        lName: true,
+        email: true,
+      },
+    },
+    unit: {
+      include: {
+        property: true,
+      },
+    },
+    room: true,
+    bed: true,
+    payments: true,
+    occupants: {
+      include: {
+        user: {
+          select: {
+            userId: true,
+            netId: true,
+            fName: true,
+            lName: true,
+            email: true,
+          },
+        },
+      },
+    },
+  };
+
+
   async getMyLease(userId: number) {
     return this.prisma.lease.findFirst({
       where: {
@@ -66,25 +100,7 @@ export class LeaseService {
 
   async getAllLeases() {
     return this.prisma.lease.findMany({
-      include: {
-        user: {
-          select: {
-            userId: true,
-            netId: true,
-            fName: true,
-            lName: true,
-            email: true,
-          },
-        },
-        unit: {
-          include: {
-            property: true,
-          },
-        },
-        room: true,
-        bed: true,
-        payments: true,
-      },
+      include: this.leaseInclude,
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -97,6 +113,7 @@ export class LeaseService {
         updatedAt: new Date(),
         ...(status === 'SIGNED' ? { signedAt: new Date() } : {}),
       },
+      include: this.leaseInclude,
     });
 
     // If lease is signed, ensure any pending application is marked as approved
@@ -293,16 +310,26 @@ export class LeaseService {
         terminationReason: reason,
         updatedAt: new Date(),
       },
+      include: this.leaseInclude,
     });
   }
 
   async setTerminationFee(leaseId: number, amount: number) {
+    const lease = await this.prisma.lease.findUnique({
+      where: { leaseId },
+    });
+
+    if (!lease) throw new Error('Lease not found');
+
+    const currentFee = lease.terminationFee ? Number(lease.terminationFee) : 0;
+
     return this.prisma.lease.update({
       where: { leaseId },
       data: {
-        terminationFee: amount,
+        terminationFee: currentFee + amount,
         updatedAt: new Date(),
       },
+      include: this.leaseInclude,
     });
   }
 
@@ -316,9 +343,10 @@ export class LeaseService {
       if (!lease) throw new Error('Lease not found');
 
       // Finalize status
-      await tx.lease.update({
+      const updatedLease = await tx.lease.update({
         where: { leaseId },
         data: { status: 'TERMINATED', updatedAt: new Date() },
+        include: this.leaseInclude,
       });
 
       // Clear property assignment from roommates/occupants
@@ -327,10 +355,7 @@ export class LeaseService {
         data: { moveOutDate: new Date() },
       });
 
-      // If it was by unit/bed, we might want to release the beds, but Prisma relations handle it if we just clear the lease status or delete. 
-      // Actually, just changing status to TERMINATED is enough for availability logic usually.
-
-      return { success: true };
+      return updatedLease;
     });
   }
 }

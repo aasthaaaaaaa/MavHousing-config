@@ -17,6 +17,8 @@ import { getPaymentStatusClass } from "@/lib/status-colors";
 
 interface PaymentSummary {
   monthlyRent: number;
+  extraFees: number;
+  totalDueThisMonth: number;
   paidThisMonth: boolean;
   amountDueThisMonth: number;
   paymentsMade: number;
@@ -197,6 +199,11 @@ export default function PaymentsPage() {
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Monthly Rent</p>
                 <p className="text-3xl font-bold">{fmt(summary.monthlyRent)}</p>
+                {summary.extraFees > 0 && (
+                  <p className="text-xs text-destructive mt-1 font-medium">
+                    + {fmt(summary.extraFees)} fees
+                  </p>
+                )}
                 {summary.lease?.unit && (
                   <p className="text-xs text-muted-foreground mt-2">
                     {summary.lease.unit.property.name} · Unit {summary.lease.unit.unitNumber}

@@ -39,13 +39,15 @@ export class PaymentService {
     if (!lease) return null;
 
     const monthlyRent = Number(lease.dueThisMonth);
+    const extraFees = Number(lease.terminationFee || 0);
+    const totalDueThisMonth = monthlyRent + extraFees;
 
-    // Check if a successful payment exists for the current calendar month
+    // Check successful payments for the current calendar month
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-    const thisMonthPayment = await this.prisma.payment.findFirst({
+    const thisMonthPayments = await this.prisma.payment.findMany({
       where: {
         leaseId: lease.leaseId,
         isSuccessful: true,
@@ -53,20 +55,31 @@ export class PaymentService {
       },
     });
 
-    const paidThisMonth = !!thisMonthPayment;
+    const totalPaidThisMonth = thisMonthPayments.reduce(
+      (sum, p) => sum + Number(p.amountPaid),
+      0,
+    );
 
-    // Count all successful payments
-    const allPayments = await this.prisma.payment.findMany({
-      where: { leaseId: lease.leaseId },
+    const amountDueThisMonth = Math.max(
+      0,
+      totalDueThisMonth - totalPaidThisMonth,
+    );
+    const paidThisMonth = amountDueThisMonth <= 0;
+
+    // Count all successful payments for the history badge
+    const allSuccessfulPayments = await this.prisma.payment.count({
+      where: { leaseId: lease.leaseId, isSuccessful: true },
     });
-    const successCount = allPayments.filter((p) => p.isSuccessful).length;
 
     return {
       lease,
       monthlyRent,
+      extraFees,
+      totalDueThisMonth,
+      totalPaidThisMonth,
       paidThisMonth,
-      amountDueThisMonth: paidThisMonth ? 0 : monthlyRent,
-      paymentsMade: successCount,
+      amountDueThisMonth,
+      paymentsMade: allSuccessfulPayments,
     };
   }
 
