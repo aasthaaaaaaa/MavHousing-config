@@ -821,6 +821,7 @@ export class HousingService {
     const stats = properties.map((property) => {
       let totalCapacity = 0;
       let occupiedCount = 0;
+      const seenLeaseIds = new Set<number>();
 
       property.units.forEach((unit) => {
         // Add unit max occupancy to total capacity
@@ -828,27 +829,39 @@ export class HousingService {
 
         // Count occupants in unit-level leases
         unit.leases.forEach((lease) => {
-          occupiedCount += lease.occupants.length;
+          if (!seenLeaseIds.has(lease.leaseId)) {
+            occupiedCount += lease.occupants.length;
+            seenLeaseIds.add(lease.leaseId);
+          }
         });
 
         // Count occupants in room-level leases
         unit.rooms.forEach((room) => {
           room.leases.forEach((lease) => {
-            occupiedCount += lease.occupants.length;
+            if (!seenLeaseIds.has(lease.leaseId)) {
+              occupiedCount += lease.occupants.length;
+              seenLeaseIds.add(lease.leaseId);
+            }
           });
 
           // Count occupants in bed-level leases
           room.beds.forEach((bed) => {
             bed.leases.forEach((lease) => {
-              occupiedCount += lease.occupants.length;
+              if (!seenLeaseIds.has(lease.leaseId)) {
+                occupiedCount += lease.occupants.length;
+                seenLeaseIds.add(lease.leaseId);
+              }
             });
           });
         });
       });
 
+      // Ensure vacantBeds is not negative
+      const vacantBeds = Math.max(0, totalCapacity - occupiedCount);
+      
       const vacancyRate =
         totalCapacity > 0
-          ? ((totalCapacity - occupiedCount) / totalCapacity) * 100
+          ? (vacantBeds / totalCapacity) * 100
           : 0;
 
       return {
@@ -857,7 +870,7 @@ export class HousingService {
         propertyType: property.propertyType,
         totalCapacity,
         occupiedBeds: occupiedCount,
-        vacantBeds: totalCapacity - occupiedCount,
+        vacantBeds,
         vacancyRate: parseFloat(vacancyRate.toFixed(2)),
       };
     });
@@ -867,16 +880,18 @@ export class HousingService {
       0,
     );
     const systemOccupied = stats.reduce((sum, s) => sum + s.occupiedBeds, 0);
+    const systemVacant = Math.max(0, systemTotalCapacity - systemOccupied);
+    
     const systemVacancyRate =
       systemTotalCapacity > 0
-        ? ((systemTotalCapacity - systemOccupied) / systemTotalCapacity) * 100
+        ? (systemVacant / systemTotalCapacity) * 100
         : 0;
 
     return {
       overview: {
         totalCapacity: systemTotalCapacity,
         occupiedBeds: systemOccupied,
-        vacantBeds: systemTotalCapacity - systemOccupied,
+        vacantBeds: systemVacant,
         vacancyRate: parseFloat(systemVacancyRate.toFixed(2)),
       },
       properties: stats,
