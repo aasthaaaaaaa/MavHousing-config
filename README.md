@@ -202,6 +202,44 @@ The Prisma schema (`prisma/schema.prisma`) defines the following models:
 
 ---
 
+---
+
+## Background Jobs (BullMQ)
+
+MavHousing uses **BullMQ** for handling long-running or asynchronous background tasks.
+
+### 1. Prerequisites
+- **Redis**: Ensure Redis is installed and running on your machine.
+  ```bash
+  redis-server
+  ```
+- **Configuration**: Ensure your `.env` has the correct Redis credentials:
+  ```env
+  REDIS_HOST=localhost
+  REDIS_PORT=6379
+  ```
+
+### 🐂 **BullMQ & Background Jobs**
+MavHousing uses **BullMQ** for background task processing (PDF generation, reporting, etc.).
+
+#### **Monitoring & Manual Triggering**
+The **Bull Board** interface is available at `/queues`. You can monitor job statuses and **manually trigger** work by clicking **"Add Job"** and providing the **JSON Payload** specified in the table below.
+
+| Queue Name | Processor | Purpose | Expected JSON Payload for Bull Board |
+| :--- | :--- | :--- | :--- |
+| **`property-reports`** | `PropertyReportProcessor` | Generates a roster of assigned residents. | `{}` |
+| **`lease-reports`** | `LeaseReportProcessor` | Master landscape ledger of all leases. | `{}` |
+| **`finance-reports`** | `FinanceReportProcessor` | Payment summary and student audits. | **All Payments**: `{}` <br> **Specific Student**: `{"netId": "abc1234"}` <br> **Sorted by Name**: `{"sortBy": "person"}` |
+| **`occupancy-report`** | `OccupancyReportProcessor` | Monthly occupancy & vacancy percentages. | `{"type": "AUTOMATED"}` |
+| **`hello-world`** | `HelloWorldProcessor` | System health check (logs to console). | `{"message": "Hello!"}` |
+
+---
+
+#### **Automated Job Schedule**
+All administrative reports are automatically scheduled via `OnModuleInit` to run at **midnight on the 1st of every month**.
+
+---
+
 ## API Documentation
 
 Each microservice exposes a **Swagger UI** at the `/api` endpoint:

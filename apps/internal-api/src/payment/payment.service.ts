@@ -141,4 +141,44 @@ export class PaymentService {
       orderBy: { transactionDate: 'desc' },
     });
   }
+
+  /** Staff: Get payments for a specific student by NetId */
+  async getPaymentsByNetId(netId: string) {
+    return this.prisma.payment.findMany({
+      where: {
+        lease: {
+          user: { netId },
+        },
+      },
+      include: {
+        lease: {
+          include: {
+            user: {
+              select: { netId: true, fName: true, lName: true, email: true },
+            },
+            unit: { include: { property: true } },
+          },
+        },
+      },
+      orderBy: { transactionDate: 'desc' },
+    });
+  }
+
+  /** Staff: Get payments for a specific lease */
+  async getPaymentsByLeaseId(leaseId: number) {
+    return this.prisma.payment.findMany({
+      where: { leaseId },
+      include: {
+        lease: {
+          include: {
+            user: {
+              select: { netId: true, fName: true, lName: true, email: true },
+            },
+            unit: { include: { property: true } },
+          },
+        },
+      },
+      orderBy: { transactionDate: 'desc' },
+    });
+  }
 }

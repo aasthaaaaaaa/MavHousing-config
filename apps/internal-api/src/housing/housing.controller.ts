@@ -14,6 +14,8 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { HousingService } from './housing.service';
 import { UploadService } from './upload.service';
@@ -25,6 +27,10 @@ export class HousingController {
   constructor(
     private readonly housingService: HousingService,
     private readonly uploadService: UploadService,
+    @InjectQueue('occupancy-report') private readonly reportQueue: Queue,
+    @InjectQueue('property-reports') private readonly propertyQueue: Queue,
+    @InjectQueue('lease-reports') private readonly leaseQueue: Queue,
+    @InjectQueue('finance-reports') private readonly financeQueue: Queue,
   ) {}
 
   @Get('user-by-utaid/:utaId')
@@ -198,5 +204,41 @@ export class HousingController {
   @Get('occupancy-stats')
   async getOccupancyStats() {
     return this.housingService.getOccupancyStats();
+  }
+
+  @Post('occupancy-report/trigger')
+  async triggerOccupancyReport() {
+    const job = await this.reportQueue.add('generate-report', {
+      triggeredAt: new Date().toISOString(),
+    });
+
+    return {
+      message: 'Occupancy report job added to queue',
+      jobId: job.id,
+    };
+  }
+
+  @Post('reports/trigger')
+  async triggerAdminReport(@Body() data: { type: string; netId?: string; sortBy?: string }) {
+    const { type, netId, sortBy } = data;
+    let job;
+    switch (type) {
+      case 'property-assignments':
+        job = await this.propertyQueue.add('generate', {});
+        break;
+      case 'lease-inventory':
+        job = await this.leaseQueue.add('generate', {});
+        break;
+      case 'financial-summary':
+        job = await this.financeQueue.add('generate', { netId, sortBy: sortBy as any });
+        break;
+      default:
+        throw new HttpException('Invalid report type', HttpStatus.BAD_REQUEST);
+    }
+
+    return {
+      message: `${type} report job added to queue`,
+      jobId: job.id,
+    };
   }
 }
