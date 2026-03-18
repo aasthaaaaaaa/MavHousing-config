@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
+import { EmailService } from 'apps/comms-server/src/email/email.service';
 
 @Injectable()
 export class LeaseService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   private readonly leaseInclude = {
     user: {
@@ -83,7 +87,7 @@ export class LeaseService {
     totalDue: number;
     dueThisMonth: number;
   }) {
-    return this.prisma.lease.create({
+    const lease = await this.prisma.lease.create({
       data: {
         userId: data.userId,
         leaseType: data.leaseType || 'BY_BED',
@@ -97,6 +101,20 @@ export class LeaseService {
         status: 'PENDING_SIGNATURE',
       },
     });
+
+    // Fire-and-forget: notify student that a lease offer has been issued
+    this.prisma.user
+      .findUnique({ where: { userId: data.userId }, select: { email: true, fName: true } })
+      .then((user) => {
+        if (user) {
+          this.emailService
+            .sendTemplateEmail('leaseOfferIssued', user.email, user.fName)
+            .catch((e) => console.error('[LeaseService] Failed to send leaseOfferIssued email:', e));
+        }
+      })
+      .catch((e) => console.error('[LeaseService] Failed to fetch user for lease offer email:', e));
+
+    return lease;
   }
 
   async getAllLeases() {
@@ -126,6 +144,34 @@ export class LeaseService {
         },
         data: { status: 'APPROVED' },
       });
+
+      // Fire-and-forget: send welcome email with lease details
+      const user = updatedLease.user;
+      if (user) {
+        const unit = updatedLease.unit;
+        const property = unit?.property;
+        const startDate = updatedLease.startDate
+          ? new Date(updatedLease.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+          : 'N/A';
+        const endDate = updatedLease.endDate
+          ? new Date(updatedLease.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+          : 'N/A';
+        const monthlyRent = updatedLease.dueThisMonth
+          ? `$${Number(updatedLease.dueThisMonth).toFixed(2)}`
+          : 'N/A';
+        const details = [
+          property ? `Property: ${property.name}` : null,
+          unit ? `Unit: ${unit.unitNumber}` : null,
+          `Lease Term: ${startDate} – ${endDate}`,
+          `Monthly Rent: ${monthlyRent}`,
+        ]
+          .filter(Boolean)
+          .join('<br />');
+
+        this.emailService
+          .sendTemplateEmail('leaseAcceptedWelcome', user.email, user.fName, details)
+          .catch((e) => console.error('[LeaseService] Failed to send leaseAcceptedWelcome email:', e));
+      }
     }
 
     return updatedLease;

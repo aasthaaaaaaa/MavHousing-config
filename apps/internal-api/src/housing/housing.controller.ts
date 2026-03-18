@@ -52,6 +52,16 @@ export class HousingController {
     return this.housingService.getPropertiesAvailability();
   }
 
+  @Get('properties/:propertyId/available-units')
+  async getAvailableUnits(@Param('propertyId') propertyId: string) {
+    return this.housingService.getAvailableUnits(parseInt(propertyId, 10));
+  }
+
+  @Get('properties/:propertyId/available-rooms')
+  async getAvailableRooms(@Param('propertyId') propertyId: string) {
+    return this.housingService.getAvailableRooms(parseInt(propertyId, 10));
+  }
+
   @Get('properties/:propertyId/available-beds')
   async getAvailableBeds(@Param('propertyId') propertyId: string) {
     return this.housingService.getAvailableBeds(parseInt(propertyId, 10));

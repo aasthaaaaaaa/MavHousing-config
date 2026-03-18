@@ -77,6 +77,7 @@ interface ApplicationDetail {
     name: string;
     address: string;
     propertyType: string;
+    leaseType: string;
   };
 }
 

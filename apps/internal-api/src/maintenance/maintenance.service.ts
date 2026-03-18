@@ -8,12 +8,16 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
+import { EmailService } from 'apps/comms-server/src/email/email.service';
 
 @Injectable()
 export class MaintenanceService {
   private s3Client: S3Client;
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {
     this.s3Client = new S3Client({
       region: 'auto',
       endpoint: process.env.R3_API,
@@ -155,7 +159,7 @@ export class MaintenanceService {
     staffId?: number,
     resolutionReason?: string,
   ) {
-    return this.prisma.maintenanceRequest.update({
+    const updated = await this.prisma.maintenanceRequest.update({
       where: { requestId },
       data: {
         status: status as any,
@@ -166,7 +170,30 @@ export class MaintenanceService {
           resolutionReason,
         }),
       },
+      include: {
+        createdBy: { select: { email: true, fName: true } },
+        lease: { include: { unit: { include: { property: true } } } },
+      },
     });
+
+    // Fire-and-forget: notify the student of status change
+    const user = updated.createdBy;
+    if (user) {
+      const propertyName = updated.lease?.unit?.property?.name;
+      const context = propertyName ? `Property: ${propertyName}` : undefined;
+
+      if (status === 'OPEN') {
+        this.emailService
+          .sendTemplateEmail('maintenanceOpened', user.email, user.fName, context)
+          .catch((e) => console.error('[MaintenanceService] Failed to send maintenanceOpened email:', e));
+      } else if (status === 'RESOLVED' || status === 'CLOSED') {
+        this.emailService
+          .sendTemplateEmail('maintenanceClosed', user.email, user.fName, resolutionReason || context)
+          .catch((e) => console.error('[MaintenanceService] Failed to send maintenanceClosed email:', e));
+      }
+    }
+
+    return updated;
   }
 
   /** Staff: get list of staff users for assignment */
@@ -211,7 +238,7 @@ export class MaintenanceService {
     content?: string,
     attachmentUrl?: string,
   ) {
-    return this.prisma.maintenanceComment.create({
+    const comment = await this.prisma.maintenanceComment.create({
       data: {
         requestId,
         userId,
@@ -222,6 +249,30 @@ export class MaintenanceService {
         user: { select: { fName: true, lName: true } },
       },
     });
+
+    // Fire-and-forget: notify the request creator about the new comment
+    this.prisma.maintenanceRequest
+      .findUnique({
+        where: { requestId },
+        include: { createdBy: { select: { email: true, fName: true } } },
+      })
+      .then((req) => {
+        const creator = req?.createdBy;
+        // Only email if the commenter is NOT the creator (staff commenting on student's request)
+        if (creator && creator.email) {
+          const commenterName = comment.user
+            ? `${comment.user.fName} ${comment.user.lName}`
+            : 'Housing Staff';
+          const preview = content ? (content.length > 80 ? content.slice(0, 80) + '…' : content) : undefined;
+          const ctx = preview ? `${commenterName}: "${preview}"` : undefined;
+          this.emailService
+            .sendTemplateEmail('maintenanceCommentAdded', creator.email, creator.fName, ctx)
+            .catch((e) => console.error('[MaintenanceService] Failed to send comment email:', e));
+        }
+      })
+      .catch((e) => console.error('[MaintenanceService] Failed to fetch request for comment email:', e));
+
+    return comment;
   }
 
   /** Common: Get comments for a request */

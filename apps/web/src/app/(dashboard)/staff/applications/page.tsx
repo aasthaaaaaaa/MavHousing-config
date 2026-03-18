@@ -29,7 +29,7 @@ interface Application {
   status: string;
   submissionDate: string;
   user: { userId: number; netId: string; fName: string; lName: string; email: string; profilePicUrl?: string };
-  preferredProperty: { propertyId: number; name: string; address: string; propertyType?: string };
+  preferredProperty: { propertyId: number; name: string; address: string; propertyType?: string; leaseType?: string };
 }
 
 function fmtDate(d?: string) {

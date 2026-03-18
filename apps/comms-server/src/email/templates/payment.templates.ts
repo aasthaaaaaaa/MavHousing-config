@@ -32,14 +32,15 @@ export function paymentFailed(ctx: TemplateContext) {
 
 export function paymentSuccessful(ctx: TemplateContext) {
   return {
-    subject: 'Payment Received Successfully',
+    subject: 'Payment Confirmed',
     html: baseLayout(`
-      <h1>Payment Received</h1>
+      <h1>Payment Confirmed</h1>
       <p>Hi ${ctx.firstName},</p>
-      <p>Your housing payment has been <span class="highlight">received successfully</span>. A receipt is available in your housing portal.</p>
+      <p>Your housing payment has been <span class="highlight">processed successfully</span>. A record of this transaction is available in your housing portal.</p>
+      ${ctx.context ? `<p><strong>Details:</strong> ${ctx.context}</p>` : ''}
       <p>${portalLink(ctx.portalUrl)}</p>
       <hr class="divider" />
-      <p>Thank you for your timely payment!</p>
+      <p>Thank you for your payment. If you have any concerns, contact Housing Operations at <a href="mailto:housing@uta.edu">housing@uta.edu</a>.</p>
     `),
   };
 }

@@ -32,12 +32,12 @@ export function CreateLeaseDialog({
   application: any;
   onLeaseCreated: () => void;
 }) {
-  const [beds, setBeds] = useState<any[]>([]);
-  const [loadingBeds, setLoadingBeds] = useState(false);
+  const [inventory, setInventory] = useState<any[]>([]);
+  const [loadingInventory, setLoadingInventory] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   
   // Form State
-  const [selectedBedId, setSelectedBedId] = useState("");
+  const [selectedItemId, setSelectedItemId] = useState("");
   const [totalDue, setTotalDue] = useState("0");
   const [dueThisMonth, setDueThisMonth] = useState("0");
   const [duration, setDuration] = useState(application?.term?.includes("3") ? "3" : application?.term?.includes("12") ? "12" : "6");
@@ -63,7 +63,7 @@ export function CreateLeaseDialog({
   // Handle auto-calculations
   useEffect(() => {
     if (open && application?.preferredProperty) {
-      fetchBeds(application.preferredProperty.propertyId);
+      fetchInventory(application.preferredProperty.propertyId, application.preferredProperty.leaseType);
       
       const rate = application.preferredProperty.baseRate 
         ? parseFloat(application.preferredProperty.baseRate)
@@ -74,45 +74,64 @@ export function CreateLeaseDialog({
     }
   }, [open, application, monthsCount]);
 
-  async function fetchBeds(propertyId: number) {
-    setLoadingBeds(true);
+  async function fetchInventory(propertyId: number, leaseType: string) {
+    setLoadingInventory(true);
     try {
-      const res = await fetch(`http://localhost:3009/housing/properties/${propertyId}/available-beds`);
+      let endpoint = "available-beds";
+      if (leaseType === 'BY_UNIT') endpoint = "available-units";
+      else if (leaseType === 'BY_ROOM') endpoint = "available-rooms";
+
+      const res = await fetch(`http://localhost:3009/housing/properties/${propertyId}/${endpoint}`);
       const data = await res.json();
-      setBeds(Array.isArray(data) ? data : []);
+      setInventory(Array.isArray(data) ? data : []);
     } catch {
-      toast({ title: "Error", description: "Failed to load available beds", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to load available inventory", variant: "destructive" });
     } finally {
-      setLoadingBeds(false);
+      setLoadingInventory(false);
     }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedBedId) {
-      toast({ title: "Validation Error", description: "Please select a bed", variant: "destructive" });
+    if (!selectedItemId) {
+      toast({ title: "Validation Error", description: "Please make a selection", variant: "destructive" });
       return;
     }
 
     setSubmitting(true);
-    const bed = beds.find(b => b.bedId === parseInt(selectedBedId));
+    const leaseType = application.preferredProperty.leaseType || 'BY_BED';
+    const item = inventory.find(i => {
+      if (leaseType === 'BY_UNIT') return i.unitId === parseInt(selectedItemId);
+      if (leaseType === 'BY_ROOM') return i.roomId === parseInt(selectedItemId);
+      return i.bedId === parseInt(selectedItemId);
+    });
 
     try {
+      const payload: any = {
+        userId: application.user.userId,
+        propertyId: application.preferredProperty.propertyId,
+        startDate,
+        endDate,
+        totalDue: parseFloat(totalDue),
+        dueThisMonth: parseFloat(dueThisMonth),
+        leaseType: leaseType
+      };
+
+      if (leaseType === 'BY_UNIT') {
+        payload.unitId = item.unitId;
+      } else if (leaseType === 'BY_ROOM') {
+        payload.unitId = item.unitId;
+        payload.roomId = item.roomId;
+      } else {
+        payload.unitId = item.room.unit.unitId;
+        payload.roomId = item.roomId;
+        payload.bedId = item.bedId;
+      }
+
       const res = await fetch("http://localhost:3009/lease/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: application.user.userId,
-          propertyId: application.preferredProperty.propertyId,
-          unitId: bed.room.unit.unitId,
-          roomId: bed.roomId,
-          bedId: bed.bedId,
-          startDate,
-          endDate,
-          totalDue: parseFloat(totalDue),
-          dueThisMonth: parseFloat(dueThisMonth),
-          leaseType: application.preferredProperty.leaseType || 'BY_BED'
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error("Failed to create lease");
@@ -156,17 +175,34 @@ export function CreateLeaseDialog({
         
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>Available Beds at {application?.preferredProperty?.name}</Label>
-            <Select value={selectedBedId} onValueChange={setSelectedBedId} disabled={loadingBeds || beds.length === 0}>
+            <Label>
+              {application?.preferredProperty?.leaseType === 'BY_UNIT' ? 'Available Units' : 
+               application?.preferredProperty?.leaseType === 'BY_ROOM' ? 'Available Rooms' : 
+               'Available Beds'} at {application?.preferredProperty?.name}
+            </Label>
+            <Select value={selectedItemId} onValueChange={setSelectedItemId} disabled={loadingInventory || inventory.length === 0}>
               <SelectTrigger>
-                <SelectValue placeholder={loadingBeds ? "Loading beds..." : beds.length === 0 ? "No beds available" : "Select a bed"} />
+                <SelectValue placeholder={
+                  loadingInventory ? "Loading..." : 
+                  inventory.length === 0 ? `No ${application?.preferredProperty?.leaseType?.toLowerCase().replace('by_', '')}s available` : 
+                  "Select..."
+                } />
               </SelectTrigger>
               <SelectContent>
-                {beds.map(b => (
-                  <SelectItem key={b.bedId} value={String(b.bedId)}>
-                    Unit {b.room.unit.unitNumber} - Room {b.room.roomLetter} - Bed {b.bedLetter}
-                  </SelectItem>
-                ))}
+                {inventory.map(item => {
+                  const leaseType = application?.preferredProperty?.leaseType;
+                  if (leaseType === 'BY_UNIT') {
+                    return <SelectItem key={item.unitId} value={String(item.unitId)}>Unit {item.unitNumber}</SelectItem>;
+                  }
+                  if (leaseType === 'BY_ROOM') {
+                    return <SelectItem key={item.roomId} value={String(item.roomId)}>Unit {item.unit.unitNumber} - Room {item.roomLetter}</SelectItem>;
+                  }
+                  return (
+                    <SelectItem key={item.bedId} value={String(item.bedId)}>
+                      Unit {item.room.unit.unitNumber} - Room {item.room.roomLetter} - Bed {item.bedLetter}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
@@ -226,7 +262,7 @@ export function CreateLeaseDialog({
 
           <DialogFooter className="pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={submitting || beds.length === 0 || !selectedBedId}>
+            <Button type="submit" disabled={submitting || inventory.length === 0 || !selectedItemId}>
               {submitting ? "Creating..." : "Create Lease"}
             </Button>
           </DialogFooter>

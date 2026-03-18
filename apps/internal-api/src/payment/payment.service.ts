@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@common/prisma/prisma.service';
+import { EmailService } from 'apps/comms-server/src/email/email.service';
 
 @Injectable()
 export class PaymentService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   /** Get all payments for a user (via their leases) */
   async getMyPayments(userId: number) {
@@ -96,7 +100,7 @@ export class PaymentService {
     if (!lease) throw new Error('No active lease found');
 
     // Simulate payment processing — always succeeds for MVP
-    return this.prisma.payment.create({
+    const payment = await this.prisma.payment.create({
       data: {
         leaseId: lease.leaseId,
         amountPaid: data.amount,
@@ -107,11 +111,25 @@ export class PaymentService {
       include: {
         lease: {
           include: {
+            user: { select: { email: true, fName: true } },
             unit: { include: { property: true } },
           },
         },
       },
     });
+
+    // Fire-and-forget: send payment confirmation email
+    const user = payment.lease?.user;
+    if (user) {
+      const formattedAmount = `$${Number(data.amount).toFixed(2)}`;
+      const method = data.method.replace('_', ' ');
+      const context = `Amount: ${formattedAmount} | Method: ${method}`;
+      this.emailService
+        .sendTemplateEmail('paymentSuccessful', user.email, user.fName, context)
+        .catch((e) => console.error('[PaymentService] Failed to send payment confirmation email:', e));
+    }
+
+    return payment;
   }
 
   /** Staff/Admin: get payment compliance stats */

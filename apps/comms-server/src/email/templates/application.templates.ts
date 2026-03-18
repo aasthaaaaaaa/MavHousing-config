@@ -37,14 +37,14 @@ export function welcome(ctx: TemplateContext) {
 
 export function submitted(ctx: TemplateContext) {
   return {
-    subject: 'Application Submitted Successfully',
+    subject: 'Application Received — We\'ll Be in Touch',
     html: baseLayout(`
-      <h1>Application Submitted</h1>
+      <h1>Application Received</h1>
       <p>Hi ${ctx.firstName},</p>
-      <p>Your housing application has been <span class="highlight">submitted successfully</span>. We'll review it and notify you once a decision is made.</p>
+      <p>Your housing application has been <span class="highlight">successfully submitted</span> and is currently under review. We will notify you once a decision has been made.</p>
       <p>${portalLink(ctx.portalUrl)}</p>
       <hr class="divider" />
-      <p>Keep an eye on your email and the housing portal for updates.</p>
+      <p>Monitor your housing portal for status updates. Questions? Contact Housing Operations at <a href="mailto:housing@uta.edu">housing@uta.edu</a>.</p>
     `),
   };
 }

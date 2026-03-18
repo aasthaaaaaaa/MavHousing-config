@@ -236,4 +236,84 @@ export class EmailController {
       dto.portalUrl,
     );
   }
+
+  @Post('lease/offer-issued')
+  @ApiOperation({ summary: 'Lease offer issued — awaiting student signature' })
+  async leaseOfferIssued(@Body() dto: SendEmailDto) {
+    return this.emailService.sendTemplateEmail(
+      'leaseOfferIssued',
+      dto.to,
+      dto.firstName,
+      dto.context,
+      dto.portalUrl,
+    );
+  }
+
+  @Post('lease/accepted-welcome')
+  @ApiOperation({ summary: 'Welcome email after student signs lease' })
+  async leaseAcceptedWelcome(@Body() dto: SendEmailDto) {
+    return this.emailService.sendTemplateEmail(
+      'leaseAcceptedWelcome',
+      dto.to,
+      dto.firstName,
+      dto.context,
+      dto.portalUrl,
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  //  BULLETIN EMAILS
+  // ───────────────────────────────────────────────────────────────────────────
+
+  @Post('bulletin/posted')
+  @ApiOperation({ summary: 'New post on the bulletin board' })
+  async bulletinPosted(@Body() dto: SendEmailDto) {
+    return this.emailService.sendTemplateEmail(
+      'bulletinPosted',
+      dto.to,
+      dto.firstName,
+      dto.context,
+      dto.portalUrl,
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  //  MAINTENANCE EMAILS
+  // ───────────────────────────────────────────────────────────────────────────
+
+  @Post('maintenance/opened')
+  @ApiOperation({ summary: 'Maintenance request submitted and opened' })
+  async maintenanceOpened(@Body() dto: SendEmailDto) {
+    return this.emailService.sendTemplateEmail(
+      'maintenanceOpened',
+      dto.to,
+      dto.firstName,
+      dto.context,
+      dto.portalUrl,
+    );
+  }
+
+  @Post('maintenance/closed')
+  @ApiOperation({ summary: 'Maintenance request resolved/closed' })
+  async maintenanceClosed(@Body() dto: SendEmailDto) {
+    return this.emailService.sendTemplateEmail(
+      'maintenanceClosed',
+      dto.to,
+      dto.firstName,
+      dto.context,
+      dto.portalUrl,
+    );
+  }
+
+  @Post('maintenance/comment-added')
+  @ApiOperation({ summary: 'New comment added to maintenance request' })
+  async maintenanceCommentAdded(@Body() dto: SendEmailDto) {
+    return this.emailService.sendTemplateEmail(
+      'maintenanceCommentAdded',
+      dto.to,
+      dto.firstName,
+      dto.context,
+      dto.portalUrl,
+    );
+  }
 }

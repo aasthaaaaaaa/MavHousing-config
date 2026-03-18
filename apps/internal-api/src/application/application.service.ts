@@ -11,10 +11,14 @@ import {
   CreateApplication_By_Room_DTO,
   CreateApplication_By_Bed_DTO,
 } from './dto/create-application.dto';
+import { EmailService } from 'apps/comms-server/src/email/email.service';
 
 @Injectable()
 export class ApplicationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   // ═══════════════════════════════════════════
   // STUDENT: Submit Application
@@ -43,6 +47,11 @@ export class ApplicationService {
         submissionDate: new Date(),
       },
     });
+
+    // Fire-and-forget: notify student of successful submission
+    this.emailService
+      .sendTemplateEmail('submitted', user.email, user.fName)
+      .catch((e) => console.error('[ApplicationService] Failed to send submitted email:', e));
 
     return {
       message: 'BY_UNIT application submitted successfully',
@@ -78,6 +87,11 @@ export class ApplicationService {
       },
     });
 
+    // Fire-and-forget: notify student of successful submission
+    this.emailService
+      .sendTemplateEmail('submitted', user.email, user.fName)
+      .catch((e) => console.error('[ApplicationService] Failed to send submitted email:', e));
+
     return {
       message: 'BY_ROOM application submitted successfully',
       application,
@@ -111,6 +125,11 @@ export class ApplicationService {
         submissionDate: new Date(),
       },
     });
+
+    // Fire-and-forget: notify student of successful submission
+    this.emailService
+      .sendTemplateEmail('submitted', user.email, user.fName)
+      .catch((e) => console.error('[ApplicationService] Failed to send submitted email:', e));
 
     return {
       message: 'BY_BED application submitted successfully',

@@ -30,10 +30,24 @@ import {
 } from './document.templates';
 
 // Lease templates
-import { leaseAvailable } from './lease.templates';
+import {
+  leaseAvailable,
+  leaseOfferIssued,
+  leaseAcceptedWelcome,
+} from './lease.templates';
 
 // Auth templates
 import { forgotPassword } from './auth.templates';
+
+// Bulletin templates
+import { bulletinPosted } from './bulletin.templates';
+
+// Maintenance templates
+import {
+  maintenanceOpened,
+  maintenanceClosed,
+  maintenanceCommentAdded,
+} from './maintenance.templates';
 
 export type TemplateGenerator = (ctx: TemplateContext) => {
   subject: string;
@@ -63,9 +77,20 @@ export const EMAIL_TEMPLATES: Record<string, TemplateGenerator> = {
 
   // ── Lease ──
   leaseAvailable,
+  leaseOfferIssued,
+  leaseAcceptedWelcome,
 
   // ── Auth ──
   forgotPassword,
+
+  // ── Bulletin ──
+  bulletinPosted,
+
+  // ── Maintenance ──
+  maintenanceOpened,
+  maintenanceClosed,
+  maintenanceCommentAdded,
 };
 
 export type { TemplateContext };
+

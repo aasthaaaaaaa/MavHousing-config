@@ -3,12 +3,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Bulletin, BulletinTargetType, BulletinType } from './schemas/bulletin.schema';
 import { PrismaService } from '@common/prisma/prisma.service';
+import { EmailService } from 'apps/comms-server/src/email/email.service';
 
 @Injectable()
 export class BulletinService {
   constructor(
     @InjectModel(Bulletin.name) private bulletinModel: Model<Bulletin>,
     private prisma: PrismaService,
+    private emailService: EmailService,
   ) {}
 
   async create(authorId: number, data: any) {
@@ -16,7 +18,70 @@ export class BulletinService {
       ...data,
       authorId,
     });
-    return createdBulletin.save();
+    const saved = await createdBulletin.save();
+
+    // Fetch author name for email context
+    const author = await this.prisma.user.findUnique({
+      where: { userId: authorId },
+      select: { fName: true, lName: true },
+    });
+    const authorName = author ? `${author.fName} ${author.lName}` : 'Housing Staff';
+
+    // Fire-and-forget: notify targeted students
+    this.notifyTargetedStudents(saved, authorName).catch((err) =>
+      console.error('[BulletinService] Failed to send bulletin emails:', err),
+    );
+
+    return saved;
+  }
+
+  private async notifyTargetedStudents(bulletin: any, authorName: string) {
+    let students: { email: string; fName: string }[] = [];
+
+    if (bulletin.targetType === BulletinTargetType.ALL) {
+      students = await this.prisma.user.findMany({
+        where: { role: 'STUDENT' },
+        select: { email: true, fName: true },
+      });
+    } else if (bulletin.targetType === BulletinTargetType.PROPERTY && bulletin.targetPropertyIds?.length) {
+      const leases = await this.prisma.lease.findMany({
+        where: {
+          unit: { propertyId: { in: bulletin.targetPropertyIds } },
+          status: { in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE'] as any },
+        },
+        include: { user: { select: { email: true, fName: true } } },
+      });
+      students = leases.map((l) => l.user).filter(Boolean) as any;
+    } else if (bulletin.targetType === BulletinTargetType.LEASE && bulletin.targetLeaseIds?.length) {
+      const leases = await this.prisma.lease.findMany({
+        where: { leaseId: { in: bulletin.targetLeaseIds } },
+        include: { user: { select: { email: true, fName: true } } },
+      });
+      students = leases.map((l) => l.user).filter(Boolean) as any;
+    } else if (bulletin.targetType === BulletinTargetType.PROPERTY_TYPE && bulletin.targetPropertyTypes?.length) {
+      const leases = await this.prisma.lease.findMany({
+        where: {
+          unit: { property: { propertyType: { in: bulletin.targetPropertyTypes } } },
+          status: { in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE'] as any },
+        },
+        include: { user: { select: { email: true, fName: true } } },
+      });
+      students = leases.map((l) => l.user).filter(Boolean) as any;
+    }
+
+    // Deduplicate by email
+    const unique = [...new Map(students.map((s) => [s.email, s])).values()];
+
+    await Promise.allSettled(
+      unique.map((s) =>
+        this.emailService.sendTemplateEmail(
+          'bulletinPosted',
+          s.email,
+          s.fName,
+          authorName,
+        ),
+      ),
+    );
   }
 
   async findAllForUser(userId: number, role: string) {
@@ -93,3 +158,4 @@ export class BulletinService {
     return deletedBulletin;
   }
 }
+

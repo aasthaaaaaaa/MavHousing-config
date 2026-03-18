@@ -29,19 +29,19 @@ export function uploadFailed(ctx: TemplateContext) {
   };
 }
 
-// ─── 2. Missing Documents ────────────────────────────────────────────────────
+// ─── 2. Missing Documents / Information Request ──────────────────────────────
 
 export function missingDocuments(ctx: TemplateContext) {
   return {
-    subject: 'Missing Documents — Action Required',
+    subject: 'Action Required — Additional Information Needed',
     html: baseLayout(`
-      <h1>Missing Documents</h1>
+      <h1>Information Requested</h1>
       <p>Hi ${ctx.firstName},</p>
-      <p>Your housing application is <span class="highlight">missing required documents</span>. Please upload them as soon as possible to avoid delays in processing your application.</p>
-      ${ctx.context ? `<p><strong>Missing:</strong> ${ctx.context}</p>` : ''}
+      <p>Our team has reviewed your application and requires <span class="highlight">additional information</span> before we can proceed. Please log in to the portal and provide the requested details.</p>
+      ${ctx.context ? `<p><strong>Required:</strong> ${ctx.context}</p>` : ''}
       <p>${portalLink(ctx.portalUrl)}</p>
       <hr class="divider" />
-      <p>Questions? Reach Housing Operations at <strong>817-272-2791</strong> or <a href="mailto:housing@uta.edu">housing@uta.edu</a>.</p>
+      <p>If you have questions, contact Housing Operations at <strong>817-272-2791</strong> or <a href="mailto:housing@uta.edu">housing@uta.edu</a>.</p>
     `),
   };
 }

@@ -4,6 +4,7 @@ import { ApplicationService } from './application.service';
 import { ApplicationController } from './application.controller';
 import { DbModule } from '@libs/db';
 import { jwtConstants } from 'apps/auth-server/src/constants';
+import { EmailModule } from 'apps/comms-server/src/email/email.module';
 
 @Module({
   imports: [
@@ -12,8 +13,10 @@ import { jwtConstants } from 'apps/auth-server/src/constants';
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '1h' },
     }),
+    EmailModule,
   ],
   controllers: [ApplicationController],
   providers: [ApplicationService],
 })
 export class ApplicationModule {}
+

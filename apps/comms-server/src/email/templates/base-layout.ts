@@ -46,14 +46,14 @@ export function baseLayout(body: string): string {
     img { border: 0; display: block; }
 
     /* Container */
-    .email-wrapper { width: 100%; background-color: #f4f6f8; padding: 24px 0; }
-    .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .email-wrapper { width: 100%; background-color: #f4f6f8; padding: 0; }
+    .email-container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 0 0 8px 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 
     /* Header */
-    .email-header img { width: 100%; height: auto; }
+    .email-header img { width: 100%; height: auto; display: block; line-height: 0; font-size: 0; }
 
     /* Body */
-    .email-body { padding: 32px 40px; color: #333333; line-height: 1.6; font-size: 15px; }
+    .email-body { padding: 28px 40px 32px; color: #333333; line-height: 1.6; font-size: 15px; }
     .email-body h1 { font-size: 22px; color: #0064B1; margin-bottom: 16px; font-weight: 700; }
     .email-body p { margin-bottom: 14px; }
     .email-body .cta-button {
@@ -72,18 +72,18 @@ export function baseLayout(body: string): string {
     .email-body .divider { border: none; border-top: 1px solid #e0e0e0; margin: 24px 0; }
 
     /* Footer */
-    .email-footer img { width: 100%; height: auto; }
+    .email-footer img { width: 100%; height: auto; display: block; line-height: 0; font-size: 0; }
     .email-sub-footer { background-color: #0064B1; color: #ffffff; text-align: center; padding: 12px 20px; font-size: 11px; line-height: 1.5; }
     .email-sub-footer a { color: #F58025; text-decoration: none; }
   </style>
 </head>
 <body>
   <div class="email-wrapper">
-    <table class="email-container" role="presentation" cellpadding="0" cellspacing="0" width="600" align="center">
+    <table class="email-container" role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" align="center">
       <!-- Header -->
       <tr>
-        <td class="email-header">
-          <img src="${headerDataUri}" alt="UTA Housing and Residence Life" width="600" />
+        <td class="email-header" style="padding:0;line-height:0;font-size:0;">
+          <img src="${headerDataUri}" alt="UTA Housing and Residence Life" width="600" style="display:block;" />
         </td>
       </tr>
       <!-- Body -->
@@ -94,8 +94,8 @@ export function baseLayout(body: string): string {
       </tr>
       <!-- Footer -->
       <tr>
-        <td class="email-footer">
-          <img src="${footerDataUri}" alt="UTA Housing Contact Information" width="600" />
+        <td class="email-footer" style="padding:0;line-height:0;font-size:0;">
+          <img src="${footerDataUri}" alt="UTA Housing Contact Information" width="600" style="display:block;" />
         </td>
       </tr>
       <!-- Sub-footer -->

@@ -152,6 +152,46 @@ export class HousingService {
     });
   }
 
+  async getAvailableUnits(propertyId: number) {
+    return this.prisma.unit.findMany({
+      where: {
+        propertyId,
+        leases: {
+          none: {
+            status: {
+              in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE'],
+            },
+          },
+        },
+      },
+      orderBy: { unitNumber: 'asc' },
+    });
+  }
+
+  async getAvailableRooms(propertyId: number) {
+    return this.prisma.room.findMany({
+      where: {
+        unit: {
+          propertyId,
+        },
+        leases: {
+          none: {
+            status: {
+              in: ['SIGNED', 'ACTIVE', 'PENDING_SIGNATURE'],
+            },
+          },
+        },
+      },
+      include: {
+        unit: true,
+      },
+      orderBy: [
+        { unit: { unitNumber: 'asc' } },
+        { roomLetter: 'asc' },
+      ],
+    });
+  }
+
   async getAvailableBeds(propertyId: number) {
     return this.prisma.bed.findMany({
       where: {
