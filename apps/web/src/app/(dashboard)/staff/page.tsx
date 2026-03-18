@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -143,12 +144,19 @@ const STAT_CARDS = [
 
 export default function StaffDashboard() {
   const { user } = useAuth();
+  const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
   const [allRequests, setAllRequests] = useState<MaintenanceRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [detailView, setDetailView] = useState<{ title: string; requests: MaintenanceRequest[] } | null>(null);
 
-  useEffect(() => { fetchStats(); }, []);
+  useEffect(() => {
+    if (user?.staffPosition === "MAINTENANCE") {
+      router.push("/staff/maintenance");
+    } else {
+      fetchStats();
+    }
+  }, [user, router]);
 
   async function fetchStats() {
     try {

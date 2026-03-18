@@ -69,7 +69,7 @@ const allStaffNavItems: NavItem[] = [
   { title: "Maintenance", url: "/staff/maintenance", icon: Wrench },
   { title: "Payments", url: "/staff/payments", icon: CreditCard },
   { title: "Announcements", url: "/staff/announcements", icon: Megaphone },
-  { title: "Bulletin Board", url: "/admin/bulletin", icon: FileText },
+  { title: "Bulletin Board", url: "/staff/bulletin", icon: FileText },
 ]
 
 const staffNavByPosition: Record<string, string[]> = {
