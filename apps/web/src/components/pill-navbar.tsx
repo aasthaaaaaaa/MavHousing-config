@@ -15,6 +15,7 @@ import {
   CreditCard,
   MessageSquare,
   BarChart3,
+  Server,
   type LucideIcon,
 } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
@@ -38,6 +39,7 @@ interface NavItem {
   title: string
   url: string
   icon: LucideIcon
+  target?: string
 }
 
 const navItemsByRole: Record<string, NavItem[]> = {
@@ -48,6 +50,7 @@ const navItemsByRole: Record<string, NavItem[]> = {
     { title: "Occupancy", url: "/admin/occupancy", icon: PieChart },
     { title: "Announcements", url: "/admin/announcements", icon: Megaphone },
     { title: "Bulletin Board", url: "/admin/bulletin", icon: FileText },
+    { title: "Queues", url: "http://localhost:3009/queues", icon: Server, target: "_blank" },
   ],
   student: [
     { title: "Dashboard", url: "/student", icon: Home },
@@ -205,6 +208,8 @@ export function PillNavbar({ role }: PillNavbarProps) {
             <Link
               key={item.url}
               href={item.url}
+              target={item.target}
+              rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
               data-nav-item
               className={`
                 relative z-10 flex items-center gap-1.5 rounded-full px-3.5 py-2
