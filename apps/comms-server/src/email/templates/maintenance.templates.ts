@@ -1,7 +1,3 @@
-/**
- * Maintenance request email templates.
- */
-
 import { baseLayout } from './base-layout';
 import { TemplateContext } from './application.templates';
 
@@ -11,8 +7,6 @@ function portalLink(portalUrl?: string): string {
   const url = portalUrl || defaultPortalUrl;
   return `<a href="${url}" class="cta-button">View My Requests</a>`;
 }
-
-// ─── 1. Maintenance Request Opened ───────────────────────────────────────────
 
 export function maintenanceOpened(ctx: TemplateContext) {
   return {
@@ -29,8 +23,6 @@ export function maintenanceOpened(ctx: TemplateContext) {
   };
 }
 
-// ─── 2. Maintenance Request Closed / Resolved ────────────────────────────────
-
 export function maintenanceClosed(ctx: TemplateContext) {
   return {
     subject: 'Maintenance Request Resolved',
@@ -45,8 +37,6 @@ export function maintenanceClosed(ctx: TemplateContext) {
     `),
   };
 }
-
-// ─── 3. Comment Added to Maintenance Request ─────────────────────────────────
 
 export function maintenanceCommentAdded(ctx: TemplateContext) {
   return {

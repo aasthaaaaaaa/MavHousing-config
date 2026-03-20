@@ -6,7 +6,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
 
-/** Absolute paths to the header/footer images */
 const IMAGES_DIR = path.join(
   process.cwd(),
   'apps',

@@ -17,11 +17,8 @@ import { ConfigModule } from '@nestjs/config';
     LoggerModule,
     JwtModule.register({
       global: true,
-      // TODO : Later migrate jwtConstants ... to .env file... see constants.txt
       secret: jwtConstants.secret,
-      // TODO: Find a way to sign out user automatically if access_token is expired.....
-      // currenlty if expired.. have to manually clear cookies/session
-      signOptions: { expiresIn: '1h' }, // User has to sign in again after 24h
+      signOptions: { expiresIn: '1h' },
     }),
   ],
   controllers: [AuthServerController],
@@ -35,20 +32,3 @@ import { ConfigModule } from '@nestjs/config';
   exports: [AuthServerService],
 })
 export class AuthServerModule {}
-
-/*
-
-providers: [
-  AuthServerService,
-  {
-    provide: APP_GUARD,
-    useClass: RolesGuard,
-  },
-  {
-    provide: APP_GUARD,
-    useClass: BaseAuthGuard,
-  },
-],
-
-// MAKES BASEAUTHGUARD global
-*/

@@ -9,8 +9,6 @@ import {
   HttpStatus,
   UseGuards,
   Request,
-  ForbiddenException,
-  NotFoundException,
   Delete,
   Param,
 } from '@nestjs/common';
@@ -39,16 +37,6 @@ export class AuthServerController {
   getHealth() {
     return 'Health OK!';
   }
-
-  // we can extend this create new based on different type of create-new.... like create new with certain fields only
-
-  /*
-  The function creates accounts
-  It also used RBAC to determine necessary persmission requirements
-    - Admins can create both Staff and Student accounts.
-    - Staff can only create Student accounts.
-    - Throws ForbiddenException if a non-admin attempts to create a staff account.
-  */
 
   @Post('create-new')
   @UseGuards(BaseAuthGuard, RolesGuard)
@@ -174,8 +162,6 @@ export class AuthServerController {
   adminOrStaff() {
     return { message: 'Allowed for admin or staff' };
   }
-
-  // ── Forgot Password ──
 
   @Get('forgot-password/search')
   @ApiOperation({

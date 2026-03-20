@@ -3,6 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
 import { EMAIL_TEMPLATES } from './templates';
 
+// NOTE : axjh03@gmail.com is hardcoded because FreePlan of ResendAPI only allows sending email to the account from which the API key is generated.
+// Will be removed later
+
 @Injectable()
 export class EmailService {
   private resend: Resend;
@@ -13,20 +16,10 @@ export class EmailService {
     this.defaultSender = 'Mav Housing <onboarding@resend.dev>';
   }
 
-  /**
-   * Returns all available email template names.
-   */
   getTemplateNames(): string[] {
     return Object.keys(EMAIL_TEMPLATES);
   }
 
-  /**
-   * Send an email using a named template.
-   * @param templateName - key from EMAIL_TEMPLATES (e.g. 'welcome', 'paymentFailed')
-   * @param to - recipient email
-   * @param firstName - for personalization
-   * @param portalUrl - optional portal URL override
-   */
   async sendTemplateEmail(
     templateName: string,
     to: string,
@@ -61,9 +54,6 @@ export class EmailService {
     }
   }
 
-  /**
-   * Send an email with an attachment.
-   */
   async sendEmailWithAttachment(
     to: string,
     subject: string,
@@ -94,9 +84,6 @@ export class EmailService {
     }
   }
 
-  /**
-   * Quick test email — kept for debugging/health-check purposes.
-   */
   async sendTestEmail(): Promise<string> {
     const msg = {
       to: 'axjh03@gmail.com',

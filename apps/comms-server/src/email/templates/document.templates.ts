@@ -1,7 +1,3 @@
-/**
- * Document / application-status email templates.
- */
-
 import { baseLayout } from './base-layout';
 import { TemplateContext } from './application.templates';
 
@@ -11,8 +7,6 @@ function portalLink(portalUrl?: string): string {
   const url = portalUrl || defaultPortalUrl;
   return `<a href="${url}" class="cta-button">Go to Housing Portal</a>`;
 }
-
-// ─── 1. Document Upload Failed ───────────────────────────────────────────────
 
 export function uploadFailed(ctx: TemplateContext) {
   return {
@@ -29,8 +23,6 @@ export function uploadFailed(ctx: TemplateContext) {
   };
 }
 
-// ─── 2. Missing Documents / Information Request ──────────────────────────────
-
 export function missingDocuments(ctx: TemplateContext) {
   return {
     subject: 'Action Required — Additional Information Needed',
@@ -45,8 +37,6 @@ export function missingDocuments(ctx: TemplateContext) {
     `),
   };
 }
-
-// ─── 3. Application Deadline Passed ──────────────────────────────────────────
 
 export function deadlinePassed(ctx: TemplateContext) {
   return {

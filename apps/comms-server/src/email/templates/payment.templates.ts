@@ -1,7 +1,3 @@
-/**
- * Payment-related email templates.
- */
-
 import { baseLayout } from './base-layout';
 import { TemplateContext } from './application.templates';
 
@@ -11,8 +7,6 @@ function portalLink(portalUrl?: string): string {
   const url = portalUrl || defaultPortalUrl;
   return `<a href="${url}" class="cta-button">Go to Housing Portal</a>`;
 }
-
-// ─── 1. Payment Failed ──────────────────────────────────────────────────────
 
 export function paymentFailed(ctx: TemplateContext) {
   return {
@@ -27,8 +21,6 @@ export function paymentFailed(ctx: TemplateContext) {
     `),
   };
 }
-
-// ─── 2. Payment Successful ───────────────────────────────────────────────────
 
 export function paymentSuccessful(ctx: TemplateContext) {
   return {

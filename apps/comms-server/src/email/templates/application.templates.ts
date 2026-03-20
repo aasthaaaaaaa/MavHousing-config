@@ -1,8 +1,3 @@
-/**
- * Application-related email templates.
- * Each function receives context and returns { subject, html } for the email body (inner content only).
- */
-
 import { baseLayout } from './base-layout';
 
 export interface TemplateContext {
@@ -11,7 +6,7 @@ export interface TemplateContext {
   context?: string;
 }
 
-const defaultPortalUrl = 'https://mavhousing.uta.edu';
+const defaultPortalUrl = 'https://localhost:3000/';
 
 function portalLink(portalUrl?: string): string {
   const url = portalUrl || defaultPortalUrl;

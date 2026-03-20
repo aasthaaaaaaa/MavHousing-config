@@ -6,7 +6,6 @@ import { CommsServerModule } from './comms-server.module';
 async function bootstrap() {
   const app = await NestFactory.create(CommsServerModule);
 
-  // Enable DTO validation globally
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   const config = new DocumentBuilder()
@@ -17,7 +16,7 @@ async function bootstrap() {
     .build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory); //  /api endpoint
+  SwaggerModule.setup('api', app, documentFactory);
 
   await app.listen(process.env.port ?? 3001);
   console.log(

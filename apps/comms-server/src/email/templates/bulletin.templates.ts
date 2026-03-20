@@ -1,7 +1,3 @@
-/**
- * Bulletin board email templates.
- */
-
 import { baseLayout } from './base-layout';
 import { TemplateContext } from './application.templates';
 
@@ -11,9 +7,6 @@ function portalLink(portalUrl?: string): string {
   const url = portalUrl || defaultPortalUrl;
   return `<a href="${url}" class="cta-button">View Bulletin Board</a>`;
 }
-
-// ─── 1. Bulletin Posted ───────────────────────────────────────────────────────
-
 export function bulletinPosted(ctx: TemplateContext) {
   return {
     subject: 'New Post on the Housing Bulletin Board',

@@ -35,18 +35,12 @@ export class AuthServerService {
       return false;
     }
 
-    // Hash the password with 10 rounds of salting
     const hashedPassword = await bcrypt.hash(user.passwordHash, 10);
 
-    // Map role to Prisma UserRole
-    // Simple mapping: uppercase. If invalid, maybe default to STUDENT or handle error.
-    // For now, let's assume valid mapping for main roles.
     const roleMapping: Record<string, any> = {
       student: 'STUDENT',
       admin: 'ADMIN',
       staff: 'STAFF',
-      // 'faculty': 'STUDENT', // Fallback
-      // 'guest': 'STUDENT', // Fallback
     };
     const mappedRole = roleMapping[user.role] || 'STUDENT';
 
@@ -76,13 +70,6 @@ export class AuthServerService {
     return true;
   }
 
-  // DELETE
-  /*
-  The function lets user with role staff and admin to delete user
-  staff can delete student
-  admin can delete student and staff
-  and search by utaID
-  */
   async deleteUser(utaID: string) {
     const existingUser = await this.prisma.user.findUnique({
       where: { utaId: utaID },
@@ -100,7 +87,6 @@ export class AuthServerService {
     return true;
   }
 
-  // UPDATE by netId
   async updateUser(netId: string, data: UpdateUserDto) {
     const existingUser = await this.prisma.user.findUnique({
       where: { netId },
@@ -326,7 +312,7 @@ export class AuthServerService {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            to: `+1${user.phone.toString()}`, // Assuming US numbers
+            to: `+1${user.phone.toString()}`,
             firstName: user.fName,
             context: code,
           }),

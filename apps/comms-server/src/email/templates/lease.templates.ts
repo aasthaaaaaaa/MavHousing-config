@@ -1,7 +1,3 @@
-/**
- * Lease / contract email templates.
- */
-
 import { baseLayout } from './base-layout';
 import { TemplateContext } from './application.templates';
 
@@ -12,13 +8,9 @@ function portalLink(portalUrl?: string): string {
   return `<a href="${url}" class="cta-button">Go to Housing Portal</a>`;
 }
 
-// ─── 1. Lease Available (legacy alias) ───────────────────────────────────────
-
 export function leaseAvailable(ctx: TemplateContext) {
   return leaseOfferIssued(ctx);
 }
-
-// ─── 2. Lease Offer Issued ────────────────────────────────────────────────────
 
 export function leaseOfferIssued(ctx: TemplateContext) {
   return {
@@ -34,8 +26,6 @@ export function leaseOfferIssued(ctx: TemplateContext) {
     `),
   };
 }
-
-// ─── 3. Lease Accepted — Welcome ─────────────────────────────────────────────
 
 export function leaseAcceptedWelcome(ctx: TemplateContext) {
   return {

@@ -1,9 +1,6 @@
 import { IsString, IsOptional, IsEmail } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-/**
- * DTO for sending a templated email.
- */
 export class SendEmailDto {
   @ApiProperty({
     description: 'Recipient email address',
