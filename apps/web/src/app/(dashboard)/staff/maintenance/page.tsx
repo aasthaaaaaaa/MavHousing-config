@@ -275,7 +275,7 @@ export default function StaffMaintenancePage() {
         ].map((s, idx) => (
           <Card
             key={s.label}
-            className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5 py-0 gap-0"
+            className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all py-0 gap-0"
             style={{ animationDelay: `${80 + idx * 70}ms` }}
           >
             <CardContent className="p-4 text-center">

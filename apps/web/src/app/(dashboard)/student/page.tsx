@@ -104,7 +104,7 @@ export default function StudentDashboard() {
 
       <div className="grid gap-4 grid-cols-2">
         <Card
-          className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5"
+          className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all"
           style={{ animationDelay: "80ms" }}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -128,7 +128,7 @@ export default function StudentDashboard() {
         </Card>
 
         <Card
-          className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5"
+          className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all"
           style={{ animationDelay: "150ms" }}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -151,7 +151,7 @@ export default function StudentDashboard() {
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
 
         <Card
-          className="lg:col-span-1 animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all hover:shadow-md"
+          className="lg:col-span-1 animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all flex flex-col gap-3 py-4"
           style={{ animationDelay: "220ms" }}
         >
           <CardHeader>
@@ -164,14 +164,17 @@ export default function StudentDashboard() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="flex flex-col flex-1 h-full">
             {lease === undefined ? (
-              <div className="space-y-2">
-                <div className="h-4 bg-muted animate-pulse rounded-lg" />
-                <div className="h-4 bg-muted animate-pulse rounded-lg w-3/4" />
+              <div className="flex-1 flex flex-col justify-start space-y-4">
+                <div className="space-y-2">
+                  <div className="h-4 bg-muted animate-pulse rounded-lg" />
+                  <div className="h-4 bg-muted animate-pulse rounded-lg w-3/4" />
+                </div>
               </div>
             ) : (lease && lease.status) ? (
               <>
+                <div className="flex-1 flex flex-col justify-start space-y-4">
                 <div className="space-y-1">
                   <p className="font-semibold">{lease.unit?.property.name}</p>
                   <p className="text-sm text-muted-foreground">{lease.unit?.property.address}</p>
@@ -194,108 +197,174 @@ export default function StudentDashboard() {
                     <p className="font-medium">{formatDate(lease.endDate)}</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="w-full rounded-xl" asChild>
-                  <Link href="/student/my-lease">View Lease <ChevronRight className="h-3 w-3 ml-1" /></Link>
-                </Button>
+                </div>
+                <div className="mt-auto pt-4">
+                  <Button variant="outline" size="sm" className="w-full rounded-xl" asChild>
+                    <Link href="/student/my-lease">View Lease <ChevronRight className="h-3 w-3 ml-1" /></Link>
+                  </Button>
+                </div>
               </>
             ) : (
               <>
+                <div className="flex-1 flex flex-col justify-start space-y-4">
                 <div className="flex items-center gap-2 text-muted-foreground py-2">
                   <AlertTriangle className="h-4 w-4 text-yellow-500" />
                   <p className="text-sm">No active lease on file.</p>
                 </div>
-                <Button size="sm" className="w-full rounded-xl" asChild>
-                  <Link href="/student/application">Apply for Housing</Link>
-                </Button>
+                </div>
+                <div className="mt-auto pt-4">
+                  <Button size="sm" className="w-full rounded-xl" asChild>
+                    <Link href="/student/application">Apply for Housing</Link>
+                  </Button>
+                </div>
               </>
             )}
           </CardContent>
         </Card>
 
         <Card
-          className="lg:col-span-1 animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all hover:shadow-md"
+          className="lg:col-span-1 animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all flex flex-col gap-3 py-4"
           style={{ animationDelay: "300ms" }}
         >
           <CardHeader>
-            <CardTitle className="text-base">Payment Summary</CardTitle>
-            <CardDescription>Current lease payment status</CardDescription>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Payment Summary</CardTitle>
+              {payments && (
+                <Badge
+                  variant="outline"
+                  className={`rounded-full px-2.5 text-xs ${
+                    payments.paidThisMonth
+                      ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400"
+                      : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400"
+                  }`}
+                >
+                  {payments.paidThisMonth ? "Paid" : "Due"}
+                </Badge>
+              )}
+            </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="flex flex-col flex-1 h-full">
             {payments ? (
               <>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Monthly Rent</span>
-                    <span className="font-semibold">{formatMoney(payments.monthlyRent)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">This Month</span>
-                    <span className={`font-semibold ${payments.paidThisMonth ? "text-green-600" : "text-destructive"}`}>
-                      {payments.paidThisMonth ? "Paid ✓" : formatMoney(payments.amountDueThisMonth) + " due"}
-                    </span>
+                <div className="flex-1 flex flex-col justify-start space-y-4">
+                  <div className="text-center py-1">
+                    <p className={`text-3xl font-bold tracking-tight ${payments.paidThisMonth ? "text-green-500" : "text-destructive"}`}>
+                      {payments.paidThisMonth ? formatMoney(0) : formatMoney(payments.amountDueThisMonth)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {payments.paidThisMonth ? "Nothing owed this month" : "due this month"}
+                    </p>
                   </div>
                   <Separator />
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Payments Made</span>
-                    <span className="font-medium">{payments.paymentsMade}</span>
+                  <div className="space-y-2.5 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Monthly Rent</span>
+                      <span className="font-semibold">{formatMoney(payments.monthlyRent)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Payments Made</span>
+                      <span className="font-semibold">{payments.paymentsMade}</span>
+                    </div>
                   </div>
                 </div>
-                <Button variant={!payments.paidThisMonth ? "default" : "outline"} size="sm" className="w-full rounded-xl" asChild>
-                  <Link href="/student/payments">
-                    {!payments.paidThisMonth ? "Pay Rent" : "View History"} <ChevronRight className="h-3 w-3 ml-1" />
-                  </Link>
-                </Button>
+                <div className="mt-auto pt-4">
+                  <Button variant={!payments.paidThisMonth ? "default" : "outline"} size="sm" className="w-full rounded-xl" asChild>
+                    <Link href="/student/payments">
+                      {!payments.paidThisMonth ? "Pay Rent" : "View History"} <ChevronRight className="h-3 w-3 ml-1" />
+                    </Link>
+                  </Button>
+                </div>
               </>
             ) : (
               <>
-                <p className="text-sm text-muted-foreground py-2">No payment data available.</p>
-                <Button variant="outline" size="sm" className="w-full rounded-xl" asChild>
-                  <Link href="/student/payments">Go to Payments</Link>
-                </Button>
+                <div className="flex-1 flex flex-col justify-start space-y-4">
+                  <div className="flex items-center gap-2 text-muted-foreground py-2">
+                    <CreditCard className="h-4 w-4" />
+                    <p className="text-sm">No payment data available.</p>
+                  </div>
+                </div>
+                <div className="mt-auto pt-4">
+                  <Button variant="outline" size="sm" className="w-full rounded-xl" asChild>
+                    <Link href="/student/payments">Go to Payments</Link>
+                  </Button>
+                </div>
               </>
             )}
           </CardContent>
         </Card>
 
         <Card
-          className="lg:col-span-1 animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all hover:shadow-md"
+          className="lg:col-span-1 animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all flex flex-col gap-3 py-4"
           style={{ animationDelay: "380ms" }}
         >
-          <CardHeader className="pb-3">
+          <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">Maintenance</CardTitle>
-              <Button variant="ghost" size="sm" className="h-7 text-xs rounded-lg" asChild>
-                <Link href="/student/maintenance/my-requests">View all</Link>
-              </Button>
+              {requests.length > 0 && (
+                <Button variant="ghost" size="sm" className="h-7 text-xs rounded-lg" asChild>
+                  <Link href="/student/maintenance/my-requests">View all</Link>
+                </Button>
+              )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="flex flex-col flex-1 h-full">
             {requests.length === 0 ? (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <p className="text-sm">No requests submitted.</p>
+              <div className="flex-1 flex flex-col justify-start space-y-3">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <p className="text-sm">No requests submitted.</p>
+                </div>
               </div>
             ) : (
-              <div className="space-y-2.5">
-                {requests.slice(0, 3).map(r => (
-                  <div key={r.requestId} className="flex items-center justify-between text-sm p-2.5 rounded-xl bg-muted/40 transition-colors hover:bg-muted/70">
+              <div className="flex-1 flex flex-col justify-start space-y-2.5">
+                {/* Latest request — always visible */}
+                <div className="flex items-center justify-between text-sm p-2.5 rounded-xl bg-muted/40 border hover:bg-muted/60 transition-colors">
+                  <div>
+                    <p className="font-medium leading-none capitalize">{requests[0].category.toLowerCase().replace(/_/g, " ")}</p>
+                    <p className={`text-xs mt-0.5 ${PRIORITY_COLOR[requests[0].priority] ?? "text-muted-foreground"}`}>{requests[0].priority}</p>
+                  </div>
+                  <Badge variant="outline" className={`${getMaintenanceStatusClass(requests[0].status)} text-xs rounded-full px-2.5`}>
+                    {requests[0].status.replace("_", " ")}
+                  </Badge>
+                </div>
+                {/* 2nd request — visible on md+ */}
+                {requests.length > 1 && (
+                  <div className="hidden md:flex items-center justify-between text-sm p-2.5 rounded-xl bg-muted/40 border hover:bg-muted/60 transition-colors">
                     <div>
-                      <p className="font-medium leading-none capitalize">{r.category.toLowerCase().replace(/_/g, " ")}</p>
-                      <p className={`text-xs mt-0.5 ${PRIORITY_COLOR[r.priority] ?? "text-muted-foreground"}`}>{r.priority}</p>
+                      <p className="font-medium leading-none capitalize">{requests[1].category.toLowerCase().replace(/_/g, " ")}</p>
+                      <p className={`text-xs mt-0.5 ${PRIORITY_COLOR[requests[1].priority] ?? "text-muted-foreground"}`}>{requests[1].priority}</p>
                     </div>
-                    <Badge
-                      variant="outline"
-                      className={`${getMaintenanceStatusClass(r.status)} text-xs rounded-full px-2.5`}
-                    >
-                      {r.status.replace("_", " ")}
+                    <Badge variant="outline" className={`${getMaintenanceStatusClass(requests[1].status)} text-xs rounded-full px-2.5`}>
+                      {requests[1].status.replace("_", " ")}
                     </Badge>
                   </div>
-                ))}
+                )}
+                {/* Count indicator — mobile: counts from 1, md+: counts from 2 */}
+                {requests.length > 1 && (
+                  <Link
+                    href="/student/maintenance/my-requests"
+                    className="md:hidden text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+                  >
+                    <CircleDot className="h-3 w-3" />
+                    {requests.length - 1} more request{requests.length - 1 !== 1 ? "s" : ""}
+                  </Link>
+                )}
+                {requests.length > 2 && (
+                  <Link
+                    href="/student/maintenance/my-requests"
+                    className="hidden md:flex text-xs text-muted-foreground hover:text-foreground transition-colors items-center gap-1.5"
+                  >
+                    <CircleDot className="h-3 w-3" />
+                    {requests.length - 2} more request{requests.length - 2 !== 1 ? "s" : ""}
+                  </Link>
+                )}
               </div>
             )}
-            <Button size="sm" className="w-full mt-1 rounded-xl" asChild>
-              <Link href="/student/maintenance">+ New Request</Link>
-            </Button>
+            <div className="mt-auto pt-4">
+              <Button size="sm" className="w-full rounded-xl" asChild>
+                <Link href="/student/maintenance">+ New Request</Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

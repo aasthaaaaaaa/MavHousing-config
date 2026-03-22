@@ -193,7 +193,7 @@ export default function PaymentsPage() {
       {/* 3 stat cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
         {/* Monthly Rent */}
-        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5" style={{ animationDelay: "80ms" }}>
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all" style={{ animationDelay: "80ms" }}>
           <CardContent className="pt-5 pb-5">
             <div className="flex items-start justify-between">
               <div>
@@ -216,7 +216,7 @@ export default function PaymentsPage() {
         </Card>
 
         {/* This Month's Status */}
-        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5" style={{ animationDelay: "150ms" }}>
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all" style={{ animationDelay: "150ms" }}>
           <CardContent className="pt-5 pb-5">
             <div className="flex items-start justify-between">
               <div>
@@ -242,7 +242,7 @@ export default function PaymentsPage() {
         </Card>
 
         {/* Payments Made */}
-        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5" style={{ animationDelay: "220ms" }}>
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all" style={{ animationDelay: "220ms" }}>
           <CardContent className="pt-5 pb-5">
             <div className="flex items-start justify-between">
               <div>

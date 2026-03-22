@@ -150,7 +150,7 @@ export default function MyApplicationsPage() {
           {applications.map((app, idx) => (
             <Card
               key={app.appId}
-              className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5"
+              className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all"
               style={{ animationDelay: `${80 + idx * 70}ms` }}
             >
               <CardHeader>

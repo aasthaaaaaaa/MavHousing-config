@@ -274,7 +274,7 @@ export default function StaffDashboard() {
         {STAT_CARDS.filter(c => !isMaint || c.key === "maint").map(({ key, label, icon: Icon, iconBg, iconColor, valueFn, subFn, accentFn }, idx) => (
           <Card
             key={key}
-            className={`animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5 py-0 gap-0 ${key === 'maint' ? 'cursor-pointer' : ''}`}
+            className={`animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all py-0 gap-0 ${key === 'maint' ? 'cursor-pointer' : ''}`}
             style={{ animationDelay: `${80 + idx * 60}ms` }}
             onClick={() => {
               if (key === 'maint') {

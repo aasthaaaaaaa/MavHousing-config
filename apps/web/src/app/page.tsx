@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   GraduationCap, Users, Calendar, HeadphonesIcon,
   ArrowRight, MapPin, Phone, Mail, Building2, Home,
-  BookOpen, Clock, ChevronRight, ExternalLink
+  BookOpen, Clock, ChevronRight, ChevronDown, ExternalLink
 } from "lucide-react";
 
 import dynamic from "next/dynamic";
@@ -17,7 +17,47 @@ const MagicBento = dynamic(() => import("@/components/MagicBento"), { ssr: false
 export default function LandingPage() {
   // "dark" = frosted dark navbar, "light" = white navbar
   const [navTheme, setNavTheme] = useState<"dark" | "light">("dark");
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
+
+  const faqItems = [
+    {
+      question: "How do I apply for housing?",
+      answer: "Housing applications are free and offered on a first-come, first-served basis. The Academic Year (AY) application for Residence Halls or the Apartment application. Applications for 2026–27 are open now, don't delay!"
+    },
+    {
+      question: "What's the difference between Residence Halls and Apartments?",
+      answer: "Residence Halls are fully furnished, all-inclusive suites perfect for first-year students — meal plans, unlimited laundry, and 24/7 staff support are all included. On-Campus Apartments offer more independence with six distinctive communities, furnished and unfurnished options, and flexible lease terms ideal for upperclassmen."
+    },
+    {
+      question: "What are the eligibility requirements?",
+      answer: "Residence Hall residents must be enrolled in a minimum of 12 credit hours per semester. Apartment residents must be enrolled in at least 6 credit hours. All applicants must be accepted for admission to UTA before accepting a housing offer."
+    },
+    {
+      question: "How much does housing cost?",
+      answer: "A refundable $150 security deposit is required upon signing your contract or lease. Each resident signs an individual contract, so you're only responsible for your own rental installments. Rates vary by community and room type."
+    },
+    {
+      question: "How does roommate selection work?",
+      answer: "You have three options: request a specific roommate through the Housing Portal, complete our roommate-matching questionnaire to be paired with a compatible student, or opt for a random assignment. Roommate information is typically provided about two weeks before move-in."
+    },
+    {
+      question: "What's included in my housing?",
+      answer: "Residence Halls include fully furnished rooms, private bathrooms, unlimited laundry, WiFi, 24/7 staff support, and access to 800+ campus events per year. Apartments vary by community but include furnished options, private bedrooms, and the convenience of on-campus living."
+    },
+    {
+      question: "Can I cancel my housing contract?",
+      answer: "Yes, contracts can be cancelled. However, cancellation fees apply and vary depending on the date of cancellation and the semester. We recommend reviewing the cancellation policy in your Housing Handbook before making a decision."
+    },
+    {
+      question: "What apartment communities are available?",
+      answer: "UTA offers six on-campus apartment communities: Timber Brook, Meadow Run, University Village, Arbor Oaks, The Heights on Pecan, and The Lofts. Each community has unique features, floor plans, and rates."
+    },
+  ];
 
   useEffect(() => {
     const sections = containerRef.current?.querySelectorAll<HTMLElement>("[data-nav-theme]");
@@ -102,6 +142,7 @@ export default function LandingPage() {
               { label: "Housing Options", href: "#housing-options" },
               { label: "Campus Life", href: "#campus-life" },
               { label: "Student Stories", href: "#testimonials" },
+              { label: "FAQ", href: "#faq" },
               { label: "Resources", href: "#quick-links" },
             ].map((link) => (
               <a
@@ -521,6 +562,102 @@ export default function LandingPage() {
             >
               Already Have an Account?
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ Section ── */}
+      <section data-nav-theme="light" id="faq" className="bg-white py-24">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid gap-12 lg:grid-cols-[1fr_1.4fr] lg:gap-16">
+
+            {/* Left — sticky heading & contact */}
+            <div data-reveal className="lg:sticky lg:top-32 lg:self-start">
+              <span className="mb-3 inline-block text-xs font-bold uppercase tracking-[0.2em] text-[#c75b12]">
+                Got Questions?
+              </span>
+              <h2
+                className="text-3xl font-bold tracking-tight text-[#0a2240] sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                Frequently Asked
+                <br />
+                Questions
+              </h2>
+              <p className="mt-5 max-w-md text-[15px] leading-relaxed text-gray-500">
+                Everything you need to know about living on campus at UTA.
+                Can&apos;t find your answer? We&apos;re here to help.
+              </p>
+
+              {/* Contact card */}
+              <div className="mt-8 rounded-xl border border-gray-200/80 bg-[#faf9f7] p-5">
+                <p className="mb-3 text-xs font-bold uppercase tracking-wider text-[#0a2240]/50">
+                  Still have questions?
+                </p>
+                <div className="space-y-2.5">
+                  <a
+                    href="mailto:Housing@uta.edu"
+                    className="flex items-center gap-3 text-sm font-medium text-[#0a2240] transition-colors hover:text-[#c75b12]"
+                  >
+                    <Mail className="h-4 w-4 text-[#c75b12]" />
+                    Housing@uta.edu
+                  </a>
+                  <a
+                    href="tel:817-272-2791"
+                    className="flex items-center gap-3 text-sm font-medium text-[#0a2240] transition-colors hover:text-[#c75b12]"
+                  >
+                    <Phone className="h-4 w-4 text-[#c75b12]" />
+                    817-272-2791
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Right — accordion stack */}
+            <div data-reveal className="space-y-3">
+              {faqItems.map((item, index) => (
+                <div
+                  key={index}
+                  className={`rounded-xl border transition-all duration-300 ${openFaq === index
+                    ? "border-[#c75b12]/30 bg-white shadow-lg shadow-[#c75b12]/5"
+                    : "border-gray-200/80 bg-white hover:border-gray-300 hover:shadow-md"
+                    }`}
+                >
+                  <button
+                    onClick={() => toggleFaq(index)}
+                    className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
+                  >
+                    <span
+                      className={`text-[15px] font-semibold transition-colors duration-300 ${openFaq === index ? "text-[#c75b12]" : "text-[#0a2240]"
+                        }`}
+                    >
+                      {item.question}
+                    </span>
+                    <ChevronDown
+                      className={`h-5 w-5 shrink-0 transition-all duration-300 ${openFaq === index
+                        ? "rotate-180 text-[#c75b12]"
+                        : "text-gray-400"
+                        }`}
+                    />
+                  </button>
+                  <div
+                    className="grid transition-all duration-300 ease-in-out"
+                    style={{
+                      gridTemplateRows: openFaq === index ? "1fr" : "0fr",
+                    }}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="border-t border-gray-100 px-6 pb-5 pt-4">
+                        <p className="text-[14px] leading-relaxed text-gray-600">
+                          {item.answer}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
           </div>
         </div>
       </section>
