@@ -148,7 +148,7 @@ export default function AdminDashboard() {
         ].map(({ label, value, sub, icon: Icon, accent }, idx) => (
           <Card
             key={label}
-            className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5"
+            className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all"
             style={{ animationDelay: `${80 + idx * 70}ms` }}
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
 
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
         <Card
-          className="lg:col-span-2 animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all hover:shadow-md"
+          className="lg:col-span-2 animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all"
           style={{ animationDelay: "360ms" }}
         >
           <CardHeader>
@@ -192,7 +192,7 @@ export default function AdminDashboard() {
         </Card>
 
         <Card
-          className="animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all hover:shadow-md"
+          className="animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all"
           style={{ animationDelay: "430ms" }}
         >
           <CardHeader>
@@ -260,7 +260,7 @@ export default function AdminDashboard() {
         </div>
 
         <Card
-          className="lg:col-span-2 animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all hover:shadow-md"
+          className="lg:col-span-2 animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both rounded-2xl transition-all"
           style={{ animationDelay: "560ms" }}
         >
           <CardHeader className="pb-2">

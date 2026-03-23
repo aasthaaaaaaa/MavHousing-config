@@ -230,7 +230,7 @@ export default function MyRequestsPage() {
             return (
               <Card
                 key={req.requestId}
-                className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+                className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl transition-all cursor-pointer"
                 style={{ animationDelay: `${80 + idx * 70}ms` }}
                 onClick={() => openRequest(req)}
               >

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Send, CheckCheck, Paperclip, X, Image as ImageIcon, Film, Download, Eye, FileText } from "lucide-react";
+import { Send, CheckCheck, Paperclip, X, Image as ImageIcon, Film, Download, Eye, FileText, MessageSquare } from "lucide-react";
 
 interface ChatRoomProps {
     leaseId: number;
@@ -97,7 +97,7 @@ export function ChatRoom({ leaseId, userId, userName }: ChatRoomProps) {
     const renderMessageContent = (content: string) => {
         if (content.startsWith("[FILE]::<") && content.includes(">||<")) {
             const urlMatch = content.match(/\[FILE\]::<([^>]+)>/);
-            const nameMatch = content.match(/>\|\|<([^>]+)>/);
+            const nameMatch = content.match(/>\\|\\|<([^>]+)>/);
             if (urlMatch && nameMatch) {
                 const fileUrl = urlMatch[1];
                 const fileName = nameMatch[1];
@@ -105,26 +105,33 @@ export function ChatRoom({ leaseId, userId, userName }: ChatRoomProps) {
                 const isVideo = !!fileUrl.match(/\.(mp4|webm|ogg)/i);
                 return (
                     <div className="flex flex-col gap-2 mt-1 min-w-[200px]">
-                        <div className="flex flex-col gap-2 bg-background/20 p-2 rounded-lg border border-white/10">
-                            <div className="flex items-center gap-2">
-                                {isImage ? <ImageIcon className="h-4 w-4 shrink-0" /> : isVideo ? <Film className="h-4 w-4 shrink-0" /> : <FileText className="h-4 w-4 shrink-0" />}
-                                <span className="text-xs truncate max-w-[150px] font-medium" title={fileName}>{fileName}</span>
+                        <div
+                            className={`flex items-center justify-between gap-3 bg-background/20 p-2.5 rounded-xl border border-white/10 ${(isImage || isVideo) ? "cursor-pointer hover:bg-background/30 transition-colors" : ""
+                                }`}
+                            onClick={() => {
+                                if (isImage || isVideo) {
+                                    setViewerType(isImage ? "image" : "video");
+                                    setViewerUrl(fileUrl);
+                                }
+                            }}
+                        >
+                            <div className="flex items-center gap-3 overflow-hidden">
+                                <div className="h-8 w-8 shrink-0 rounded-lg bg-background/30 flex items-center justify-center">
+                                    {isImage ? <ImageIcon className="h-4 w-4" /> : isVideo ? <Film className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+                                </div>
+                                <span className="text-xs truncate max-w-[140px] font-medium" title={fileName}>{fileName}</span>
                             </div>
-                            <div className="flex items-center gap-2 pt-1">
-                                {(isImage || isVideo) && (
-                                    <Button type="button" variant="secondary" size="sm" className="h-6 flex-1 text-[10px]" onClick={() => {
-                                        setViewerType(isImage ? "image" : "video");
-                                        setViewerUrl(fileUrl);
-                                    }}>
-                                        <Eye className="h-3 w-3 mr-1" /> View
-                                    </Button>
-                                )}
-                                <Button variant="secondary" size="sm" asChild className="h-6 flex-1 text-[10px]">
-                                    <a href={fileUrl} target="_blank" download rel="noopener noreferrer">
-                                        <Download className="h-3 w-3 mr-1" /> Save
-                                    </a>
-                                </Button>
-                            </div>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                asChild
+                                className="h-8 w-8 shrink-0 rounded-lg hover:bg-white/10"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <a href={fileUrl} target="_blank" download rel="noopener noreferrer">
+                                    <Download className="h-4 w-4" />
+                                </a>
+                            </Button>
                         </div>
                     </div>
                 );
@@ -134,31 +141,39 @@ export function ChatRoom({ leaseId, userId, userName }: ChatRoomProps) {
     };
 
     return (
-        <div className="flex flex-col lg:flex-row gap-4 h-[650px] w-full max-w-5xl mx-auto">
+        <div className="flex flex-col lg:flex-row gap-6 w-full h-full">
             {/* Main Chat Area */}
-            <Card className="flex flex-col flex-1 border-none shadow-lg bg-background/50 backdrop-blur-sm h-full">
-                <CardHeader className="border-b bg-muted/30 pb-4">
-                    <div className="flex items-center justify-between">
-                        <CardTitle className="text-xl font-bold flex items-center gap-2">
-                            Lease Member Chat
-                            {isConnected ? (
-                                <span className="flex h-2 w-2 rounded-full bg-green-500" title="Connected" />
-                            ) : (
-                                <span className="flex h-2 w-2 rounded-full bg-red-500" title="Disconnected" />
-                            )}
-                        </CardTitle>
-                        <div className="text-xs text-muted-foreground">
-                            Lease #{leaseId}
+            <Card className="flex flex-col flex-1 rounded-2xl h-full min-h-0 p-0 gap-0 overflow-hidden">
+                <div className="flex items-center justify-between border-b px-5 py-3.5 shrink-0 bg-muted/10">
+                    <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <MessageSquare className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <h3 className="text-sm font-semibold leading-none">Lease Member Chat</h3>
+                            <p className="text-xs text-muted-foreground leading-none">Lease #{leaseId}</p>
                         </div>
                     </div>
-                </CardHeader>
+                    <div className="flex items-center gap-2 pr-1">
+                        <span className={`flex h-2 w-2 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`} />
+                        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                            {isConnected ? "Connected" : "Disconnected"}
+                        </span>
+                    </div>
+                </div>
                 <CardContent
-                    className="flex-1 overflow-y-auto p-4 space-y-4"
+                    className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0"
                     ref={scrollRef}
                 >
                     {messages.length === 0 ? (
-                        <div className="h-full flex items-center justify-center text-muted-foreground italic">
-                            No messages yet. Start the conversation!
+                        <div className="h-full flex flex-col items-center justify-center gap-3 text-muted-foreground">
+                            <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center">
+                                <MessageSquare className="h-7 w-7" />
+                            </div>
+                            <div className="text-center">
+                                <p className="text-sm font-medium">No messages yet</p>
+                                <p className="text-xs mt-0.5">Start the conversation with your roommates!</p>
+                            </div>
                         </div>
                     ) : (
                         messages.map((msg) => {
@@ -169,11 +184,11 @@ export function ChatRoom({ leaseId, userId, userName }: ChatRoomProps) {
                                     className={`flex gap-3 ${isMe ? "flex-row-reverse" : "flex-row"}`}
                                 >
                                     <Avatar className="h-8 w-8 shrink-0">
-                                        <AvatarFallback className="text-[10px] bg-primary/10">
+                                        <AvatarFallback className="text-[10px] bg-primary/10 font-medium">
                                             {getInitials(`${msg.sender.fName} ${msg.sender.lName}`)}
                                         </AvatarFallback>
                                     </Avatar>
-                                    <div className={`flex flex-col max-w-[80%] ${isMe ? "items-end" : "items-start"}`}>
+                                    <div className={`flex flex-col max-w-[75%] ${isMe ? "items-end" : "items-start"}`}>
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className="text-xs font-medium text-muted-foreground px-1">
                                                 {isMe ? "You" : `${msg.sender.fName} ${msg.sender.lName}`}
@@ -183,9 +198,9 @@ export function ChatRoom({ leaseId, userId, userName }: ChatRoomProps) {
                                             </span>
                                         </div>
                                         <div
-                                            className={`rounded-2xl px-4 py-2 text-sm shadow-sm transition-all duration-200 ${isMe
-                                                ? "bg-primary text-primary-foreground rounded-tr-none"
-                                                : "bg-muted text-muted-foreground rounded-tl-none"
+                                            className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${isMe
+                                                ? "bg-primary text-primary-foreground rounded-tr-sm"
+                                                : "bg-muted rounded-tl-sm"
                                                 }`}
                                         >
                                             {renderMessageContent(msg.content)}
@@ -196,7 +211,7 @@ export function ChatRoom({ leaseId, userId, userName }: ChatRoomProps) {
                                                     <span
                                                         key={rr.userId}
                                                         title={`Seen by ${rr.user.fName} ${rr.user.lName}`}
-                                                        className="text-[8px] bg-muted px-1 rounded-full text-muted-foreground border border-border/50"
+                                                        className="text-[8px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground border"
                                                     >
                                                         {getInitials(`${rr.user.fName} ${rr.user.lName}`)}
                                                     </span>
@@ -212,9 +227,9 @@ export function ChatRoom({ leaseId, userId, userName }: ChatRoomProps) {
                         })
                     )}
                 </CardContent>
-                <CardFooter className="p-4 border-t bg-muted/20 flex-col gap-2 relative">
+                <CardFooter className="p-4 border-t flex-col gap-2">
                     {attachment && (
-                        <div className="w-full flex items-center justify-between bg-background p-2 pr-3 rounded-lg border text-sm animate-in fade-in slide-in-from-bottom-2">
+                        <div className="w-full flex items-center justify-between bg-muted/50 p-2.5 pr-3 rounded-xl border text-sm animate-in fade-in slide-in-from-bottom-2">
                             <div className="flex items-center gap-2 overflow-hidden">
                                 <Paperclip className="h-4 w-4 text-muted-foreground shrink-0" />
                                 <span className="truncate max-w-[200px] text-xs font-medium">{attachment.name}</span>
@@ -232,7 +247,7 @@ export function ChatRoom({ leaseId, userId, userName }: ChatRoomProps) {
                         }}
                         className="flex w-full gap-2 items-center"
                     >
-                        <Button variant="outline" size="icon" className="rounded-full shrink-0 relative overflow-hidden h-10 w-10">
+                        <Button variant="outline" size="icon" className="rounded-xl shrink-0 relative overflow-hidden h-10 w-10">
                             <Paperclip className="h-4 w-4 text-muted-foreground" />
                             <input
                                 type="file"
@@ -245,14 +260,14 @@ export function ChatRoom({ leaseId, userId, userName }: ChatRoomProps) {
                             placeholder="Type a message..."
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
-                            className="flex-1 rounded-full border-muted-foreground/20 focus-visible:ring-primary/20"
+                            className="flex-1 rounded-xl"
                             autoComplete="off"
                             disabled={uploading}
                         />
                         <Button
                             type="submit"
                             size="icon"
-                            className="rounded-full shrink-0 shadow-md hover:scale-105 transition-transform h-10 w-10"
+                            className="rounded-xl shrink-0 h-10 w-10"
                             disabled={(!inputValue.trim() && !attachment) || uploading}
                         >
                             <Send className="h-4 w-4" />
@@ -262,34 +277,47 @@ export function ChatRoom({ leaseId, userId, userName }: ChatRoomProps) {
             </Card>
 
             {/* Right Sidebar: Chat Documents */}
-            <Card className="flex flex-col w-full lg:w-80 border-none shadow-lg bg-background/50 backdrop-blur-sm h-full shrink-0 hidden md:flex">
-                <CardHeader className="border-b bg-muted/30 p-4 py-5">
-                    <CardTitle className="text-sm font-bold flex items-center gap-2">
-                        <FileText className="h-4 w-4" />
-                        Chat Documents
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
+            <Card className="hidden lg:flex flex-col w-80 rounded-2xl h-full shrink-0 min-h-0 p-0 gap-0 overflow-hidden">
+                <div className="flex items-center gap-2 border-b px-5 py-4 shrink-0 bg-muted/10">
+                    <FileText className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-semibold leading-none">Shared Documents</h3>
+                </div>
+                <CardContent className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
                     {documents.length === 0 ? (
-                        <div className="text-center text-xs text-muted-foreground pt-10 italic">No documents shared yet.</div>
+                        <div className="flex flex-col items-center justify-center text-muted-foreground pt-12 gap-3">
+                            <div className="h-12 w-12 rounded-xl bg-muted/50 flex items-center justify-center">
+                                <FileText className="h-5 w-5" />
+                            </div>
+                            <p className="text-xs text-center">No documents shared yet.</p>
+                        </div>
                     ) : (
                         documents.map((doc, idx) => {
                             const isImage = !!doc.url?.match(/\.(jpeg|jpg|gif|png|webp)/i);
                             const isVideo = !!doc.url?.match(/\.(mp4|webm|ogg)/i);
                             return (
-                                <div key={idx} className="flex flex-col gap-2 p-3 bg-muted/30 border rounded-lg hover:bg-muted/50 transition-colors">
-                                    <div className="flex items-start gap-3">
+                                <div
+                                    key={idx}
+                                    className={`flex items-center justify-between gap-3 p-3 rounded-xl border hover:bg-muted/40 transition-colors ${(isImage || isVideo) ? "cursor-pointer" : ""
+                                        }`}
+                                    onClick={() => {
+                                        if (isImage || isVideo) {
+                                            setViewerType(isImage ? "image" : "video");
+                                            setViewerUrl(doc.url);
+                                        }
+                                    }}
+                                >
+                                    <div className="flex items-center gap-3 overflow-hidden">
                                         {isImage ? (
-                                            <div className="h-12 w-12 shrink-0 rounded-md overflow-hidden bg-black/10 border relative">
+                                            <div className="h-10 w-10 shrink-0 rounded-lg overflow-hidden bg-muted border">
                                                 <img src={doc.url} alt="thumbnail" className="object-cover w-full h-full" />
                                             </div>
                                         ) : isVideo ? (
-                                            <div className="h-12 w-12 shrink-0 rounded-md overflow-hidden bg-black/10 border relative flex items-center justify-center">
-                                                <Film className="h-5 w-5 text-muted-foreground" />
+                                            <div className="h-10 w-10 shrink-0 rounded-lg bg-muted border flex items-center justify-center">
+                                                <Film className="h-4 w-4 text-muted-foreground" />
                                             </div>
                                         ) : (
-                                            <div className="h-12 w-12 shrink-0 rounded-md overflow-hidden bg-black/10 border relative flex items-center justify-center">
-                                                <Paperclip className="h-5 w-5 text-muted-foreground" />
+                                            <div className="h-10 w-10 shrink-0 rounded-lg bg-muted border flex items-center justify-center">
+                                                <FileText className="h-4 w-4 text-muted-foreground" />
                                             </div>
                                         )}
                                         <div className="flex flex-col min-w-0 flex-1">
@@ -297,21 +325,17 @@ export function ChatRoom({ leaseId, userId, userName }: ChatRoomProps) {
                                             <p className="text-[10px] text-muted-foreground">{new Date(doc.createdAt).toLocaleDateString()}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        {(isImage || isVideo) && (
-                                            <Button type="button" variant="ghost" size="sm" className="h-6 flex-1 text-[10px] bg-background" onClick={() => {
-                                                setViewerType(isImage ? "image" : "video");
-                                                setViewerUrl(doc.url);
-                                            }}>
-                                                <Eye className="h-3 w-3 mr-1" /> View
-                                            </Button>
-                                        )}
-                                        <Button variant="ghost" size="sm" asChild className="h-6 flex-1 text-[10px] bg-background">
-                                            <a href={doc.url} target="_blank" download rel="noopener noreferrer">
-                                                <Download className="h-3 w-3 mr-1" /> Save
-                                            </a>
-                                        </Button>
-                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        asChild
+                                        className="h-8 w-8 shrink-0 text-muted-foreground hover:bg-muted/60"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <a href={doc.url} target="_blank" download rel="noopener noreferrer">
+                                            <Download className="h-4 w-4" />
+                                        </a>
+                                    </Button>
                                 </div>
                             );
                         })

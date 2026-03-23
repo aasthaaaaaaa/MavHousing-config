@@ -53,8 +53,8 @@ export default function StudentChatPage() {
     }
 
     return (
-        <div className="p-6 h-[calc(100vh-4rem)] flex flex-col pt-10">
-            <div className="flex-1 flex items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-600 fill-mode-both" style={{ animationDelay: "80ms" }}>
+        <div className="flex flex-col h-[calc(100vh-108px-1.5rem)] min-h-0">
+            <div className="flex-1 min-h-0 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "80ms" }}>
                 {lease?.leaseId && user?.userId && (
                     <ChatRoom
                         leaseId={lease.leaseId}

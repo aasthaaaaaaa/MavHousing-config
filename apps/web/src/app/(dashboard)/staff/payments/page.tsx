@@ -79,7 +79,7 @@ export default function StaffPaymentsPage() {
         ].map((s, idx) => (
           <Card
             key={s.label}
-            className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl text-center transition-all hover:shadow-md hover:-translate-y-0.5"
+            className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both rounded-2xl text-center transition-all"
             style={{ animationDelay: `${80 + idx * 70}ms` }}
           >
             <CardContent className="pt-4 pb-4">

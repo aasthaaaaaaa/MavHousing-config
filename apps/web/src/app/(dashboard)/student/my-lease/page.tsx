@@ -62,7 +62,7 @@ interface Lease {
     transactionDate: string;
     isSuccessful: boolean;
   }[];
-  
+
 }
 
 function formatDate(d: string) {
@@ -76,16 +76,16 @@ function formatMoney(val: string) {
 function calcLeaseStats(l: Lease) {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  
+
   const paidThisMonth = (l.payments || [])
     .filter(p => p.isSuccessful && new Date(p.transactionDate) >= startOfMonth)
     .reduce((acc, p) => acc + parseFloat(p.amountPaid), 0);
-  
+
   const monthlyRent = parseFloat(l.dueThisMonth);
   const extraFees = parseFloat(l.terminationFee || "0");
   const totalDueThisMonth = monthlyRent + extraFees;
   const balanceThisMonth = Math.max(0, totalDueThisMonth - paidThisMonth);
-  
+
   return {
     paidThisMonth,
     monthlyRent,
@@ -266,7 +266,7 @@ export default function MyLeasePage() {
           </CardContent>
         </Card>
       )}
-      
+
       {lease.status === 'TERMINATION_REQUESTED' && (
         <Card className="border-amber-500/50 bg-amber-500/5 rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "80ms" }}>
           <CardHeader>
@@ -274,10 +274,10 @@ export default function MyLeasePage() {
               <AlertTriangle className="h-5 w-5" /> Termination Request Pending
             </CardTitle>
             <CardDescription className="text-base text-foreground mt-2">
-              You have requested to end your lease early. Management is currently reviewing your request. 
+              You have requested to end your lease early. Management is currently reviewing your request.
               {lease.terminationFee && parseFloat(lease.terminationFee) > 0 ? (
                 <span className="block mt-2 font-bold text-destructive">
-                  An early termination fee of {formatMoney(lease.terminationFee)} has been added to your account. 
+                  An early termination fee of {formatMoney(lease.terminationFee)} has been added to your account.
                   Please clear all dues to finalize the termination.
                 </span>
               ) : (
@@ -288,142 +288,146 @@ export default function MyLeasePage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Property Card — left column */}
-        {lease.unit && (
-          <Card className="md:row-span-2 rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "150ms" }}>
+      <div className="flex flex-col lg:flex-row gap-6 mb-6">
+        {/* Left Column */}
+        <div className="flex flex-col gap-6 lg:w-[42%] lg:shrink-0">
+          {lease.unit && (
+            <Card className="rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "150ms" }}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-primary" />
+                    <CardTitle>{lease.unit.property.name}</CardTitle>
+                  </div>
+                  <Badge variant="outline" className={`${getLeaseStatusClass(lease.status)} rounded-full px-2.5`}>{statusLabel}</Badge>
+                </div>
+                <CardDescription>{lease.unit.property.address}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-x-10 gap-y-6">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Unit</p>
+                  <p className="font-medium">{lease.unit.unitNumber}</p>
+                </div>
+                {lease.unit.floorLevel && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">Floor</p>
+                    <p className="font-medium">{lease.unit.floorLevel}</p>
+                  </div>
+                )}
+                {lease.room && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                      <DoorOpen className="h-3 w-3" /> Room
+                    </p>
+                    <p className="font-medium">Room {lease.room.roomLetter}</p>
+                  </div>
+                )}
+                {lease.bed && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                      <BedDouble className="h-3 w-3" /> Bed
+                    </p>
+                    <p className="font-medium">Bed {lease.bed.bedLetter}</p>
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Lease Type</p>
+                  <p className="font-medium capitalize">{lease.leaseType.replace("_", " ")}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Property Type</p>
+                  <p className="font-medium">{lease.unit.property.propertyType}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Dates Card */}
+          <Card className="rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "220ms" }}>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  <CardTitle>{lease.unit.property.name}</CardTitle>
-                </div>
-                <Badge variant="outline" className={`${getLeaseStatusClass(lease.status)} rounded-full px-2.5`}>{statusLabel}</Badge>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-primary" />
+                <CardTitle>Lease Period</CardTitle>
               </div>
-              <CardDescription>{lease.unit.property.address}</CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
+            <CardContent className="flex flex-wrap gap-x-10 gap-y-6">
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Unit</p>
-                <p className="font-medium">{lease.unit.unitNumber}</p>
-              </div>
-              {lease.unit.floorLevel && (
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Floor</p>
-                  <p className="font-medium">{lease.unit.floorLevel}</p>
-                </div>
-              )}
-              {lease.room && (
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                    <DoorOpen className="h-3 w-3" /> Room
-                  </p>
-                  <p className="font-medium">Room {lease.room.roomLetter}</p>
-                </div>
-              )}
-              {lease.bed && (
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                    <BedDouble className="h-3 w-3" /> Bed
-                  </p>
-                  <p className="font-medium">Bed {lease.bed.bedLetter}</p>
-                </div>
-              )}
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Lease Type</p>
-                <p className="font-medium capitalize">{lease.leaseType.replace("_", " ")}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Start Date</p>
+                <p className="font-medium">{formatDate(lease.startDate)}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide">Property Type</p>
-                <p className="font-medium">{lease.unit.property.propertyType}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">End Date</p>
+                <p className="font-medium">{formatDate(lease.endDate)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                  <Key className="h-3 w-3" /> Signed
+                </p>
+                <p className="font-medium">{formatDate(lease.signedAt)}</p>
               </div>
             </CardContent>
           </Card>
-        )}
+        </div>
 
-        {/* Dates Card — right top */}
-        <Card className="rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "220ms" }}>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
-              <CardTitle>Lease Period</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-xs text-muted-foreground uppercase tracking-wide">Start Date</span>
-              <span className="font-medium">{formatDate(lease.startDate)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-xs text-muted-foreground uppercase tracking-wide">End Date</span>
-              <span className="font-medium">{formatDate(lease.endDate)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                <Key className="h-3 w-3" /> Signed
-              </span>
-              <span className="font-medium">{formatDate(lease.signedAt)}</span>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Right Column: Financials Card */}
+        <div className="lg:flex-1 flex flex-col">
+          <Card className="flex-1 rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "290ms" }}>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-primary" />
+                <CardTitle>Financial Summary</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground text-sm">Total Due (Full Term)</span>
+                <span className="font-semibold">{formatMoney(lease.totalDue)}</span>
+              </div>
 
-        {/* Financials Card — right bottom */}
-        <Card className="rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: "290ms" }}>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-primary" />
-              <CardTitle>Financial Summary</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground text-sm">Total Due (Full Term)</span>
-              <span className="font-semibold">{formatMoney(lease.totalDue)}</span>
-            </div>
-            
-            {(() => {
-              const stats = calcLeaseStats(lease);
-              return (
-                <div className="space-y-3 pt-2">
-                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Monthly Rent</span>
-                    <span className="font-medium">{formatMoney(String(stats.monthlyRent))}</span>
-                  </div>
-
-                  {stats.extraFees > 0 && (
-                    <div className="flex justify-between items-center text-sm text-destructive">
-                      <span className="">Extra Fees / Termination Fee</span>
-                      <span className="font-semibold">{formatMoney(String(stats.extraFees))}</span>
+              {(() => {
+                const stats = calcLeaseStats(lease);
+                return (
+                  <div className="space-y-3 pt-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Monthly Rent</span>
+                      <span className="font-medium">{formatMoney(String(stats.monthlyRent))}</span>
                     </div>
-                  )}
 
-                  <Separator />
+                    {stats.extraFees > 0 && (
+                      <div className="flex justify-between items-center text-sm text-destructive">
+                        <span className="">Extra Fees / Termination Fee</span>
+                        <span className="font-semibold">{formatMoney(String(stats.extraFees))}</span>
+                      </div>
+                    )}
 
-                  <div className="flex justify-between items-center text-sm text-green-600">
-                    <span className="">Paid This Month</span>
-                    <span>- {formatMoney(String(stats.paidThisMonth))}</span>
+                    <Separator />
+
+                    <div className="flex justify-between items-center text-sm text-green-600">
+                      <span className="">Paid This Month</span>
+                      <span>- {formatMoney(String(stats.paidThisMonth))}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center p-3 bg-primary/5 rounded-xl border border-primary/20">
+                      <span className="text-xs font-bold uppercase tracking-tight">Remaining This Month</span>
+                      <span className={`text-xl font-bold ${stats.isClear ? 'text-green-600' : 'text-primary'}`}>
+                        {formatMoney(String(stats.balanceThisMonth))}
+                      </span>
+                    </div>
                   </div>
+                );
+              })()}
 
-                  <div className="flex justify-between items-center p-3 bg-primary/5 rounded-xl border border-primary/20">
-                    <span className="text-xs font-bold uppercase tracking-tight">Remaining This Month</span>
-                    <span className={`text-xl font-bold ${stats.isClear ? 'text-green-600' : 'text-primary'}`}>
-                      {formatMoney(String(stats.balanceThisMonth))}
-                    </span>
-                  </div>
+
+              {lease.status === 'ACTIVE' && (
+                <div className="space-y-4">
+                  <Button variant="outline" className="w-full text-destructive hover:bg-destructive/10 border-destructive/20" onClick={() => setTermDialogOpen(true)}>
+                    Request Early Lease Ending
+                  </Button>
                 </div>
-              );
-            })()}
-
-            {lease.status === 'ACTIVE' && (
-              <>
-                <Separator />
-                <Button variant="outline" className="w-full text-destructive hover:bg-destructive/10 border-destructive/20" onClick={() => setTermDialogOpen(true)}>
-                  Request Early Lease Ending
-                </Button>
-              </>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {lease.occupants && lease.occupants.length > 0 && (
@@ -511,9 +515,9 @@ export default function MyLeasePage() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Reason for Termination</label>
-              <Textarea 
-                placeholder="Please explain why you need to end your lease..." 
-                value={termReason} 
+              <Textarea
+                placeholder="Please explain why you need to end your lease..."
+                value={termReason}
                 onChange={e => setTermReason(e.target.value)}
                 className="h-32"
               />
