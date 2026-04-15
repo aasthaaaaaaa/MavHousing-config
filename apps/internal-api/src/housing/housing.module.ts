@@ -43,20 +43,32 @@ export class HousingModule implements OnModuleInit {
     );
 
     // Schedule Admin Reports
-    await this.propertyQueue.add('generate', {}, {
-      repeat: { pattern: '0 0 1 * *' },
-      jobId: 'monthly-prop-report',
-    });
+    await this.propertyQueue.add(
+      'generate',
+      {},
+      {
+        repeat: { pattern: '0 0 1 * *' },
+        jobId: 'monthly-prop-report',
+      },
+    );
 
-    await this.leaseQueue.add('generate', {}, {
-      repeat: { pattern: '0 0 1 * *' },
-      jobId: 'monthly-lease-report',
-    });
+    await this.leaseQueue.add(
+      'generate',
+      {},
+      {
+        repeat: { pattern: '0 0 1 * *' },
+        jobId: 'monthly-lease-report',
+      },
+    );
 
-    await this.financeQueue.add('generate', {}, {
-      repeat: { pattern: '0 0 1 * *' },
-      jobId: 'monthly-finance-report',
-    });
+    await this.financeQueue.add(
+      'generate',
+      {},
+      {
+        repeat: { pattern: '0 0 1 * *' },
+        jobId: 'monthly-finance-report',
+      },
+    );
 
     console.log('BullMQ: Scheduled all monthly administrative reports.');
   }

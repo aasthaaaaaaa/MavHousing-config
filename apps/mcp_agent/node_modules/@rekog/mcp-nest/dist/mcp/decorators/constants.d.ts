@@ -1,0 +1,5 @@
+export declare const MCP_TOOL_METADATA_KEY = "mcp:tool";
+export declare const MCP_RESOURCE_METADATA_KEY = "mcp:resource";
+export declare const MCP_RESOURCE_TEMPLATE_METADATA_KEY = "mcp:resource-template";
+export declare const MCP_PROMPT_METADATA_KEY = "mcp:prompt";
+//# sourceMappingURL=constants.d.ts.map

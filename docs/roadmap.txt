@@ -19,19 +19,7 @@ You send reply email via SendGrid API
     ↓
 Student gets response
 
-SMS Flow
---
-Student texts your Twilio number (e.g., +1-555-123-4567)
-    ↓
-Twilio receives it (they own the number)
-    ↓
-Twilio POSTs to: https://yourserver.com/webhooks/inbound-sms
-    ↓
-Your controller processes it → calls Blaze AI
-    ↓
-You send reply SMS via Twilio API
-    ↓
-Student gets response
+
 
 For Email (SendGrid)
 1. A domain name
@@ -60,28 +48,7 @@ Processes it (call Blaze AI)
 Sends a reply back using SendGrid's send API
 
 
-For SMS (Twilio)
-1. Twilio account
 
-Costs money - they charge per SMS sent/received
-Free trial gives you credits for testing
-
-2. Buy a phone number from Twilio
-
-Like +1-555-123-4567
-This is the number students text
-
-3. Twilio dashboard setup
-
-Tell Twilio "when this number gets a text, POST it to this URL"
-The URL is your server endpoint like https://yourserver.com/webhooks/inbound-sms
-
-4. An HTTP endpoint in your backend
-
-Just a regular POST route that receives the SMS data
-Extracts sender phone number and message text
-Processes it (call Blaze AI)
-Sends a reply back using Twilio's send API
 
 
 The Setup Steps (No Code)

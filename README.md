@@ -23,7 +23,6 @@ A comprehensive housing management platform for UTA's MavHousing, built with a *
 - **AI/ML Engine**: [Google Gemini 2.5](https://deepmind.google/technologies/gemini/) (Intelligent OCR & Document Analysis)
 - **Computer Vision**: `face-api.js` (Client-side localized image processing)
 - **Email Delivery**: [Resend](https://resend.com/) (High-deliverability transactional engine)
-- **Telephony & SMS**: [Twilio](https://www.twilio.com/)
 - **API Documentation**: [Swagger/OpenAPI](https://swagger.io/) (Automated via `@nestjs/swagger`)
 
 ---
@@ -47,7 +46,6 @@ Functional credentials and secure tokens are required to enable the following in
 - **Google Gemini (AI & Vision)**: Powers the Intelligent OCR engine for automated student ID verification and application parsing.
 - **Cloudflare R2 (Object Storage)**: Provides globally distributed, S3-compatible storage for user-uploaded media, maintenance attachments, and generated PDF reports.
 - **Resend (Communications)**: High-performance transactional email delivery engine for administrative reports and system notifications.
-- **Twilio (Telephony)**: Enterprise-grade SMS gateway for real-time alerts and user engagement.
 
 ---
 
@@ -91,9 +89,6 @@ Your `.env` file must be configured with following secure keys:
 | **Jobs** | `REDIS_HOST` | Hostname for BullMQ/Redis (Default: localhost). |
 | | `REDIS_PORT` | Port for BullMQ/Redis (Default: 6379). |
 | **Communication** | `RESEND_API` | Transactional email key for report delivery. |
-| | `TWILIO_SID` | SID for automated SMS alerts. |
-| | `TWILIO_AUTH_TOKEN` | Auth token for Twilio gateway. |
-| | `TWILIO_PH_NUM` | Source phone number (+1XXXXXXXXXX). |
 | **AI/Storage** | `GEMINI_API_KEY` | Google Gemini key for intelligent OCR systems. |
 | | `R2_ACCESS_KEY_ID` | Cloudflare R2 Access ID. |
 | | `R2_SECRET_ACCESS_KEY` | Cloudflare R2 Secret Key. |
@@ -139,7 +134,7 @@ npm run start:dev internal-api
 mav-housing-config/
 ├── apps/                        # Microservice applications
 │   ├── auth-server/             # Authentication & authorization (JWT, RBAC)
-│   ├── comms-server/            # Communications (Email via Resend, SMS via Twilio)
+│   ├── comms-server/            # Communications (Email via Resend)
 │   ├── internal-api/            # Core API (Applications, Leases, Maintenance, Payments)
 │   └── web/                     # Student & Admin frontend application (Next.js)
 ├── common/                      # Shared utilities & validators
@@ -173,7 +168,7 @@ mav-housing-config/
 | Service          | Port   | Swagger UI                                      | Description                                            |
 | ---------------- | ------ | ----------------------------------------------- | ------------------------------------------------------ |
 | **auth-server**  | `3004` | [localhost:3004/api](http://localhost:3004/api) | Authentication, JWT, user management, RBAC             |
-| **comms-server** | `3000` | [localhost:3000/api](http://localhost:3000/api) | Email (Resend) & SMS (Twilio) notifications            |
+| **comms-server** | `3000` | [localhost:3000/api](http://localhost:3000/api) | Email (Resend) notifications            |
 | **internal-api** | `3009` | [localhost:3009/api](http://localhost:3009/api) | Core API — applications, leases, maintenance, payments |
 
 Run any individual service:
@@ -195,7 +190,7 @@ npm run start:dev auth-server
 ### 1. Monorepo & Service Design
 MavHousing is architected as a **NestJS Monorepo**, ensuring consistency across multiple specialized microservices:
 - **`auth-server`**: Single point of entry for user authentication, password management, and permission logic.
-- **`comms-server`**: Decoupled notification service handling the complexities of Twilio (SMS) and Resend (Email) delivery.
+- **`comms-server`**: Decoupled notification service handling the complexities of Resend (Email) delivery.
 - **`internal-api`**: The operational hub managing core business entities (Leases, Maintenance, Payments).
 
 ### 2. Dual-Database Strategy

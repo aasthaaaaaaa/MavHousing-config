@@ -1,0 +1,16 @@
+export type ResourceOptions = {
+    uri: string;
+    name?: string;
+    description?: string;
+    mimeType?: string;
+    _meta?: Record<string, any>;
+};
+export interface ResourceMetadata {
+    uri: string;
+    name: string;
+    description?: string;
+    mimeType?: string;
+    _meta?: Record<string, any>;
+}
+export declare const Resource: (options: ResourceOptions) => import("@nestjs/common").CustomDecorator<string>;
+//# sourceMappingURL=resource.decorator.d.ts.map

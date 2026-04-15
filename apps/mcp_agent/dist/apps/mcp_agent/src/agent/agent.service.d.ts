@@ -1,0 +1,35 @@
+import { RbacService } from '../rbac/rbac.service';
+import { EmailReplyService } from '../email/email-reply.service';
+import { PrismaService } from "../../../../common/prisma/prisma.service";
+import { UserTool } from '../tools/user.tool';
+import { LeaseTool } from '../tools/lease.tool';
+import { PaymentTool } from '../tools/payment.tool';
+import { MaintenanceTool } from '../tools/maintenance.tool';
+import { ApplicationTool } from '../tools/application.tool';
+import { HousingTool } from '../tools/housing.tool';
+import { ReportsTool } from '../tools/reports.tool';
+import { EmailTool } from '../tools/email.tool';
+export declare class AgentService {
+    private readonly rbac;
+    private readonly emailReply;
+    private readonly prisma;
+    private readonly userTool;
+    private readonly leaseTool;
+    private readonly paymentTool;
+    private readonly maintenanceTool;
+    private readonly applicationTool;
+    private readonly housingTool;
+    private readonly reportsTool;
+    private readonly emailTool;
+    private readonly logger;
+    constructor(rbac: RbacService, emailReply: EmailReplyService, prisma: PrismaService, userTool: UserTool, leaseTool: LeaseTool, paymentTool: PaymentTool, maintenanceTool: MaintenanceTool, applicationTool: ApplicationTool, housingTool: HousingTool, reportsTool: ReportsTool, emailTool: EmailTool);
+    processRequest(senderEmail: string, message: string, subject?: string): Promise<string>;
+    private parseIntent;
+    private executeTool;
+    private getHelpText;
+    private matches;
+    private extractMaintenanceStatus;
+    private extractMaintenanceCategory;
+    private extractApplicationStatus;
+    private extractReportType;
+}
