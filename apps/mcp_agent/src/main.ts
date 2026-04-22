@@ -33,18 +33,18 @@ async function bootstrap() {
   const port = process.env.MCP_AGENT_PORT || 3007;
   await app.listen(port);
 
-  logger.log(`\n${'═'.repeat(60)}`);
-  logger.log(`🤖 MavHousing MCP Agent is LIVE!`);
-  logger.log(`${'─'.repeat(60)}`);
+  logger.log(`\n${'='.repeat(60)}`);
+  logger.log(`  Blaze AI [MavHousing MCP Agent] is LIVE`);
+  logger.log(`${'='.repeat(60)}`);
   logger.log(`    HTTP Server:    http://localhost:${port}`);
   logger.log(`    MCP SSE:        http://localhost:${port}/sse`);
   logger.log(`    Swagger API:    http://localhost:${port}/api`);
   logger.log(`    Resend Webhook: http://localhost:${port}/webhook/resend`);
   logger.log(`    Agent Query:    POST http://localhost:${port}/agent/query`);
-  logger.log(`${'─'.repeat(60)}`);
-  logger.log(`    Connected to: PostgreSQL, internal-api, comms-server`);
-  logger.log(`    RBAC:         ADMIN | STAFF | STUDENT`);
-  logger.log(`    MCP Tools:    15+ tools across all services`);
-  logger.log(`${'═'.repeat(60)}\n`);
+  logger.log(`${'-'.repeat(60)}`);
+  logger.log(`    Inbound Email:  *@mavhousing.xyz`);
+  logger.log(`    Sends From:     blaze@mavhousing.xyz`);
+  logger.log(`    RBAC:           ADMIN | STAFF | STUDENT`);
+  logger.log(`${'='.repeat(60)}\n`);
 }
 bootstrap();

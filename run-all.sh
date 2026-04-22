@@ -1,13 +1,15 @@
 #!/bin/bash
 
-# Detect OS
+# MavHousing - Start All Services
+# Opens each service in its own terminal window
+
+PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 OS="$(uname)"
 
-# Commands to run
-CMD1="npm run start:dev internal-api"
-CMD2="npm run web:dev"
-CMD3="npm run start:mcp"
-CMD4="npm run webhook:listen"
+CMD1="cd $PROJECT_DIR && npm run start:dev internal-api"
+CMD2="cd $PROJECT_DIR && npm run web:dev"
+CMD3="cd $PROJECT_DIR && npm run start:mcp"
+CMD4="cd $PROJECT_DIR && npm run webhook:listen"
 
 open_new_terminal() {
   local cmd="$1"

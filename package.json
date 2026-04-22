@@ -27,7 +27,7 @@
     "web:build": "npm run build --prefix apps/web",
     "web:start": "npm run start --prefix apps/web",
     "web:lint": "npm run lint --prefix apps/web",
-    "webhook:listen": "export $(grep -v '^#' .env | xargs) && smee --url $WEBHOOK_PROXY_URL --target http://localhost:3007/webhook/resend",
+    "webhook:listen": "smee --url $(grep '^WEBHOOK_PROXY_URL=' .env | cut -d'=' -f2) --target http://localhost:3007/webhook/resend",
     "seed": "npx prisma generate && ts-node --project prisma/tsconfig.json prisma/seed.ts"
   },
   "dependencies": {

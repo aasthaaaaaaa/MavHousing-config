@@ -10,7 +10,7 @@ export class EmailReplyService {
 
   constructor(private readonly config: ConfigService) {
     this.resend = new Resend(this.config.get<string>('RESEND_API'));
-    this.defaultSender = 'MavHousing Agent <agent@mavhousing.xyz>';
+    this.defaultSender = 'Blaze AI <blaze@mavhousing.xyz>';
   }
 
   /**
@@ -33,15 +33,23 @@ export class EmailReplyService {
   }
 
   /**
-   * Send an access denied reply.
+   * Send a professional reply to unregistered senders.
    */
-  async sendAccessDenied(to: string, originalSubject: string): Promise<void> {
+  async sendNotRegistered(to: string, originalSubject: string, displayName: string): Promise<void> {
     await this.replyToSender(
       to,
       originalSubject,
-      `<div style="color: #DC2626; font-weight: bold; font-size: 18px;">⛔ Access Denied</div>
-      <p>Your email address (<strong>${to}</strong>) is not registered in the MavHousing system, or your account does not have sufficient permissions for this request.</p>
-      <p>If you believe this is an error, please contact your housing administrator.</p>`,
+      `<p>Hi ${displayName},</p>
+      <p>Thank you for reaching out. I am <strong>Blaze AI</strong>, the intelligent assistant for <strong>MavHousing</strong>, the student housing system at the University of Texas at Arlington.</p>
+      <p>Unfortunately, your email address (<strong>${to}</strong>) is not currently registered in our housing system. I am unable to retrieve any account information for this address.</p>
+      <p>Here are a few steps that may help:</p>
+      <ul style="padding-left: 20px; line-height: 1.8;">
+        <li>If you are a current UTA student or staff member, please email from your <strong>@uta.edu</strong> or <strong>@mavs.uta.edu</strong> address that is linked to your housing account.</li>
+        <li>If you are new to MavHousing, please visit our web portal to create an account and submit a housing application.</li>
+        <li>If you believe this is an error, please contact the UTA Housing Office for assistance.</li>
+      </ul>
+      <p>Once your account is set up, feel free to email me and I can help with lease information, rent payments, maintenance requests, and more.</p>
+      <p style="margin-top: 20px;">Best regards,<br><strong>Blaze AI</strong><br><span style="color: #6b7280; font-size: 12px;">MavHousing Intelligent Assistant</span></p>`,
     );
   }
 
@@ -60,14 +68,14 @@ export class EmailReplyService {
       <div style="max-width: 640px; margin: 0 auto; padding: 24px;">
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #0064B1 0%, #004a87 100%); padding: 24px 32px; border-radius: 12px 12px 0 0;">
-          <h1 style="margin: 0; color: white; font-size: 22px; font-weight: 600;">🏠 MavHousing Agent</h1>
-          <p style="margin: 4px 0 0; color: rgba(255,255,255,0.8); font-size: 13px;">Automated Response System</p>
+          <h1 style="margin: 0; color: white; font-size: 22px; font-weight: 600;">Blaze AI</h1>
+          <p style="margin: 4px 0 0; color: rgba(255,255,255,0.8); font-size: 13px;">MavHousing Intelligent Assistant</p>
         </div>
 
         <!-- Body -->
         <div style="background: white; padding: 28px 32px; border: 1px solid #e5e7eb; border-top: none;">
           <div style="color: #6b7280; font-size: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f3f4f6;">
-            RE: ${subject} · ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            RE: ${subject} | ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </div>
 
           <div style="color: #1f2937; font-size: 14px; line-height: 1.6;">
@@ -78,8 +86,8 @@ export class EmailReplyService {
         <!-- Footer -->
         <div style="background: #f9fafb; padding: 16px 32px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
           <p style="margin: 0; color: #9ca3af; font-size: 11px; text-align: center;">
-            This is an automated response from the MavHousing MCP Agent.
-            <br>Do not reply to this email. For further assistance, contact your housing office.
+            This is an automated response from Blaze AI, the MavHousing Intelligent Assistant.
+            <br>For further assistance, contact your housing office.
           </p>
         </div>
       </div>
@@ -94,7 +102,6 @@ export class EmailReplyService {
     return results
       .map((r) => {
         if (typeof r === 'string') {
-          // Try to parse as JSON and format as a table
           try {
             const parsed = JSON.parse(r);
             if (Array.isArray(parsed)) {
