@@ -154,7 +154,7 @@ export class OccupancyReportProcessor extends WorkerHost {
 
       // Email the PDF
       const emailResult = await this.emailService.sendEmailWithAttachment(
-        'axjh03@gmail.com',
+        'dev@mavhousing.xyz',
         `Monthly Occupancy Report - ${now.toLocaleString('default', { month: 'long', year: 'numeric' })}`,
         `<html>
            <body style="font-family: Arial, sans-serif; color: #333;">

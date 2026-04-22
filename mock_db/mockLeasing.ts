@@ -52,6 +52,7 @@ export const mockApplications = [
   { userId: 3, term: 'Spring 2026', status: ApplicationStatus.SUBMITTED, preferredPropertyId: 2, submissionDate: new Date('2026-02-05') },
   { userId: 8, term: 'Spring 2026', status: ApplicationStatus.UNDER_REVIEW, preferredPropertyId: 3, submissionDate: new Date('2026-02-10') },
   { userId: 39, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 2, submissionDate: new Date('2025-06-01') },
+  { userId: 40, term: 'Fall 2025', status: ApplicationStatus.APPROVED, preferredPropertyId: 2, submissionDate: new Date('2025-06-02') },
 ];
 
 // ============================================
@@ -107,6 +108,10 @@ export const mockLeases = [
   // Lease 18: Isabella → Bed R in Room A of Unit A1 ($575/mo)   — COMPLETED (moved out early)
   { userId: 29, leaseType: LeaseType.BY_BED, assignedUnitId: 21, assignedRoomId: 28, assignedBedId: 41, startDate: new Date('2025-08-15'), endDate: new Date('2025-12-15'), totalDue: 2300.00, dueThisMonth: 0.00, status: LeaseStatus.COMPLETED },
 
+  // --- Talha (userId 40) - Meadow Run South Tower Unit 302 ($875/mo) ---
+  // Lease 19: Talha solo -> Unit 10 ($875/mo) - ACTIVE
+  { userId: 40, leaseType: LeaseType.BY_UNIT, assignedUnitId: 10, assignedRoomId: null, assignedBedId: null, startDate: new Date('2025-08-15'), endDate: new Date('2026-07-31'), totalDue: 10500.00, dueThisMonth: 875.00, status: LeaseStatus.ACTIVE },
+
 ];
 
 // ============================================
@@ -156,6 +161,8 @@ export const mockOccupants = [
   { leaseId: 17, userId: 28, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
   // Lease 18: Isabella (bed — moved out early)
   { leaseId: 18, userId: 29, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15'), moveOutDate: new Date('2025-12-15') },
+  // Lease 19: Talha solo
+  { leaseId: 19, userId: 40, occupantType: OccupantType.LEASE_HOLDER, moveInDate: new Date('2025-08-15') },
 ];
 
 // ============================================
@@ -303,6 +310,15 @@ export const mockPayments = [
   { leaseId: 18, amountPaid: 575.00, method: PaymentMethod.CREDIT_CARD, isSuccessful: true, transactionDate: new Date('2026-01-02') },
   { leaseId: 18, amountPaid: 575.00, method: PaymentMethod.CREDIT_CARD, isSuccessful: true, transactionDate: new Date('2026-02-03') },
   { leaseId: 18, amountPaid: 575.00, method: PaymentMethod.CREDIT_CARD, isSuccessful: true, transactionDate: new Date('2026-03-01') },
+
+  // === LEASE 19 (Talha, $875/mo) — Paid Oct–Mar, bank transfer ===
+  { leaseId: 19, amountPaid: 875.00, method: PaymentMethod.BANK_TRANSFER, isSuccessful: true, transactionDate: new Date('2025-10-01') },
+  { leaseId: 19, amountPaid: 875.00, method: PaymentMethod.BANK_TRANSFER, isSuccessful: true, transactionDate: new Date('2025-11-03') },
+  { leaseId: 19, amountPaid: 875.00, method: PaymentMethod.BANK_TRANSFER, isSuccessful: true, transactionDate: new Date('2025-12-02') },
+  { leaseId: 19, amountPaid: 875.00, method: PaymentMethod.BANK_TRANSFER, isSuccessful: true, transactionDate: new Date('2026-01-04') },
+  { leaseId: 19, amountPaid: 875.00, method: PaymentMethod.BANK_TRANSFER, isSuccessful: true, transactionDate: new Date('2026-02-01') },
+  { leaseId: 19, amountPaid: 875.00, method: PaymentMethod.CREDIT_CARD, isSuccessful: false, transactionDate: new Date('2026-03-02') }, // FAILED
+  { leaseId: 19, amountPaid: 875.00, method: PaymentMethod.BANK_TRANSFER, isSuccessful: true, transactionDate: new Date('2026-03-05') }, // retried OK
 ];
 
 // ============================================
@@ -332,4 +348,6 @@ export const mockMaintenanceRequests = [
   { leaseId: 1, createdByUserId: 1, assignedStaffId: 31, category: MaintenanceCategory.APPLIANCE, description: 'Refrigerator making loud humming noise in Meadow Run North 101', status: MaintenanceStatus.OPEN, priority: MaintenancePriority.LOW },
   { leaseId: 5, createdByUserId: 7, assignedStaffId: 33, category: MaintenanceCategory.PLUMBING, description: 'Low water pressure in shower — Meadow Run South 101', status: MaintenanceStatus.RESOLVED, priority: MaintenancePriority.MEDIUM, resolvedAt: new Date('2026-01-25') },
   { leaseId: 2, createdByUserId: 6, assignedStaffId: 37, category: MaintenanceCategory.INTERNET, description: 'Smart TV unable to connect to ResNet WiFi in Unit 102 North', status: MaintenanceStatus.OPEN, priority: MaintenancePriority.LOW },
+  // --- Talha's maintenance request ---
+  { leaseId: 19, createdByUserId: 40, assignedStaffId: 32, category: MaintenanceCategory.HVAC, description: 'AC unit not turning on at all in Meadow Run South Unit 302', status: MaintenanceStatus.OPEN, priority: MaintenancePriority.HIGH },
 ];

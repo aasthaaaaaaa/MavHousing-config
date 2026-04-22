@@ -16,7 +16,7 @@ export class EmailTool {
     private readonly config: ConfigService,
   ) {
     this.resend = new Resend(this.config.get<string>('RESEND_API'));
-    this.defaultSender = 'Mav Housing Agent <onboarding@resend.dev>';
+    this.defaultSender = 'MavHousing Dev <dev@mavhousing.xyz>';
   }
 
   private get commsServerUrl(): string {

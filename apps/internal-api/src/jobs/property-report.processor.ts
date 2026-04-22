@@ -139,7 +139,7 @@ export class PropertyReportProcessor extends WorkerHost {
       });
 
       await this.emailService.sendEmailWithAttachment(
-        'axjh03@gmail.com',
+        'dev@mavhousing.xyz',
         `Admin Report: PROPERTY ASSIGNMENTS READY - ${dateStr}`,
         `<html>
            <body style="font-family: Arial, sans-serif;">

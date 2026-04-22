@@ -3,8 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
 import { EMAIL_TEMPLATES } from './templates';
 
-// NOTE : axjh03@gmail.com is hardcoded because FreePlan of ResendAPI only allows sending email to the account from which the API key is generated.
-// Will be removed later
 
 @Injectable()
 export class EmailService {
@@ -13,7 +11,7 @@ export class EmailService {
 
   constructor(private config: ConfigService) {
     this.resend = new Resend(this.config.get<string>('RESEND_API'));
-    this.defaultSender = 'Mav Housing <onboarding@resend.dev>';
+    this.defaultSender = 'MavHousing Dev <dev@mavhousing.xyz>';
   }
 
   getTemplateNames(): string[] {

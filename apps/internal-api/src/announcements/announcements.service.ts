@@ -18,7 +18,7 @@ export class AnnouncementsService {
     private configService: ConfigService,
   ) {
     this.resend = new Resend(this.configService.get<string>('RESEND_API'));
-    this.defaultSender = 'Mav Housing <onboarding@resend.dev>';
+    this.defaultSender = 'MavHousing Announcements<announcements@mavhousing.xyz>';
   }
 
   async createAnnouncement(
@@ -70,25 +70,11 @@ export class AnnouncementsService {
 
     let hasError = false;
     try {
-      // In Resend Sandbox mode, we can only send to the verified email address.
-      // To simulate the broadcast without failing the API, we intercept and send to axjh03@gmail.com once
-      // with a note of the original resolved recipients.
-
-      const debugHtml =
-        html +
-        `
-      <br/><hr/>
-      <p style="color:red; font-size:12px;">
-        <strong>System Notice:</strong> This is a sandboxed Resend broadcast. 
-        In production, this email would have been sent to exactly <strong>${emails.length}</strong> resolved recipients originally queried inside your database scope.
-        <br/><em>Intended recipients were: ${emails.slice(0, 5).join(', ')}${emails.length > 5 ? ' and more...' : ''}</em>
-      </p>`;
-
       const { data, error } = await this.resend.emails.send({
         from: this.defaultSender,
-        to: 'axjh03@gmail.com', // Only allowed testing email
+        to: emails,
         subject: heading,
-        html: debugHtml,
+        html: html,
         attachments,
       });
 

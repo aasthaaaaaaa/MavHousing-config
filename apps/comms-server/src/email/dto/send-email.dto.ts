@@ -4,7 +4,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class SendEmailDto {
   @ApiProperty({
     description: 'Recipient email address',
-    example: 'axjh03@gmail.com',
+    example: 'resident@mavs.uta.edu',
   })
   @IsEmail()
   to: string;
