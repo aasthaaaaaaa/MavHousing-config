@@ -10,7 +10,7 @@ export class EmailReplyService {
 
   constructor(private readonly config: ConfigService) {
     this.resend = new Resend(this.config.get<string>('RESEND_API'));
-    this.defaultSender = 'MavHousing Agent <onboarding@resend.dev>';
+    this.defaultSender = 'MavHousing Agent <agent@mavhousing.xyz>';
   }
 
   /**

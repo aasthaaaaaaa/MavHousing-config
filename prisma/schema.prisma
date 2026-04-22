@@ -31,15 +31,15 @@ model User {
   lockReason          String?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+  assignedPropertyId  Int?
   applications        Application[]
   sentMessages        ChatMessage[]
   readReceipts        ReadReceipt[]
   leases              Lease[]
+  maintenanceComments MaintenanceComment[]
   maintenanceAssigned MaintenanceRequest[] @relation("MaintenanceAssignedTo")
   maintenanceCreated  MaintenanceRequest[] @relation("MaintenanceCreatedBy")
-  maintenanceComments MaintenanceComment[]
   occupancies         Occupant[]           @relation("Occupants")
-  assignedPropertyId  Int?
   assignedProperty    Property?            @relation("StaffAssignedProperty", fields: [assignedPropertyId], references: [propertyId])
 
   @@map("users")
@@ -181,24 +181,24 @@ model Payment {
 }
 
 model MaintenanceRequest {
-  requestId       Int                 @id @default(autoincrement())
-  leaseId         Int
-  createdByUserId Int
-  assignedStaffId Int?
-  category        MaintenanceCategory
-  description     String
-  location        String?
-  status          MaintenanceStatus   @default(OPEN)
-  priority        MaintenancePriority @default(MEDIUM)
-  createdAt       DateTime            @default(now())
-  resolvedAt      DateTime?
+  requestId        Int                  @id @default(autoincrement())
+  leaseId          Int
+  createdByUserId  Int
+  assignedStaffId  Int?
+  category         MaintenanceCategory
+  description      String
+  location         String?
+  status           MaintenanceStatus    @default(OPEN)
+  priority         MaintenancePriority  @default(MEDIUM)
+  createdAt        DateTime             @default(now())
+  resolvedAt       DateTime?
   resolutionReason String?
-  attachments     String[]            @default([])
-  updatedAt       DateTime            @updatedAt
-  assignedStaff   User?               @relation("MaintenanceAssignedTo", fields: [assignedStaffId], references: [userId])
-  createdBy       User                @relation("MaintenanceCreatedBy", fields: [createdByUserId], references: [userId], onDelete: Cascade)
-  lease           Lease               @relation(fields: [leaseId], references: [leaseId], onDelete: Cascade)
-  comments        MaintenanceComment[]
+  attachments      String[]             @default([])
+  updatedAt        DateTime             @updatedAt
+  comments         MaintenanceComment[]
+  assignedStaff    User?                @relation("MaintenanceAssignedTo", fields: [assignedStaffId], references: [userId])
+  createdBy        User                 @relation("MaintenanceCreatedBy", fields: [createdByUserId], references: [userId], onDelete: Cascade)
+  lease            Lease                @relation(fields: [leaseId], references: [leaseId], onDelete: Cascade)
 
   @@map("maintenance_requests")
 }
@@ -207,8 +207,8 @@ model MaintenanceComment {
   id            String             @id @default(cuid())
   requestId     Int
   userId        Int
-  content       String?            @db.Text
-  attachmentUrl String?            @db.Text
+  content       String?
+  attachmentUrl String?
   createdAt     DateTime           @default(now())
   request       MaintenanceRequest @relation(fields: [requestId], references: [requestId], onDelete: Cascade)
   user          User               @relation(fields: [userId], references: [userId], onDelete: Cascade)

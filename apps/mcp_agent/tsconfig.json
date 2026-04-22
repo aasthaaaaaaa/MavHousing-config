@@ -10,8 +10,8 @@
     "allowSyntheticDefaultImports": true,
     "target": "ES2021",
     "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": "../../",
+    "outDir": "../../dist/apps/mcp_agent",
+    "baseUrl": ".",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
@@ -20,9 +20,9 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@common/*": ["common/*"],
-      "@mav-housing/prisma": ["generated/prisma"],
-      "@mav-housing/prisma/*": ["generated/prisma/*"]
+      "@common/*": ["../../common/*"],
+      "@mav-housing/prisma": ["../../generated/prisma"],
+      "@mav-housing/prisma/*": ["../../generated/prisma/*"]
     }
   },
   "include": ["src/**/*"],

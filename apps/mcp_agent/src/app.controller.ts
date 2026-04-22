@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body, Logger, HttpCode } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { AgentService } from './agent/agent.service';
 import { GraphqlClientService } from './graphql/graphql-client.service';
@@ -11,6 +12,7 @@ export class AppController {
   constructor(
     private readonly agentService: AgentService,
     private readonly graphqlClient: GraphqlClientService,
+    private readonly configService: ConfigService,
   ) {}
 
   // ─────────────────────────────────────────
@@ -31,6 +33,7 @@ export class AppController {
         mcpSse: '/sse',
         webhook: '/webhook/resend',
         agentQuery: 'POST /agent/query',
+        publicWebhook: this.configService.get<string>('WEBHOOK_PROXY_URL'),
       },
     };
   }

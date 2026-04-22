@@ -36,15 +36,15 @@ async function bootstrap() {
   logger.log(`\n${'═'.repeat(60)}`);
   logger.log(`🤖 MavHousing MCP Agent is LIVE!`);
   logger.log(`${'─'.repeat(60)}`);
-  logger.log(`   🌐 HTTP Server:    http://localhost:${port}`);
-  logger.log(`   📡 MCP SSE:        http://localhost:${port}/sse`);
-  logger.log(`   📖 Swagger API:    http://localhost:${port}/api`);
-  logger.log(`   📨 Resend Webhook: http://localhost:${port}/webhook/resend`);
-  logger.log(`   🔍 Agent Query:    POST http://localhost:${port}/agent/query`);
+  logger.log(`    HTTP Server:    http://localhost:${port}`);
+  logger.log(`    MCP SSE:        http://localhost:${port}/sse`);
+  logger.log(`    Swagger API:    http://localhost:${port}/api`);
+  logger.log(`    Resend Webhook: http://localhost:${port}/webhook/resend`);
+  logger.log(`    Agent Query:    POST http://localhost:${port}/agent/query`);
   logger.log(`${'─'.repeat(60)}`);
-  logger.log(`   ⚡ Connected to: PostgreSQL, internal-api, comms-server`);
-  logger.log(`   🔒 RBAC:         ADMIN | STAFF | STUDENT`);
-  logger.log(`   🔧 MCP Tools:    15+ tools across all services`);
+  logger.log(`    Connected to: PostgreSQL, internal-api, comms-server`);
+  logger.log(`    RBAC:         ADMIN | STAFF | STUDENT`);
+  logger.log(`    MCP Tools:    15+ tools across all services`);
   logger.log(`${'═'.repeat(60)}\n`);
 }
 bootstrap();

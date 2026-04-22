@@ -10,13 +10,13 @@
   "monorepo": true,
   "root": "apps/auth-server",
   "projects": {
-    "agent-server": {
+    "mcp_agent": {
       "type": "application",
-      "root": "apps/agent-server",
+      "root": "apps/mcp_agent",
       "entryFile": "main",
-      "sourceRoot": "apps/agent-server/src",
+      "sourceRoot": "apps/mcp_agent/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/agent-server/tsconfig.app.json"
+        "tsConfigPath": "apps/mcp_agent/tsconfig.json"
       }
     },
     "auth-server": {

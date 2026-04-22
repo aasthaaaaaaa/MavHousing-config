@@ -13,6 +13,7 @@
     "start:auth": "nest start auth-server --watch",
     "start:comms": "nest start comms-server --watch",
     "start:internal": "nest start internal-api --watch",
+    "start:mcp": "nest start mcp_agent --watch",
     "start:public": "nest start public-api --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/apps/auth-server/main",
@@ -26,6 +27,7 @@
     "web:build": "npm run build --prefix apps/web",
     "web:start": "npm run start --prefix apps/web",
     "web:lint": "npm run lint --prefix apps/web",
+    "webhook:listen": "export $(grep -v '^#' .env | xargs) && smee --url $WEBHOOK_PROXY_URL --target http://localhost:3007/webhook/resend",
     "seed": "npx prisma generate && ts-node --project prisma/tsconfig.json prisma/seed.ts"
   },
   "dependencies": {
