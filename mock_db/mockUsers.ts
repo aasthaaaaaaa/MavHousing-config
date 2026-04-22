@@ -28,7 +28,7 @@ export const mockUsers = [
     netId: 'axk0246',
     fName: 'Aastha',
     lName: 'Khatri',
-    email: 'axk0246@uta.edu',
+    email: 'axk0246@mavs.uta.edu',
     phone: '817-555-0100',
     passwordHash: 'P@ssw0rd123',
     dob: new Date('2003-08-09'),

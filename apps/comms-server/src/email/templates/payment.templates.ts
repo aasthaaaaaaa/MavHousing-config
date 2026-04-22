@@ -32,7 +32,7 @@ export function paymentSuccessful(ctx: TemplateContext) {
       ${ctx.context ? `<p><strong>Details:</strong> ${ctx.context}</p>` : ''}
       <p>${portalLink(ctx.portalUrl)}</p>
       <hr class="divider" />
-      <p>Thank you for your payment. If you have any concerns, contact Housing Operations at <a href="mailto:housing@uta.edu">housing@uta.edu</a>.</p>
+      <p>Thank you for your payment. If you have any concerns, contact Housing Operations at <a href="mailto:blaze@mavhousing.xyz">blaze@mavhousing.xyz</a>.</p>
     `),
   };
 }

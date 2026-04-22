@@ -23,7 +23,7 @@ export function welcome(ctx: TemplateContext) {
       <p>Your Mav Housing account is ready. You can now log in to start your housing application.</p>
       <p>${portalLink(ctx.portalUrl)}</p>
       <hr class="divider" />
-      <p>If you have any questions, contact Housing Operations at <strong>817-272-2791</strong> or <a href="mailto:housing@uta.edu">housing@uta.edu</a>.</p>
+      <p>If you have any questions, contact Housing Operations at <strong>817-272-2791</strong> or <a href="mailto:blaze@mavhousing.xyz">blaze@mavhousing.xyz</a>.</p>
     `),
   };
 }
@@ -32,14 +32,14 @@ export function welcome(ctx: TemplateContext) {
 
 export function submitted(ctx: TemplateContext) {
   return {
-    subject: 'Application Received — We\'ll Be in Touch',
+    subject: "Application Received — We'll Be in Touch",
     html: baseLayout(`
       <h1>Application Received</h1>
       <p>Hi ${ctx.firstName},</p>
       <p>Your housing application has been <span class="highlight">successfully submitted</span> and is currently under review. We will notify you once a decision has been made.</p>
       <p>${portalLink(ctx.portalUrl)}</p>
       <hr class="divider" />
-      <p>Monitor your housing portal for status updates. Questions? Contact Housing Operations at <a href="mailto:housing@uta.edu">housing@uta.edu</a>.</p>
+      <p>Monitor your housing portal for status updates. Questions? Contact Housing Operations at <a href="mailto:blaze@mavhousing.xyz">blaze@mavhousing.xyz</a>.</p>
     `),
   };
 }
@@ -55,7 +55,7 @@ export function incomplete(ctx: TemplateContext) {
       <p>Your housing application is <span class="highlight">incomplete</span>. Please finish and submit it before the deadline to secure your housing.</p>
       <p>${portalLink(ctx.portalUrl)}</p>
       <hr class="divider" />
-      <p>Need help? Contact us at <a href="mailto:housing@uta.edu">housing@uta.edu</a>.</p>
+      <p>Need help? Contact us at <a href="mailto:blaze@mavhousing.xyz">blaze@mavhousing.xyz</a>.</p>
     `),
   };
 }
@@ -72,7 +72,7 @@ export function deleted(ctx: TemplateContext) {
       ${ctx.context ? `<p><strong>Details:</strong> ${ctx.context}</p>` : ''}
       <p>${portalLink(ctx.portalUrl)}</p>
       <hr class="divider" />
-      <p>Housing Operations: <strong>817-272-2791</strong> · <a href="mailto:housing@uta.edu">housing@uta.edu</a></p>
+      <p>Housing Operations: <strong>817-272-2791</strong> · <a href="mailto:blaze@mavhousing.xyz">blaze@mavhousing.xyz</a></p>
     `),
   };
 }

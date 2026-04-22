@@ -33,7 +33,7 @@ export function missingDocuments(ctx: TemplateContext) {
       ${ctx.context ? `<p><strong>Required:</strong> ${ctx.context}</p>` : ''}
       <p>${portalLink(ctx.portalUrl)}</p>
       <hr class="divider" />
-      <p>If you have questions, contact Housing Operations at <strong>817-272-2791</strong> or <a href="mailto:housing@uta.edu">housing@uta.edu</a>.</p>
+      <p>If you have questions, contact Housing Operations at <strong>817-272-2791</strong> or <a href="mailto:blaze@mavhousing.xyz">blaze@mavhousing.xyz</a>.</p>
     `),
   };
 }

@@ -596,11 +596,11 @@ export default function LandingPage() {
                 </p>
                 <div className="space-y-2.5">
                   <a
-                    href="mailto:Housing@uta.edu"
+                    href="mailto:blaze@mavhousing.xyz"
                     className="flex items-center gap-3 text-sm font-medium text-[#0a2240] transition-colors hover:text-[#c75b12]"
                   >
                     <Mail className="h-4 w-4 text-[#c75b12]" />
-                    Housing@uta.edu
+                    blaze@mavhousing.xyz
                   </a>
                   <a
                     href="tel:817-272-2791"
@@ -732,7 +732,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-center gap-3 text-sm text-white/50">
                   <Mail className="h-4 w-4 text-[#c75b12]" />
-                  <span>Housing@uta.edu · livingoncampus@uta.edu</span>
+                  <span>blaze@mavhousing.xyz · livingoncampus@uta.edu</span>
                 </div>
               </div>
             </div>
