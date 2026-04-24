@@ -81,6 +81,8 @@ MODEL: MaintenanceComment
 export class GeminiService {
   private readonly logger = new Logger(GeminiService.name);
   private readonly model;
+  private readonly hasApiKey: boolean;
+  private geminiDisabledUntil = 0;
 
   private readonly systemPrompt = `
 You are Blaze AI, the intelligent assistant for MavHousing, the student housing system at the University of Texas at Arlington (UTA).
@@ -105,6 +107,7 @@ Important rules:
 
   constructor(private readonly config: ConfigService) {
     const apiKey = this.config.get<string>('GEMINI_API_KEY');
+    this.hasApiKey = Boolean(apiKey);
     if (!apiKey) {
       this.logger.warn(
         'GEMINI_API_KEY not set. Blaze AI will use fallback responses.',
@@ -130,6 +133,10 @@ Important rules:
       params: Record<string, any>;
     }>
   > {
+    if (this.shouldUseFallback()) {
+      return [];
+    }
+
     const prompt = `
 You are a database query planner for a university housing system.
 
@@ -184,7 +191,8 @@ JSON array:`;
       const parsed = JSON.parse(jsonMatch[0]);
       return Array.isArray(parsed) ? parsed : [];
     } catch (error) {
-      this.logger.error(`Gemini query planning failed: ${error}`);
+      const reason = this.handleGeminiError(error, 'query planning');
+      this.logger.error(`Gemini query planning failed (${reason}).`);
       return [];
     }
   }
@@ -198,6 +206,10 @@ JSON array:`;
     originalMessage: string,
     queryResults: Array<{ description: string; data: string }>,
   ): Promise<string> {
+    if (this.shouldUseFallback()) {
+      return this.fallbackReply(userName, queryResults, 'service_unavailable');
+    }
+
     const dataSection =
       queryResults.length > 0
         ? queryResults
@@ -238,16 +250,82 @@ Your reply:`;
         .trim();
       return reply;
     } catch (error) {
-      this.logger.error(`Gemini reply composition failed: ${error}`);
-      return this.fallbackReply(userName, queryResults);
+      const reason = this.handleGeminiError(error, 'reply composition');
+      this.logger.error(`Gemini reply composition failed (${reason}).`);
+      return this.fallbackReply(userName, queryResults, 'service_unavailable');
     }
+  }
+
+  private shouldUseFallback(): boolean {
+    if (!this.hasApiKey) {
+      return true;
+    }
+
+    return Date.now() < this.geminiDisabledUntil;
+  }
+
+  isInFallbackMode(): boolean {
+    return this.shouldUseFallback();
+  }
+
+  private handleGeminiError(
+    error: unknown,
+    context: 'query planning' | 'reply composition',
+  ): string {
+    const message = this.getErrorMessage(error).toLowerCase();
+    const isQuotaOrRateLimit =
+      message.includes('quota exceeded') ||
+      message.includes('too many requests') ||
+      message.includes('[429');
+
+    if (isQuotaOrRateLimit) {
+      const retryMs = this.extractRetryDelayMs(message);
+      const quotaLimitZero = message.includes('limit: 0');
+      const cooldownMs = quotaLimitZero
+        ? 30 * 60 * 1000
+        : Math.max(retryMs ?? 0, 60 * 1000);
+
+      this.geminiDisabledUntil = Date.now() + cooldownMs;
+      this.logger.warn(
+        `Gemini ${context} hit quota/rate limits, using fallback for ${Math.ceil(cooldownMs / 1000)}s.`,
+      );
+      return 'quota_or_rate_limit';
+    }
+
+    return 'unexpected_error';
+  }
+
+  private extractRetryDelayMs(message: string): number | undefined {
+    const retryDelayMatch = message.match(/"retrydelay":"(\d+)s"/i);
+    if (retryDelayMatch) {
+      return Number(retryDelayMatch[1]) * 1000;
+    }
+
+    const retryInMatch = message.match(/retry in\s+([\d.]+)s/i);
+    if (retryInMatch) {
+      return Math.ceil(Number(retryInMatch[1]) * 1000);
+    }
+
+    return undefined;
+  }
+
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return String(error);
   }
 
   private fallbackReply(
     userName: string,
     queryResults: Array<{ description: string; data: string }>,
+    reason: 'unknown_request' | 'service_unavailable' = 'unknown_request',
   ): string {
     if (queryResults.length === 0) {
+      if (reason === 'service_unavailable') {
+        return `<p>Hi ${userName},</p><p>I am Blaze AI, your MavHousing assistant. I am temporarily unable to access AI generation right now, but I can still help with lease details, payments, maintenance requests, and housing availability once data is available.</p><p>Please try again shortly.</p><p>Best regards,<br>Blaze AI</p>`;
+      }
+
       return `<p>Hi ${userName},</p><p>I am Blaze AI, your MavHousing assistant. I was not able to understand your request. You can ask me about your lease, payments, maintenance requests, available housing, and more.</p><p>Best regards,<br>Blaze AI</p>`;
     }
 

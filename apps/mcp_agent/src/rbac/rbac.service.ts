@@ -23,8 +23,10 @@ export class RbacService {
    * Returns null if the user is not found or has DRAFT role (unverified).
    */
   async identifyByEmail(email: string): Promise<RbacContext | null> {
+    const normalizedEmail = email.toLowerCase().trim();
+
     const user = await this.prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
       select: {
         userId: true,
         netId: true,
@@ -38,12 +40,14 @@ export class RbacService {
     });
 
     if (!user) {
-      this.logger.warn(`RBAC: No user found for email "${email}"`);
+      this.logger.warn(`RBAC: No user found for email "${normalizedEmail}"`);
       return null;
     }
 
     if (user.role === 'DRAFT') {
-      this.logger.warn(`RBAC: User "${email}" has DRAFT role — access denied`);
+      this.logger.warn(
+        `RBAC: User "${normalizedEmail}" has DRAFT role — access denied`,
+      );
       return null;
     }
 
