@@ -125,7 +125,7 @@ export class LeaseReportProcessor extends WorkerHost {
       });
 
       await this.emailService.sendEmailWithAttachment(
-        'dev@mavhousing.xyz',
+        'axjh03@gmail.com',
         `Admin Report: COMPREHENSIVE LEASE INVENTORY - ${dateStr}`,
         `<p>Please find attached the requested <strong>detailed lease inventory</strong> report generated on ${now.toLocaleString()}.</p>
          <p>This report includes sorting by property, all occupants per lease, and maintenance ticket counts.</p>`,

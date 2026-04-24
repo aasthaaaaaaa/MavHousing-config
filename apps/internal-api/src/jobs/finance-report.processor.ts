@@ -117,7 +117,7 @@ export class FinanceReportProcessor extends WorkerHost {
       });
 
       await this.emailService.sendEmailWithAttachment(
-        'dev@mavhousing.xyz',
+        'axjh03@gmail.com',
         `Admin Report: FINANCIAL AUDIT - ${netId || 'ALL'}`,
         `<p>Attached is the requested financial report. </p>
          <p><strong>Parameters:</strong><br>

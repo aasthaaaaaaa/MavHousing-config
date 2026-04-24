@@ -29,7 +29,7 @@ export const mockUsers = [
     fName: 'Aastha',
     lName: 'Khatri',
     email: 'axk0246@mavs.uta.edu',
-    phone: '817-555-0100',
+    phone: 8175550100,
     passwordHash: 'P@ssw0rd123',
     dob: new Date('2003-08-09'),
     gender: Gender.FEMALE,

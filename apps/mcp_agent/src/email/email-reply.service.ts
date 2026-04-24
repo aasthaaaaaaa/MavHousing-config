@@ -16,7 +16,11 @@ export class EmailReplyService {
   /**
    * Send a formatted reply back to the email sender.
    */
-  async replyToSender(to: string, subject: string, content: string): Promise<boolean> {
+  async replyToSender(
+    to: string,
+    subject: string,
+    content: string,
+  ): Promise<boolean> {
     try {
       await this.resend.emails.send({
         to,
@@ -35,7 +39,11 @@ export class EmailReplyService {
   /**
    * Send a professional reply to unregistered senders.
    */
-  async sendNotRegistered(to: string, originalSubject: string, displayName: string): Promise<void> {
+  async sendNotRegistered(
+    to: string,
+    originalSubject: string,
+    displayName: string,
+  ): Promise<void> {
     await this.replyToSender(
       to,
       originalSubject,
@@ -120,14 +128,18 @@ export class EmailReplyService {
         }
         return `<p>${String(r)}</p>`;
       })
-      .join('<hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">');
+      .join(
+        '<hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">',
+      );
   }
 
   private formatObjectAsCard(obj: any): string {
     const entries = Object.entries(obj)
       .filter(([, v]) => v !== null && v !== undefined)
       .map(([k, v]) => {
-        const label = k.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase());
+        const label = k
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/^./, (s) => s.toUpperCase());
         const value = typeof v === 'object' ? JSON.stringify(v) : String(v);
         return `<tr>
           <td style="padding: 6px 12px; font-weight: 600; color: #374151; white-space: nowrap; vertical-align: top;">${label}</td>
@@ -142,12 +154,15 @@ export class EmailReplyService {
   }
 
   private formatArrayAsTable(arr: any[]): string {
-    if (arr.length === 0) return '<p style="color: #6b7280;">No records found.</p>';
+    if (arr.length === 0)
+      return '<p style="color: #6b7280;">No records found.</p>';
 
     const headers = Object.keys(arr[0]);
     const headerRow = headers
       .map((h) => {
-        const label = h.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase());
+        const label = h
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/^./, (s) => s.toUpperCase());
         return `<th style="padding: 8px 12px; background: #0064B1; color: white; text-align: left; font-size: 12px;">${label}</th>`;
       })
       .join('');

@@ -19,7 +19,7 @@ async function bootstrap() {
     .setTitle('MavHousing MCP Agent')
     .setDescription(
       'AI-powered housing agent with RBAC, email gateway (Resend), ' +
-      'MCP tools, and GraphQL connectivity. Connects to all MavHousing services.',
+        'MCP tools, and GraphQL connectivity. Connects to all MavHousing services.',
     )
     .setVersion('1.0.0')
     .addTag('Agent', 'Natural language query processing')

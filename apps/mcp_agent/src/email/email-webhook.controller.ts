@@ -68,6 +68,12 @@ export class EmailWebhookController {
       return { received: true, processed: false, reason: 'No sender email' };
     }
 
+    // 🛑 LOOP PREVENTION: Do not process emails from our own system domains
+    if (senderEmail.endsWith('@mavhousing.xyz') || senderEmail.endsWith('@resend.dev')) {
+      this.logger.log(`🛑 Ignoring internal email from ${senderEmail} to prevent auto-reply loops.`);
+      return { received: true, processed: false, reason: 'Internal system email ignored' };
+    }
+
     this.logger.log(`📬 Inbound email from: ${senderEmail} | Subject: "${subject}" | ID: ${emailId || 'N/A'}`);
 
     // Fetch the actual email body from Resend API
