@@ -75,11 +75,11 @@ MavHousing was successfully developed as a functional, end-to-end university hou
 - **Automated Lease Renewals:** Implementing a one-click renewal system for returning students to simplify the housing transition each semester.
 
 ## Project Files
-- [Project Charter](https://github.com/aasthaaaaaaa/MavHousing-config/blob/main/docs/Project%20Charter.pdf)
-- [System Requirements Specification](https://github.com/aasthaaaaaaa/MavHousing-config/blob/main/docs/System%20Requirements.pdf)
-- [Architectural Design Specification](https://github.com/aasthaaaaaaa/MavHousing-config/blob/main/docs/Architecture%20Design.pdf)
-- [Detailed Design Specification](https://github.com/aasthaaaaaaa/MavHousing-config/blob/main/docs/Detailed%20Design%20Specification.pdf)
-- [Project Poster](https://github.com/aasthaaaaaaa/MavHousing-config/blob/main/docs/MavHousing_poster.png)
+- [Project Charter](https://drive.google.com/file/d/1T7EqSGyQYTCm-g4328QQapX1ejH5yZmH/view?usp=drive_link)
+- [System Requirements Specification](https://drive.google.com/file/d/1VSDdpqsW0CMKccbGc0i9dx_1PB5hnkhH/view?usp=drive_link)
+- [Architectural Design Specification](https://drive.google.com/file/d/1zPHfOZJyTKmP4G-OiZ7EfhemwQTFKftP/view?usp=sharing)
+- [Detailed Design Specification](https://drive.google.com/file/d/1REWGw1E6YZqnFI6L8NdbWojFMkYT2Mf0/view?usp=drive_link)
+- [Project Poster](https://drive.google.com/file/d/1AfX_vvt4lrAL-vyUN-ZF-Amrbe3RARe_/view?usp=sharing)
 
 ## References
 1. Next.js Documentation. React Framework for Production. https://nextjs.org/docs
